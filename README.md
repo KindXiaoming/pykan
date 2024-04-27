@@ -27,3 +27,11 @@ To install requirements:
 ```python
 pip install -r requirements.txt
 ```
+
+## Documentation
+The documenation can be found here [].
+
+## Tutorials
+Jupyter Notebooks in ``docs/Examples`` and ``docs/API_demo`` are ready to play.
+
+
