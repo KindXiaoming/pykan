@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: pykan
+Version: 0.0.1
+Summary: Kolmogorov Arnold Networks
+Author: Ziming Liu
+Author-email: zmliu@mit.edu
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
