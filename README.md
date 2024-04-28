@@ -11,12 +11,6 @@ Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perc
 ## Installation
 There are two ways to install pykan, through pypi or github.
 
-**Installation via pypi**
-
-```python
-pip install pykan
-```
-
 **Installation via github**
 
 ```python
@@ -24,6 +18,13 @@ git clone https://github.com/KindXiaoming/pykan.git
 cd pykan
 pip install -e .
 ```
+
+**Installation via pypi (soon)**
+
+```python
+pip install pykan
+```
+
 
 To install requirements:
 ```python
