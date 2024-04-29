@@ -18,16 +18,16 @@ There are two ways to install kan. The first way is via pip install
 
 .. code-block:: python
 
-   pip install kan
+   pip install pykan
    
 The second way is via github
 
 .. code-block:: python
 
-   git clone repolink
-   cd kan
+   git clone https://github.com/KindXiaoming/pykan.git
+   cd pykan
    pip install -e .
-
+   # pip install -r requirements.txt # install requirements
 
 .. toctree::
    :maxdepth: 1

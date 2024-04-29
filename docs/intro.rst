@@ -1,8 +1,67 @@
 Hello, KAN!
 ===========
 
+Kolmogorov-Arnold representation theorem
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Kolmogorov-Arnold representation theorem states that if :math:`f` is a
+multivariate continuous function on a bounded domain, then it can be
+written as a finite composition of continuous functions of a single
+variable and the binary operation of addition. More specifically, for a
+smooth :math:`f : [0,1]^n \to \mathbb{R}`,
+
+.. math:: f(x) = f(x_1,...,x_n)=\sum_{q=1}^{2n+1}\Phi_q(\sum_{p=1}^n \phi_{q,p}(x_p))
+
+where :math:`\phi_{q,p}:[0,1]\to\mathbb{R}` and
+:math:`\Phi_q:\mathbb{R}\to\mathbb{R}`. In a sense, they showed that the
+only true multivariate function is addition, since every other function
+can be written using univariate functions and sum. However, this 2-Layer
+width-:math:`(2n+1)` Kolmogorov-Arnold representation may not be smooth
+due to its limited expressive power. We augment its expressive power by
+generalizing it to arbitrary depths and widths.
+
+Kolmogorov-Arnold Network (KAN)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Kolmogorov-Arnold representation can be written in matrix form
+
+.. math:: f(x)={\bf \Phi}_{\rm out}\circ{\bf \Phi}_{\rm in}\circ {\bf x}
+
+where
+
+.. math:: {\bf \Phi}_{\rm in}= \begin{pmatrix} \phi_{1,1}(\cdot) & \cdots & \phi_{1,n}(\cdot) \\ \vdots & & \vdots \\ \phi_{2n+1,1}(\cdot) & \cdots & \phi_{2n+1,n}(\cdot) \end{pmatrix},\quad {\bf \Phi}_{\rm out}=\begin{pmatrix} \Phi_1(\cdot) & \cdots & \Phi_{2n+1}(\cdot)\end{pmatrix}
+
+We notice that both :math:`{\bf \Phi}_{\rm in}` and
+:math:`{\bf \Phi}_{\rm out}` are special cases of the following function
+matrix :math:`{\bf \Phi}` (with :math:`n_{\rm in}` inputs, and
+:math:`n_{\rm out}` outputs), we call a Kolmogorov-Arnold layer:
+
+.. math:: {\bf \Phi}= \begin{pmatrix} \phi_{1,1}(\cdot) & \cdots & \phi_{1,n_{\rm in}}(\cdot) \\ \vdots & & \vdots \\ \phi_{n_{\rm out},1}(\cdot) & \cdots & \phi_{n_{\rm out},n_{\rm in}}(\cdot) \end{pmatrix}
+
+:math:`{\bf \Phi}_{\rm in}` corresponds to
+:math:`n_{\rm in}=n, n_{\rm out}=2n+1`, and :math:`{\bf \Phi}_{\rm out}`
+corresponds to :math:`n_{\rm in}=2n+1, n_{\rm out}=1`.
+
+After defining the layer, we can construct a Kolmogorov-Arnold network
+simply by stacking layers! Let’s say we have :math:`L` layers, with the
+:math:`l^{\rm th}` layer :math:`{\bf \Phi}_l` have shape
+:math:`(n_{l+1}, n_{l})`. Then the whole network is
+
+.. math:: {\rm KAN}({\bf x})={\bf \Phi}_{L-1}\circ\cdots \circ{\bf \Phi}_1\circ{\bf \Phi}_0\circ {\bf x}
+
+In constrast, a Multi-Layer Perceptron is interleaved by linear layers
+:math:`{\bf W}_l` and nonlinearities :math:`\sigma`:
+
+.. math:: {\rm MLP}({\bf x})={\bf W}_{L-1}\circ\sigma\circ\cdots\circ {\bf W}_1\circ\sigma\circ {\bf W}_0\circ {\bf x}
+
+A KAN can be easily visualized. (1) A KAN is simply stack of KAN layers.
+(2) Each KAN layer can be visualized as a fully-connected layer, with a
+1D function placed on each edge. Let’s see an example below.
+
+Get started with KANs
+~~~~~~~~~~~~~~~~~~~~~
+
 Initialize KAN
-~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -11,7 +70,6 @@ Initialize KAN
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
 
 Create dataset
-~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -30,7 +88,6 @@ Create dataset
 
 
 Plot KAN at initialization
-~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -40,11 +97,10 @@ Plot KAN at initialization
 
 
 
-.. image:: intro_files/intro_6_0.png
+.. image:: intro_files/intro_15_0.png
 
 
 Train KAN with sparsity regularization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -54,11 +110,10 @@ Train KAN with sparsity regularization
 
 .. parsed-literal::
 
-    train loss: 6.96e-02 | test loss: 6.53e-02 | reg: 2.39e+01 : 100%|█| 20/20 [00:1
+    train loss: 1.57e-01 | test loss: 1.31e-01 | reg: 2.05e+01 : 100%|██| 20/20 [00:18<00:00,  1.06it/s]
 
 
 Plot trained KAN
-~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -66,11 +121,10 @@ Plot trained KAN
 
 
 
-.. image:: intro_files/intro_10_0.png
+.. image:: intro_files/intro_19_0.png
 
 
 Prune KAN and replot (keep the original shape)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -79,11 +133,10 @@ Prune KAN and replot (keep the original shape)
 
 
 
-.. image:: intro_files/intro_12_0.png
+.. image:: intro_files/intro_21_0.png
 
 
 Prune KAN and replot (get a smaller shape)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -93,11 +146,10 @@ Prune KAN and replot (get a smaller shape)
 
 
 
-.. image:: intro_files/intro_14_0.png
+.. image:: intro_files/intro_23_0.png
 
 
 Continue training and replot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -106,7 +158,7 @@ Continue training and replot
 
 .. parsed-literal::
 
-    train loss: 4.69e-03 | test loss: 4.75e-03 | reg: 2.76e+00 : 100%|█| 50/50 [00:0
+    train loss: 4.74e-03 | test loss: 4.80e-03 | reg: 2.98e+00 : 100%|██| 50/50 [00:07<00:00,  7.03it/s]
 
 
 .. code:: ipython3
@@ -115,16 +167,15 @@ Continue training and replot
 
 
 
-.. image:: intro_files/intro_17_0.png
+.. image:: intro_files/intro_26_0.png
 
 
 Automatically or manually set activation functions to be symbolic
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
     mode = "auto" # "manual"
-
+    
     if mode == "manual":
         # manual mode
         model.fix_symbolic(0,0,0,'sin');
@@ -138,13 +189,12 @@ Automatically or manually set activation functions to be symbolic
 
 .. parsed-literal::
 
-    fixing (0,0,0) with sin, r2=0.999987303715613
-    fixing (0,1,0) with x^2, r2=0.9999997184335331
-    fixing (1,0,0) with exp, r2=0.9999992042106736
+    fixing (0,0,0) with sin, r2=0.999987252534279
+    fixing (0,1,0) with x^2, r2=0.9999996536741071
+    fixing (1,0,0) with exp, r2=0.9999988529417926
 
 
 Continue training to almost machine precision
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -153,15 +203,14 @@ Continue training to almost machine precision
 
 .. parsed-literal::
 
-    train loss: 8.88e-12 | test loss: 8.29e-12 | reg: 2.76e+00 : 100%|█| 50/50 [00:0
+    train loss: 2.02e-10 | test loss: 1.13e-10 | reg: 2.98e+00 : 100%|██| 50/50 [00:02<00:00, 22.59it/s]
 
 
 Obtain the symbolic formula
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
-    model.symbolic_formula()[0]
+    model.symbolic_formula()[0][0]
 
 
 
