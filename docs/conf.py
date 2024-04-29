@@ -46,7 +46,7 @@ autodoc_mock_imports = ["numpy",
                         "matplotlib.pyplot",
                         "tqdm",
                         "sympy",
-                        "sklean",
+                        "scikit-learn",
                         "sklearn.linear_model",
                         "torch.optim"]
            
