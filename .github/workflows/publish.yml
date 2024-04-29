@@ -9,7 +9,7 @@ jobs:
     name: Publish release to PyPI
     runs-on: ubuntu-latest
     environment:
-      name: pypi
+      name: release
       url: https://pypi.org/p/pykan
     permissions:
       id-token: write
