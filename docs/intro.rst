@@ -1,3 +1,5 @@
+.. _hello-kan:
+
 Hello, KAN!
 ===========
 

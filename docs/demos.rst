@@ -1,3 +1,5 @@
+.. _api-demo:
+
 API Demos
 ---------
 
