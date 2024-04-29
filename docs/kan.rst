@@ -8,7 +8,6 @@ kan.KAN module
 --------------
 
 .. automodule:: kan.KAN
-   :maxdepth: 4
    :members:
    :undoc-members:
    :show-inheritance:
@@ -17,7 +16,6 @@ kan.KANLayer module
 -------------------
 
 .. automodule:: kan.KANLayer
-   :maxdepth: 4
    :members:
    :undoc-members:
    :show-inheritance:
