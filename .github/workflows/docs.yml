@@ -21,7 +21,7 @@ jobs:
       run: |
         pip install -U sphinx
         pip install sphinx-rtd-theme
-        pip install scikit-learn==0.24
+        pip install scikit-learn==0.13
     
     - name: Build docs
       run: |
