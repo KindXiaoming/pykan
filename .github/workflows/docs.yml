@@ -25,6 +25,7 @@ jobs:
     - name: Build docs
       run: |
         cd docs
+        sphinx-apidoc -o . ../kan
         make html
     # https://github.com/peaceiris/actions-gh-pages
     - name: Deploy
