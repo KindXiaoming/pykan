@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hello, KAN! &mdash; Kolmogorov Arnold Network  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -83,9 +83,9 @@
            <div itemprop="articleBody">
              
   <section id="hello-kan">
-<span id="id1"></span><h1>Hello, KAN!<a class="headerlink" href="#hello-kan" title="Link to this heading"></a></h1>
+<span id="id1"></span><h1>Hello, KAN!<a class="headerlink" href="#hello-kan" title="Permalink to this heading"></a></h1>
 <section id="kolmogorov-arnold-representation-theorem">
-<h2>Kolmogorov-Arnold representation theorem<a class="headerlink" href="#kolmogorov-arnold-representation-theorem" title="Link to this heading"></a></h2>
+<h2>Kolmogorov-Arnold representation theorem<a class="headerlink" href="#kolmogorov-arnold-representation-theorem" title="Permalink to this heading"></a></h2>
 <p>Kolmogorov-Arnold representation theorem states that if <span class="math notranslate nohighlight">\(f\)</span> is a
 multivariate continuous function on a bounded domain, then it can be
 written as a finite composition of continuous functions of a single
@@ -102,7 +102,7 @@ due to its limited expressive power. We augment its expressive power by
 generalizing it to arbitrary depths and widths.</p>
 </section>
 <section id="kolmogorov-arnold-network-kan">
-<h2>Kolmogorov-Arnold Network (KAN)<a class="headerlink" href="#kolmogorov-arnold-network-kan" title="Link to this heading"></a></h2>
+<h2>Kolmogorov-Arnold Network (KAN)<a class="headerlink" href="#kolmogorov-arnold-network-kan" title="Permalink to this heading"></a></h2>
 <p>The Kolmogorov-Arnold representation can be written in matrix form</p>
 <div class="math notranslate nohighlight">
 \[f(x)={\bf \Phi}_{\rm out}\circ{\bf \Phi}_{\rm in}\circ {\bf x}\]</div>
@@ -133,79 +133,79 @@ simply by stacking layers! Let’s say we have <span class="math notranslate noh
 1D function placed on each edge. Let’s see an example below.</p>
 </section>
 <section id="get-started-with-kans">
-<h2>Get started with KANs<a class="headerlink" href="#get-started-with-kans" title="Link to this heading"></a></h2>
+<h2>Get started with KANs<a class="headerlink" href="#get-started-with-kans" title="Permalink to this heading"></a></h2>
 <p>Initialize KAN</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kan</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="c1"># create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
 </pre></div>
 </div>
 <p>Create dataset</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># create dataset f(x,y) = exp(sin(pi*x)+y^2)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_label&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># create dataset f(x,y) = exp(sin(pi*x)+y^2)
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2)
+dataset[&#39;train_input&#39;].shape, dataset[&#39;train_label&#39;].shape
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 <p>Plot KAN at initialization</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot KAN at initialization</span>
-<span class="n">model</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">]);</span>
-<span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># plot KAN at initialization
+model(dataset[&#39;train_input&#39;]);
+model.plot(beta=100)
 </pre></div>
 </div>
 <img alt="_images/intro_15_0.png" src="_images/intro_15_0.png" />
 <p>Train KAN with sparsity regularization</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># train the model</span>
-<span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s2">&quot;LBFGS&quot;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">lamb_entropy</span><span class="o">=</span><span class="mf">10.</span><span class="p">);</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model.train(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, lamb_entropy=10.);
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 1.57e-01 | test loss: 1.31e-01 | reg: 2.05e+01 : 100%|██| 20/20 [00:18&lt;00:00,  1.06it/s]
 </pre></div>
 </div>
 <p>Plot trained KAN</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
 </pre></div>
 </div>
 <img alt="_images/intro_19_0.png" src="_images/intro_19_0.png" />
 <p>Prune KAN and replot (keep the original shape)</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
-<span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.prune()
+model.plot(mask=True)
 </pre></div>
 </div>
 <img alt="_images/intro_21_0.png" src="_images/intro_21_0.png" />
 <p>Prune KAN and replot (get a smaller shape)</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
-<span class="n">model</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">])</span>
-<span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model(dataset[&#39;train_input&#39;])
+model.plot()
 </pre></div>
 </div>
 <img alt="_images/intro_23_0.png" src="_images/intro_23_0.png" />
 <p>Continue training and replot</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s2">&quot;LBFGS&quot;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">);</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.train(dataset, opt=&quot;LBFGS&quot;, steps=50);
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 4.74e-03 | test loss: 4.80e-03 | reg: 2.98e+00 : 100%|██| 50/50 [00:07&lt;00:00,  7.03it/s]
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
 </pre></div>
 </div>
 <img alt="_images/intro_26_0.png" src="_images/intro_26_0.png" />
 <p>Automatically or manually set activation functions to be symbolic</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span> <span class="c1"># &quot;manual&quot;</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mode = &quot;auto&quot; # &quot;manual&quot;
 
-<span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;manual&quot;</span><span class="p">:</span>
-    <span class="c1"># manual mode</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">);</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;x^2&#39;</span><span class="p">);</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;exp&#39;</span><span class="p">);</span>
-<span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-    <span class="c1"># automatic mode</span>
-    <span class="n">lib</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;x^2&#39;</span><span class="p">,</span><span class="s1">&#39;x^3&#39;</span><span class="p">,</span><span class="s1">&#39;x^4&#39;</span><span class="p">,</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span><span class="s1">&#39;log&#39;</span><span class="p">,</span><span class="s1">&#39;sqrt&#39;</span><span class="p">,</span><span class="s1">&#39;tanh&#39;</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">,</span><span class="s1">&#39;abs&#39;</span><span class="p">]</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">auto_symbolic</span><span class="p">(</span><span class="n">lib</span><span class="o">=</span><span class="n">lib</span><span class="p">)</span>
+if mode == &quot;manual&quot;:
+    # manual mode
+    model.fix_symbolic(0,0,0,&#39;sin&#39;);
+    model.fix_symbolic(0,1,0,&#39;x^2&#39;);
+    model.fix_symbolic(1,0,0,&#39;exp&#39;);
+elif mode == &quot;auto&quot;:
+    # automatic mode
+    lib = [&#39;x&#39;,&#39;x^2&#39;,&#39;x^3&#39;,&#39;x^4&#39;,&#39;exp&#39;,&#39;log&#39;,&#39;sqrt&#39;,&#39;tanh&#39;,&#39;sin&#39;,&#39;abs&#39;]
+    model.auto_symbolic(lib=lib)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">sin</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.999987252534279</span>
@@ -214,14 +214,14 @@ simply by stacking layers! Let’s say we have <span class="math notranslate noh
 </pre></div>
 </div>
 <p>Continue training to almost machine precision</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s2">&quot;LBFGS&quot;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">);</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.train(dataset, opt=&quot;LBFGS&quot;, steps=50);
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 2.02e-10 | test loss: 1.13e-10 | reg: 2.98e+00 : 100%|██| 50/50 [00:02&lt;00:00, 22.59it/s]
 </pre></div>
 </div>
 <p>Obtain the symbolic formula</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">symbolic_formula</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.symbolic_formula()[0][0]
 </pre></div>
 </div>
 <div class="math notranslate nohighlight">

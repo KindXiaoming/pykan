@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API &mdash; Kolmogorov Arnold Network  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -15,10 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -81,84 +80,18 @@
            <div itemprop="articleBody">
              
   <section id="api">
-<span id="id1"></span><h1>API<a class="headerlink" href="#api" title="Link to this heading"></a></h1>
+<span id="id1"></span><h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="kan.html">kan package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="kan.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan.KAN">kan.KAN module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.KAN.KAN"><code class="docutils literal notranslate"><span class="pre">KAN</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.__init__"><code class="docutils literal notranslate"><span class="pre">KAN.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.auto_symbolic"><code class="docutils literal notranslate"><span class="pre">KAN.auto_symbolic()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.clear_ckpts"><code class="docutils literal notranslate"><span class="pre">KAN.clear_ckpts()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.fix_symbolic"><code class="docutils literal notranslate"><span class="pre">KAN.fix_symbolic()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.forward"><code class="docutils literal notranslate"><span class="pre">KAN.forward()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.get_range"><code class="docutils literal notranslate"><span class="pre">KAN.get_range()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.initialize_from_another_model"><code class="docutils literal notranslate"><span class="pre">KAN.initialize_from_another_model()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.initialize_grid_from_another_model"><code class="docutils literal notranslate"><span class="pre">KAN.initialize_grid_from_another_model()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.load_ckpt"><code class="docutils literal notranslate"><span class="pre">KAN.load_ckpt()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.lock"><code class="docutils literal notranslate"><span class="pre">KAN.lock()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.plot"><code class="docutils literal notranslate"><span class="pre">KAN.plot()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.prune"><code class="docutils literal notranslate"><span class="pre">KAN.prune()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.remove_edge"><code class="docutils literal notranslate"><span class="pre">KAN.remove_edge()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.remove_node"><code class="docutils literal notranslate"><span class="pre">KAN.remove_node()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.save_ckpt"><code class="docutils literal notranslate"><span class="pre">KAN.save_ckpt()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.set_mode"><code class="docutils literal notranslate"><span class="pre">KAN.set_mode()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.suggest_symbolic"><code class="docutils literal notranslate"><span class="pre">KAN.suggest_symbolic()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.symbolic_formula"><code class="docutils literal notranslate"><span class="pre">KAN.symbolic_formula()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.train"><code class="docutils literal notranslate"><span class="pre">KAN.train()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.unfix_symbolic"><code class="docutils literal notranslate"><span class="pre">KAN.unfix_symbolic()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.unfix_symbolic_all"><code class="docutils literal notranslate"><span class="pre">KAN.unfix_symbolic_all()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.unlock"><code class="docutils literal notranslate"><span class="pre">KAN.unlock()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KAN.KAN.update_grid_from_samples"><code class="docutils literal notranslate"><span class="pre">KAN.update_grid_from_samples()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan.KANLayer">kan.KANLayer module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer"><code class="docutils literal notranslate"><span class="pre">KANLayer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.__init__"><code class="docutils literal notranslate"><span class="pre">KANLayer.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.forward"><code class="docutils literal notranslate"><span class="pre">KANLayer.forward()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.get_subset"><code class="docutils literal notranslate"><span class="pre">KANLayer.get_subset()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.initialize_grid_from_parent"><code class="docutils literal notranslate"><span class="pre">KANLayer.initialize_grid_from_parent()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.lock"><code class="docutils literal notranslate"><span class="pre">KANLayer.lock()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.unlock"><code class="docutils literal notranslate"><span class="pre">KANLayer.unlock()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.KANLayer.KANLayer.update_grid_from_samples"><code class="docutils literal notranslate"><span class="pre">KANLayer.update_grid_from_samples()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan.LBFGS">kan.LBFGS module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.LBFGS.LBFGS"><code class="docutils literal notranslate"><span class="pre">LBFGS</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.LBFGS.LBFGS.__init__"><code class="docutils literal notranslate"><span class="pre">LBFGS.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.LBFGS.LBFGS.step"><code class="docutils literal notranslate"><span class="pre">LBFGS.step()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan.Symbolic_KANLayer">kan.Symbolic_KANLayer module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.Symbolic_KANLayer.Symbolic_KANLayer"><code class="docutils literal notranslate"><span class="pre">Symbolic_KANLayer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.Symbolic_KANLayer.Symbolic_KANLayer.__init__"><code class="docutils literal notranslate"><span class="pre">Symbolic_KANLayer.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.Symbolic_KANLayer.Symbolic_KANLayer.fix_symbolic"><code class="docutils literal notranslate"><span class="pre">Symbolic_KANLayer.fix_symbolic()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.Symbolic_KANLayer.Symbolic_KANLayer.forward"><code class="docutils literal notranslate"><span class="pre">Symbolic_KANLayer.forward()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kan.html#kan.Symbolic_KANLayer.Symbolic_KANLayer.get_subset"><code class="docutils literal notranslate"><span class="pre">Symbolic_KANLayer.get_subset()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan.spline">kan.spline module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.spline.B_batch"><code class="docutils literal notranslate"><span class="pre">B_batch()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.spline.coef2curve"><code class="docutils literal notranslate"><span class="pre">coef2curve()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.spline.curve2coef"><code class="docutils literal notranslate"><span class="pre">curve2coef()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan.utils">kan.utils module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.utils.add_symbolic"><code class="docutils literal notranslate"><span class="pre">add_symbolic()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.utils.create_dataset"><code class="docutils literal notranslate"><span class="pre">create_dataset()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="kan.html#kan.utils.fit_params"><code class="docutils literal notranslate"><span class="pre">fit_params()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kan.html#module-kan">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#kan-kan-module">kan.KAN module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#kan-kanlayer-module">kan.KANLayer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#kan-lbfgs-module">kan.LBFGS module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#kan-symbolic-kanlayer-module">kan.Symbolic_KANLayer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#kan-spline-module">kan.spline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#kan-utils-module">kan.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kan.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
