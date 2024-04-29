@@ -40,8 +40,7 @@ def skip(app, what, name, obj, would_skip, options):
 def setup(app):
     app.connect("autodoc-skip-member", skip)
     
-autodoc_mock_imports = ["torch"
-                        ]
+autodoc_mock_imports = ["torch"]
            
 
 source_suffix = [".rst", ".md"]
