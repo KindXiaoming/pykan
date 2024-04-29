@@ -43,6 +43,7 @@ def setup(app):
 autodoc_mock_imports = ["numpy",
                         "torch",
                         "torch.nn",
+                        "matplotlib",
                         "matplotlib.pyplot",
                         "tqdm",
                         "sympy",
