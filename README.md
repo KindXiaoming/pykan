@@ -19,7 +19,7 @@ cd pykan
 pip install -e .
 ```
 
-**Installation via pypi (soon)**
+**Installation via pypi**
 
 ```python
 pip install pykan
