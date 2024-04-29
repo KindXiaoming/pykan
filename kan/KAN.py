@@ -83,7 +83,7 @@ class KAN(nn.Module):
         Args:
         -----
             width : list of int
-                [n0, n1, .., n_{L-1}] specify the number of neurons in each layer (including inputs/outputs)
+                :math:`[n_0, n_1, .., n_{L-1}]` specify the number of neurons in each layer (including inputs/outputs)
             grid : int
                 number of grid intervals. Default: 3.
             k : int
@@ -466,7 +466,7 @@ class KAN(nn.Module):
             l : int
                 layer index
             ids : 2D list
-                [[i1,j1],[i2,j2],...] set (l,ii,j1), (l,i2,j2), ... to be the same function
+                :math:`[[i_1,j_1],[i_2,j_2],...]` set :math:`(l,i_i,j_1), (l,i_2,j_2), ...` to be the same function
         
         Returns:
         --------

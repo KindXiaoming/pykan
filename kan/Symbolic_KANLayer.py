@@ -182,14 +182,9 @@ class Symbolic_KANLayer(nn.Module):
         >>> print(sb.affine)
         [['', '', ''], ['', '', 'sin']]
         Parameter containing:
-        tensor([[[0., 0., 0., 0.],
+        tensor([[0., 0., 0., 0.],
                  [0., 0., 0., 0.],
-                 [0., 0., 0., 0.]],
-
-                [[0., 0., 0., 0.],
-                 [0., 0., 0., 0.],
-                 [1., 0., 1., 0.]]], requires_grad=True)
-        
+                 [1., 0., 1., 0.]], requires_grad=True)
         Example 2
         ---------
         >>> # when x & y are provided, fit_params() is called to find the best fit coefficients

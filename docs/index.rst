@@ -41,7 +41,7 @@ Requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
-
+   # python==3.9.7
    matplotlib==3.6.2
    numpy==1.24.4
    scikit_learn==1.1.3
