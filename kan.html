@@ -200,7 +200,7 @@
 <h4>Args:<a class="headerlink" href="#args" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
-<dt>width<span class="classifier">list of int</span></dt><dd><p>[n0, n1, .., n_{L-1}] specify the number of neurons in each layer (including inputs/outputs)</p>
+<dt>width<span class="classifier">list of int</span></dt><dd><p><span class="math notranslate nohighlight">\([n_0, n_1, .., n_{L-1}]\)</span> specify the number of neurons in each layer (including inputs/outputs)</p>
 </dd>
 <dt>grid<span class="classifier">int</span></dt><dd><p>number of grid intervals. Default: 3.</p>
 </dd>
@@ -577,7 +577,7 @@
 <div><dl class="simple">
 <dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
 </dd>
-<dt>ids<span class="classifier">2D list</span></dt><dd><p>[[i1,j1],[i2,j2],…] set (l,ii,j1), (l,i2,j2), … to be the same function</p>
+<dt>ids<span class="classifier">2D list</span></dt><dd><p><span class="math notranslate nohighlight">\([[i_1,j_1],[i_2,j_2],...]\)</span> set <span class="math notranslate nohighlight">\((l,i_i,j_1), (l,i_2,j_2), ...\)</span> to be the same function</p>
 </dd>
 </dl>
 </div></blockquote>
@@ -1552,22 +1552,12 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
 <span class="go">[[&#39;&#39;, &#39;&#39;, &#39;&#39;], [&#39;&#39;, &#39;&#39;, &#39;sin&#39;]]</span>
 <span class="go">Parameter containing:</span>
-<span class="go">tensor([[[0., 0., 0., 0.],</span>
+<span class="go">tensor([[0., 0., 0., 0.],</span>
 <span class="go">         [0., 0., 0., 0.],</span>
-<span class="go">         [0., 0., 0., 0.]],</span>
-</pre></div>
-</div>
-<blockquote>
-<div><dl class="simple">
-<dt>[[0., 0., 0., 0.],</dt><dd><p>[0., 0., 0., 0.],
-[1., 0., 1., 0.]]], requires_grad=True)</p>
-</dd>
-</dl>
-</div></blockquote>
-</section>
-<section id="id85">
-<h4>Example 2<a class="headerlink" href="#id85" title="Link to this heading"></a></h4>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># when x &amp; y are provided, fit_params() is called to find the best fit coefficients</span>
+<span class="go">         [1., 0., 1., 0.]], requires_grad=True)</span>
+<span class="go">Example 2</span>
+<span class="go">---------</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># when x &amp; y are provided, fit_params() is called to find the best fit coefficients</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">batch</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
@@ -1587,8 +1577,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.forward" title="Link to this definition"></a></dt>
-<dd><section id="id86">
-<h4>Args:<a class="headerlink" href="#id86" title="Link to this heading"></a></h4>
+<dd><section id="id85">
+<h4>Args:<a class="headerlink" href="#id85" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">2D array</span></dt><dd><p>inputs, shape (batch, input dimension)</p>
@@ -1596,8 +1586,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id87">
-<h4>Returns:<a class="headerlink" href="#id87" title="Link to this heading"></a></h4>
+<section id="id86">
+<h4>Returns:<a class="headerlink" href="#id86" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>y<span class="classifier">2D array</span></dt><dd><p>outputs, shape (batch, output dimension)</p>
@@ -1607,8 +1597,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id88">
-<h4>Example<a class="headerlink" href="#id88" title="Link to this heading"></a></h4>
+<section id="id87">
+<h4>Example<a class="headerlink" href="#id87" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">postacts</span> <span class="o">=</span> <span class="n">sb</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -1623,8 +1613,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.get_subset">
 <span class="sig-name descname"><span class="pre">get_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.get_subset" title="Link to this definition"></a></dt>
 <dd><p>get a smaller Symbolic_KANLayer from a larger Symbolic_KANLayer (used for pruning)</p>
-<section id="id89">
-<h4>Args:<a class="headerlink" href="#id89" title="Link to this heading"></a></h4>
+<section id="id88">
+<h4>Args:<a class="headerlink" href="#id88" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>in_id<span class="classifier">list</span></dt><dd><p>id of selected input neurons</p>
@@ -1634,14 +1624,14 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id90">
-<h4>Returns:<a class="headerlink" href="#id90" title="Link to this heading"></a></h4>
+<section id="id89">
+<h4>Returns:<a class="headerlink" href="#id89" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>spb : Symbolic_KANLayer</p>
 </div></blockquote>
 </section>
-<section id="id91">
-<h4>Example<a class="headerlink" href="#id91" title="Link to this heading"></a></h4>
+<section id="id90">
+<h4>Example<a class="headerlink" href="#id90" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sb_large</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb_small</span> <span class="o">=</span> <span class="n">sb_large</span><span class="o">.</span><span class="n">get_subset</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">9</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb_small</span><span class="o">.</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">sb_small</span><span class="o">.</span><span class="n">out_dim</span>
@@ -1661,8 +1651,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.spline.B_batch">
 <span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">B_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.B_batch" title="Link to this definition"></a></dt>
 <dd><p>evaludate x on B-spline bases</p>
-<section id="id92">
-<h3>Args:<a class="headerlink" href="#id92" title="Link to this heading"></a></h3>
+<section id="id91">
+<h3>Args:<a class="headerlink" href="#id91" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">2D torch.tensor</span></dt><dd><p>inputs, shape (number of splines, number of samples)</p>
@@ -1678,8 +1668,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id93">
-<h3>Returns:<a class="headerlink" href="#id93" title="Link to this heading"></a></h3>
+<section id="id92">
+<h3>Returns:<a class="headerlink" href="#id92" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>spline values<span class="classifier">3D torch.tensor</span></dt><dd><p>shape (number of splines, number of B-spline bases (coeffcients), number of samples). The numbef of B-spline bases = number of grid points + k - 1.</p>
@@ -1687,8 +1677,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id94">
-<h3>Example<a class="headerlink" href="#id94" title="Link to this heading"></a></h3>
+<section id="id93">
+<h3>Example<a class="headerlink" href="#id93" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
@@ -1706,8 +1696,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.spline.coef2curve">
 <span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">coef2curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.coef2curve" title="Link to this definition"></a></dt>
 <dd><p>converting B-spline coefficients to B-spline curves. Evaluate x on B-spline curves (summing up B_batch results over B-spline basis).</p>
-<section id="id95">
-<h3>Args:<a class="headerlink" href="#id95" title="Link to this heading"></a></h3>
+<section id="id94">
+<h3>Args:<a class="headerlink" href="#id94" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x_eval<span class="classifier">2D torch.tensor)</span></dt><dd><p>shape (number of splines, number of samples)</p>
@@ -1723,8 +1713,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id96">
-<h3>Returns:<a class="headerlink" href="#id96" title="Link to this heading"></a></h3>
+<section id="id95">
+<h3>Returns:<a class="headerlink" href="#id95" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>y_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
@@ -1732,8 +1722,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id97">
-<h3>Example<a class="headerlink" href="#id97" title="Link to this heading"></a></h3>
+<section id="id96">
+<h3>Example<a class="headerlink" href="#id96" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
@@ -1752,8 +1742,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.spline.curve2coef">
 <span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">curve2coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.curve2coef" title="Link to this definition"></a></dt>
 <dd><p>converting B-spline curves to B-spline coefficients using least squares.</p>
-<section id="id98">
-<h3>Args:<a class="headerlink" href="#id98" title="Link to this heading"></a></h3>
+<section id="id97">
+<h3>Args:<a class="headerlink" href="#id97" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
@@ -1769,8 +1759,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id99">
-<h3>Example<a class="headerlink" href="#id99" title="Link to this heading"></a></h3>
+<section id="id98">
+<h3>Example<a class="headerlink" href="#id98" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
@@ -1792,8 +1782,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.utils.add_symbolic">
 <span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">add_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.add_symbolic" title="Link to this definition"></a></dt>
 <dd><p>add a symbolic function to library</p>
-<section id="id100">
-<h3>Args:<a class="headerlink" href="#id100" title="Link to this heading"></a></h3>
+<section id="id99">
+<h3>Args:<a class="headerlink" href="#id99" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>name<span class="classifier">str</span></dt><dd><p>name of the function</p>
@@ -1803,14 +1793,14 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id101">
-<h3>Returns:<a class="headerlink" href="#id101" title="Link to this heading"></a></h3>
+<section id="id100">
+<h3>Returns:<a class="headerlink" href="#id100" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>None</p>
 </div></blockquote>
 </section>
-<section id="id102">
-<h3>Example<a class="headerlink" href="#id102" title="Link to this heading"></a></h3>
+<section id="id101">
+<h3>Example<a class="headerlink" href="#id101" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">SYMBOLIC_LIB</span><span class="p">[</span><span class="s1">&#39;Bessel&#39;</span><span class="p">])</span>
 <span class="go">KeyError: &#39;Bessel&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">add_symbolic</span><span class="p">(</span><span class="s1">&#39;Bessel&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">bessel_j0</span><span class="p">)</span>
@@ -1825,8 +1815,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.utils.create_dataset">
 <span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">create_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.create_dataset" title="Link to this definition"></a></dt>
 <dd><p>create dataset</p>
-<section id="id103">
-<h3>Args:<a class="headerlink" href="#id103" title="Link to this heading"></a></h3>
+<section id="id102">
+<h3>Args:<a class="headerlink" href="#id102" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>f<span class="classifier">function</span></dt><dd><p>the symbolic formula used to create the synthetic dataset</p>
@@ -1848,8 +1838,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id104">
-<h3>Returns:<a class="headerlink" href="#id104" title="Link to this heading"></a></h3>
+<section id="id103">
+<h3>Returns:<a class="headerlink" href="#id103" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>dataset<span class="classifier">dic</span></dt><dd><dl class="simple">
@@ -1860,8 +1850,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id105">
-<h3>Example<a class="headerlink" href="#id105" title="Link to this heading"></a></h3>
+<section id="id104">
+<h3>Example<a class="headerlink" href="#id104" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">train_num</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
@@ -1878,8 +1868,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <div class="math notranslate nohighlight">
 \[|y-(cf(ax+b)+d)|^2\]</div>
 <p>is minimized. Both x and y are 1D array. Sweep a and b, find the best fitted model.</p>
-<section id="id106">
-<h3>Args:<a class="headerlink" href="#id106" title="Link to this heading"></a></h3>
+<section id="id105">
+<h3>Args:<a class="headerlink" href="#id105" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">1D array</span></dt><dd><p>x values</p>
@@ -1901,8 +1891,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id107">
-<h3>Returns:<a class="headerlink" href="#id107" title="Link to this heading"></a></h3>
+<section id="id106">
+<h3>Returns:<a class="headerlink" href="#id106" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>a_best<span class="classifier">float</span></dt><dd><p>best fitted a</p>
@@ -1918,8 +1908,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id108">
-<h3>Example<a class="headerlink" href="#id108" title="Link to this heading"></a></h3>
+<section id="id107">
+<h3>Example<a class="headerlink" href="#id107" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">noises</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,(</span><span class="n">num</span><span class="p">,))</span> <span class="o">*</span> <span class="mf">0.02</span>

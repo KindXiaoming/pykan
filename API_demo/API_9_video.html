@@ -103,15 +103,39 @@ model = KAN(width=[4,2,1,1], grid=3, k=3, seed=0)
 f = lambda x: torch.exp((torch.sin(torch.pi*(x[:,[0]]**2+x[:,[1]]**2))+torch.sin(torch.pi*(x[:,[2]]**2+x[:,[3]]**2)))/2)
 dataset = create_dataset(f, n_var=4, train_num=3000)
 
+image_folder = &#39;video_img&#39;
+
 # train the model
 #model.train(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=1e-3, lamb_entropy=2.);
-model.train(dataset, opt=&quot;LBFGS&quot;, steps=50, lamb=5e-5, lamb_entropy=2., save_video=True, beta=10,
+model.train(dataset, opt=&quot;LBFGS&quot;, steps=50, lamb=5e-5, lamb_entropy=2., save_fig=True, beta=10,
             in_vars=[r&#39;$x_1$&#39;, r&#39;$x_2$&#39;, r&#39;$x_3$&#39;, r&#39;$x_4$&#39;],
             out_vars=[r&#39;${\rm exp}({\rm sin}(x_1^2+x_2^2)+{\rm sin}(x_3^2+x_4^2))$&#39;],
-            video_name=&#39;video&#39;, fps=5);
+            img_folder=image_folder);
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 6.39e-03 | test loss: 6.40e-03 | reg: 7.91e+00 : 100%|██| 50/50 [01:30&lt;00:00,  1.81s/it]
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 5.89e-03 | test loss: 5.99e-03 | reg: 7.89e+00 : 100%|██| 50/50 [01:36&lt;00:00,  1.92s/it]
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+import numpy as np
+import moviepy.video.io.ImageSequenceClip # moviepy == 1.0.3
+
+video_name=&#39;video&#39;
+fps=5
+
+fps = fps
+files = os.listdir(image_folder)
+train_index = []
+for file in files:
+    if file[0].isdigit() and file.endswith(&#39;.jpg&#39;):
+        train_index.append(int(file[:-4]))
+
+train_index = np.sort(train_index)
+
+image_files = [image_folder+&#39;/&#39;+str(train_index[index])+&#39;.jpg&#39; for index in train_index]
+
+clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
+clip.write_videofile(video_name+&#39;.mp4&#39;)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Moviepy</span> <span class="o">-</span> <span class="n">Building</span> <span class="n">video</span> <span class="n">video</span><span class="o">.</span><span class="n">mp4</span><span class="o">.</span>

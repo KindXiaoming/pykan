@@ -31,7 +31,7 @@ use cuda, we should pass the device argument to model and dataset.
 
 .. parsed-literal::
 
-    train loss: 6.70e-03 | test loss: 6.83e-03 | reg: 7.91e+00 : 100%|██| 50/50 [00:25<00:00,  1.99it/s]
+    train loss: 5.78e-03 | test loss: 5.89e-03 | reg: 7.32e+00 : 100%|██| 50/50 [00:26<00:00,  1.85it/s]
 
 
 .. code:: ipython3
