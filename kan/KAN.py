@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import random
 import copy
-import moviepy.video.io.ImageSequenceClip
 
 
 class KAN(nn.Module):
@@ -773,7 +772,7 @@ class KAN(nn.Module):
                     
                     
                     
-    def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1 = 1., lamb_entropy = 2., lamb_coef = 0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn = None, lr=1., stop_grid_update_step=50, batch=-1, small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_video=False, in_vars=None, out_vars=None, video_folder='./video', beta=3, save_fig_freq=1, video_name='video', fps=1, device='cpu'):
+    def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1 = 1., lamb_entropy = 2., lamb_coef = 0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn = None, lr=1., stop_grid_update_step=50, batch=-1, small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
         '''
         training
 
@@ -813,10 +812,6 @@ class KAN(nn.Module):
                 device   
             save_fig_freq : int
                 save figure every (save_fig_freq) step
-            video_name : str
-                the name of the video, default 'video'
-            fps : int
-                frame per second, default fps=1
 
         Returns:
         --------
@@ -905,9 +900,9 @@ class KAN(nn.Module):
             objective.backward()
             return objective
         
-        if save_video:
-            if not os.path.exists(video_folder):
-                os.makedirs(video_folder)
+        if save_fig:
+            if not os.path.exists(img_folder):
+                os.makedirs(img_folder)
 
         for _ in pbar:
 
@@ -950,31 +945,13 @@ class KAN(nn.Module):
             results['test_loss'].append(torch.sqrt(test_loss).cpu().detach().numpy())
             results['reg'].append(reg_.cpu().detach().numpy())
             
-            if save_video and _ % save_fig_freq == 0:
+            if save_fig and _ % save_fig_freq == 0:
                 
-                self.plot(folder=video_folder, in_vars=in_vars, out_vars=out_vars, title="Step {}".format(_), beta=beta)
-                plt.savefig(video_folder+'/'+str(_)+'.jpg', bbox_inches='tight', dpi=200)
+                self.plot(folder=img_folder, in_vars=in_vars, out_vars=out_vars, title="Step {}".format(_), beta=beta)
+                plt.savefig(img_folder+'/'+str(_)+'.jpg', bbox_inches='tight', dpi=200)
                 plt.close()
             
             
-        if save_video:
-            image_folder = video_folder
-            #video_name = 'haha'
-            fps = fps
-            files = os.listdir(image_folder)
-            train_index = []
-            for file in files:
-                if file[0].isdigit() and file.endswith('.jpg'):
-                    train_index.append(int(file[:-4]))
-
-            train_index = np.sort(train_index)
-
-            image_files = [image_folder+'/'+str(train_index[index])+'.jpg' for index in train_index]
-
-            clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
-            clip.write_videofile(video_name+'.mp4')
-            #print('saving video to',video_name+'.mp4')
-
         return results
     
     
