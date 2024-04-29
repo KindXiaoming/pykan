@@ -2,7 +2,7 @@
 
 # Kolmogorov-Arnold Newtworks (KANs)
 
-This the github repo for the paper "KAN: Kolmogorov-Arnold Networks" [link]. Find the [documentaion here](https://kindxiaoming.github.io/pykan/).
+This the github repo for the paper "KAN: Kolmogorov-Arnold Networks" [link]. Find the documentation [here](https://kindxiaoming.github.io/pykan/).
 
 Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perceptrons (MLPs). KANs have strong mathematical foundations just like MLPs: MLPs are based on the [universal approximation theorem](https://en.wikipedia.org/wiki/Universal_approximation_theorem), while KANs are based on [Kolmogorov-Arnold representation theorem](https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Arnold_representation_theorem). KANs and MLPs are dual: KANs have activation functions on edges, while MLPs have activation functions on nodes. This simple change makes KANs better (sometimes much better!) than MLPs in terms of both model accuracy and interpretability. 
 
