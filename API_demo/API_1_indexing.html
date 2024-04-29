@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo 1: Indexing &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo 2: Plotting" href="API_2_plotting.html" />
+    <link rel="prev" title="API Demos" href="../demos.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../demos.html">API Demos</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Demo 1: Indexing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#indexing-of-edges-activation-functions">Indexing of edges (activation functions)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#indexing-of-nodes-neurons">Indexing of nodes (neurons)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#indexing-of-layers">Indexing of layers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="API_2_plotting.html">Demo 2: Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_3_grid.html">Demo 3: Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_4_extract_activations.html">Demo 4: Extracting activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_5_initialization_hyperparameter.html">Demo 5: Initialization Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_6_training_hyperparameter.html">Demo 6: Training Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_7_pruning.html">Demo 7: Pruning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_8_checkpoint.html">Demo 8: Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_9_video.html">Demo 9: Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_10_device.html">Demo 10: Device</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../demos.html">API Demos</a></li>
+      <li class="breadcrumb-item active">Demo 1: Indexing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API_demo/API_1_indexing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="demo-1-indexing">
+<h1>Demo 1: Indexing<a class="headerlink" href="#demo-1-indexing" title="Permalink to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import KAN
+import torch
+model = KAN(width=[2,3,2,1])
+x = torch.normal(0,1,size=(100,2))
+model(x);
+beta = 100
+model.plot(beta=beta)
+# [2,3,2,1] means 2 input nodes
+# 3 neurons in the first hidden layer,
+# 2 neurons in the second hidden layer,
+# 1 output node
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_1_0.png" src="../_images/API_1_indexing_1_0.png" />
+<section id="indexing-of-edges-activation-functions">
+<h2>Indexing of edges (activation functions)<a class="headerlink" href="#indexing-of-edges-activation-functions" title="Permalink to this heading"></a></h2>
+<p>Each activation function is indexed by <span class="math notranslate nohighlight">\((l,i,j)\)</span> where <span class="math notranslate nohighlight">\(l\)</span>
+is the layer index, <span class="math notranslate nohighlight">\(i\)</span> is the input neuron index, <span class="math notranslate nohighlight">\(j\)</span> is
+the output neuron index. All of them starts from 0. For example, the one
+in the bottom left corner is (0, 0, 0). Let’s try to make it symbolic
+and see it turns red.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(0,0,0,&#39;sin&#39;)
+model.plot(beta=beta)
+model.unfix_symbolic(0,0,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9995602360489043</span>
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_4_1.png" src="../_images/API_1_indexing_4_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(0,0,1,&#39;sin&#39;)
+model.plot(beta=beta)
+model.unfix_symbolic(0,0,1)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9992399109543574</span>
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_5_1.png" src="../_images/API_1_indexing_5_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(0,1,0,&#39;sin&#39;)
+model.plot(beta=beta)
+model.unfix_symbolic(0,1,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9973507118333039</span>
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_6_1.png" src="../_images/API_1_indexing_6_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(1,0,0,&#39;sin&#39;)
+model.plot(beta=beta)
+model.unfix_symbolic(1,0,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9999506177136502</span>
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_7_1.png" src="../_images/API_1_indexing_7_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(2,1,0,&#39;sin&#39;)
+model.plot(beta=beta)
+model.unfix_symbolic(2,1,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9999411308602921</span>
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_8_1.png" src="../_images/API_1_indexing_8_1.png" />
+</section>
+<section id="indexing-of-nodes-neurons">
+<h2>Indexing of nodes (neurons)<a class="headerlink" href="#indexing-of-nodes-neurons" title="Permalink to this heading"></a></h2>
+<p>Each neuron (node) is indexed by <span class="math notranslate nohighlight">\((l,i)\)</span> where <span class="math notranslate nohighlight">\(l\)</span> is the
+layer index along depth, <span class="math notranslate nohighlight">\(i\)</span> is the neuron index along width. In
+the function remove_node, we use use <span class="math notranslate nohighlight">\((l,i)\)</span> to indicate which
+node we want to remove.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.remove_node(1,0)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(beta=beta)
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_12_0.png" src="../_images/API_1_indexing_12_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.remove_node(2,1)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(beta=beta)
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_14_0.png" src="../_images/API_1_indexing_14_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.remove_node(1,2)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(beta=beta)
+</pre></div>
+</div>
+<img alt="../_images/API_1_indexing_16_0.png" src="../_images/API_1_indexing_16_0.png" />
+</section>
+<section id="indexing-of-layers">
+<h2>Indexing of layers<a class="headerlink" href="#indexing-of-layers" title="Permalink to this heading"></a></h2>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># KAN spline layers are refererred to as act_fun
+# KAN symbolic layers are referred to as symbolic_fun
+
+model = KAN(width=[2,3,2,1])
+
+i = 0
+model.act_fun[i] # =&gt; KAN Layer (Spline)
+model.symbolic_fun[i] # =&gt; KAN Layer (Symbolic)
+
+for i in range(3):
+    print(model.act_fun[i].in_dim, model.act_fun[i].out_dim)
+    print(model.symbolic_fun[i].in_dim, model.symbolic_fun[i].out_dim)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">2</span> <span class="mi">3</span>
+<span class="mi">2</span> <span class="mi">3</span>
+<span class="mi">3</span> <span class="mi">2</span>
+<span class="mi">3</span> <span class="mi">2</span>
+<span class="mi">2</span> <span class="mi">1</span>
+<span class="mi">2</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># check model parameters
+model.act_fun[i].grid
+model.act_fun[i].coef
+model.symbolic_fun[i].funs_name
+model.symbolic_fun[i].mask
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Parameter</span> <span class="n">containing</span><span class="p">:</span>
+<span class="n">tensor</span><span class="p">([[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]])</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../demos.html" class="btn btn-neutral float-left" title="API Demos" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="API_2_plotting.html" class="btn btn-neutral float-right" title="Demo 2: Plotting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

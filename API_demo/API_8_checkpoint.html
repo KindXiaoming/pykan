@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo 8: Checkpoint &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo 9: Videos" href="API_9_video.html" />
+    <link rel="prev" title="Demo 7: Pruning" href="API_7_pruning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../demos.html">API Demos</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="API_1_indexing.html">Demo 1: Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_2_plotting.html">Demo 2: Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_3_grid.html">Demo 3: Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_4_extract_activations.html">Demo 4: Extracting activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_5_initialization_hyperparameter.html">Demo 5: Initialization Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_6_training_hyperparameter.html">Demo 6: Training Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_7_pruning.html">Demo 7: Pruning</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Demo 8: Checkpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_9_video.html">Demo 9: Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_10_device.html">Demo 10: Device</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../demos.html">API Demos</a></li>
+      <li class="breadcrumb-item active">Demo 8: Checkpoint</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API_demo/API_8_checkpoint.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="demo-8-checkpoint">
+<h1>Demo 8: Checkpoint<a class="headerlink" href="#demo-8-checkpoint" title="Permalink to this heading"></a></h1>
+<p>It is fun to play with KANs, just the same it is fun to play computer
+games. A common frustration in both games is that one did something
+wrong but cannot restore to the lastest checkpoint. We provide a quick
+way to save and load your checkpoint, so that you won’t be frustrated
+and think that you need to start all over again.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import KAN, create_dataset
+import torch
+import torch.nn
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,5,1], grid=5, k=3, seed=0, base_fun=torch.nn.SiLU())
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2)
+
+model(dataset[&#39;train_input&#39;])
+model.plot()
+model.save_ckpt(&#39;ckpt1&#39;)
+#model.clear_ckpts()
+# save intialized model as ckpt1
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">save</span> <span class="n">this</span> <span class="n">model</span> <span class="n">to</span> <span class="o">./</span><span class="n">model_ckpt</span><span class="o">/</span><span class="n">ckpt1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_8_checkpoint_1_1.png" src="../_images/API_8_checkpoint_1_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.train(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, lamb_entropy=10.);
+model.plot()
+model.save_ckpt(&#39;ckpt2&#39;)
+# save the trained model as ckpt2
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 1.55e-01 | test loss: 1.30e-01 | reg: 2.03e+01 : 100%|██| 20/20 [00:12&lt;00:00,  1.65it/s]
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">save</span> <span class="n">this</span> <span class="n">model</span> <span class="n">to</span> <span class="o">./</span><span class="n">model_ckpt</span><span class="o">/</span><span class="n">ckpt2</span>
+</pre></div>
+</div>
+<img alt="../_images/API_8_checkpoint_2_2.png" src="../_images/API_8_checkpoint_2_2.png" />
+<p>The above results look promising! You probably want to further simplify
+it down by further training it or pruning it. Suppose you want to pump
+up regularization strengh to make the graph cleaner, but you set the
+strength to be too large and training messes the whole thing up.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.train(dataset, opt=&quot;Adam&quot;, steps=20, lamb=100., lamb_entropy=10.);
+model.plot()
+model.save_ckpt(&#39;ckpt3&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train loss: 9.59e+00 | test loss: 8.56e+00 | reg: 3.16e+01 : 100%|██| 20/20 [00:01&lt;00:00, 19.61it/s]
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">save</span> <span class="n">this</span> <span class="n">model</span> <span class="n">to</span> <span class="o">./</span><span class="n">model_ckpt</span><span class="o">/</span><span class="n">ckpt3</span>
+</pre></div>
+</div>
+<img alt="../_images/API_8_checkpoint_4_2.png" src="../_images/API_8_checkpoint_4_2.png" />
+<p>We want to recover to ckpt2</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.load_ckpt(&#39;ckpt2&#39;)
+model(dataset[&#39;train_input&#39;])
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/API_8_checkpoint_6_0.png" src="../_images/API_8_checkpoint_6_0.png" />
+<p>Now we realize that pruning it seems a better choice.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model(dataset[&#39;train_input&#39;])
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/API_8_checkpoint_8_0.png" src="../_images/API_8_checkpoint_8_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API_7_pruning.html" class="btn btn-neutral float-left" title="Demo 7: Pruning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="API_9_video.html" class="btn btn-neutral float-right" title="Demo 9: Videos" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
