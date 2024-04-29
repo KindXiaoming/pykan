@@ -25,6 +25,17 @@ pip install -e .
 pip install pykan
 ```
 
+Requirements
+
+```python
+matplotlib==3.6.2
+numpy==1.24.4
+scikit_learn==1.1.3
+setuptools==65.5.0
+sympy==1.11.1
+torch==2.2.2
+tqdm==4.66.2
+```
 
 To install requirements:
 ```python
