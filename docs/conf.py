@@ -40,12 +40,7 @@ def skip(app, what, name, obj, would_skip, options):
 def setup(app):
     app.connect("autodoc-skip-member", skip)
     
-autodoc_mock_imports = ["torch",
-                        "matplotlib",
-                        "numpy",
-                        "sklearn",
-                        "sympy",
-                        "tqdm"
+autodoc_mock_imports = ["torch"
                         ]
            
 
