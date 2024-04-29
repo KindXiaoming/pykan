@@ -15,7 +15,7 @@ jobs:
     - name: Install Python
       uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: 3.9.7
 
     - name: Install requirements
       run: |
