@@ -25,7 +25,6 @@ jobs:
     - name: Build docs
       run: |
         cd docs
-        sphinx-quickstart
         sphinx-apidoc -o . ../kan
         make clean html
         make html
