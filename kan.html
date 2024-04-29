@@ -51,7 +51,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">kan package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#kan-kan-module">kan.KAN module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-kan.KAN">kan.KAN module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#kan.KAN.KAN"><code class="docutils literal notranslate"><span class="pre">KAN</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-kan.KANLayer">kan.KANLayer module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#kan.KANLayer.KANLayer"><code class="docutils literal notranslate"><span class="pre">KANLayer</span></code></a></li>
 </ul>
@@ -76,7 +79,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#kan.utils.fit_params"><code class="docutils literal notranslate"><span class="pre">fit_params()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-kan">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -115,8 +118,920 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="kan-kan-module">
-<h2>kan.KAN module<a class="headerlink" href="#kan-kan-module" title="Link to this heading"></a></h2>
+<section id="module-kan.KAN">
+<span id="kan-kan-module"></span><h2>kan.KAN module<a class="headerlink" href="#module-kan.KAN" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="kan.KAN.KAN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kan.KAN.</span></span><span class="sig-name descname"><span class="pre">KAN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>KAN class</p>
+<section id="attributes">
+<h3>Attributes:<a class="headerlink" href="#attributes" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>biases: a list of nn.Linear()</dt><dd><p>biases are added on nodes (in principle, biases can be absorbed into activation functions. However, we still have them for better optimization)</p>
+</dd>
+<dt>act_fun: a list of KANLayer</dt><dd><p>KANLayers</p>
+</dd>
+<dt>depth: int</dt><dd><p>depth of KAN</p>
+</dd>
+<dt>width: list</dt><dd><p>number of neurons in each layer. e.g., [2,5,5,3] means 2D inputs, 5D outputs, with 2 layers of 5 hidden neurons.</p>
+</dd>
+<dt>grid: int</dt><dd><p>the number of grid intervals</p>
+</dd>
+<dt>k: int</dt><dd><p>the order of piecewise polynomial</p>
+</dd>
+<dt>base_fun: fun</dt><dd><p>residual function b(x). an activation function phi(x) = sb_scale * b(x) + sp_scale * spline(x)</p>
+</dd>
+<dt>symbolic_fun: a list of Symbolic_KANLayer</dt><dd><p>Symbolic_KANLayers</p>
+</dd>
+<dt>symbolic_enabled: bool</dt><dd><p>If False, the symbolic front is not computed (to save time). Default: True.</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="methods">
+<h3>Methods:<a class="headerlink" href="#methods" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>__init__():</dt><dd><p>initialize a KAN</p>
+</dd>
+<dt>initialize_from_another_model():</dt><dd><p>initialize a KAN from another KAN (with the same shape, but potentially different grids)</p>
+</dd>
+<dt>update_grid_from_samples():</dt><dd><p>update spline grids based on samples</p>
+</dd>
+<dt>initialize_grid_from_another_model():</dt><dd><p>initalize KAN grids from another KAN</p>
+</dd>
+<dt>forward():</dt><dd><p>forward</p>
+</dd>
+<dt>set_mode():</dt><dd><p>set the mode of an activation function: ‘n’ for numeric, ‘s’ for symbolic, ‘ns’ for combined (note they are visualized differently in plot(). ‘n’ as black, ‘s’ as red, ‘ns’ as purple).</p>
+</dd>
+<dt>fix_symbolic():</dt><dd><p>fix an activation function to be symbolic</p>
+</dd>
+<dt>suggest_symbolic():</dt><dd><p>suggest the symbolic candicates of a numeric spline-based activation function</p>
+</dd>
+<dt>lock():</dt><dd><p>lock activation functions to share parameters</p>
+</dd>
+<dt>unlock():</dt><dd><p>unlock locked activations</p>
+</dd>
+<dt>get_range():</dt><dd><p>get the input and output ranges of an activation function</p>
+</dd>
+<dt>plot():</dt><dd><p>plot the diagram of KAN</p>
+</dd>
+<dt>train():</dt><dd><p>train KAN</p>
+</dd>
+<dt>prune():</dt><dd><p>prune KAN</p>
+</dd>
+<dt>remove_edge():</dt><dd><p>remove some edge of KAN</p>
+</dd>
+<dt>remove_node():</dt><dd><p>remove some node of KAN</p>
+</dd>
+<dt>auto_symbolic():</dt><dd><p>automatically fit all splines to be symbolic functions</p>
+</dd>
+<dt>symbolic_formula():</dt><dd><p>obtain the symbolic formula of the KAN network</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scale_base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_fun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.nn.SiLU</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbolic_enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias_trainable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp_trainable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb_trainable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.__init__" title="Link to this definition"></a></dt>
+<dd><p>initalize a KAN model</p>
+<section id="args">
+<h4>Args:<a class="headerlink" href="#args" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>width<span class="classifier">list of int</span></dt><dd><p>[n0, n1, .., n_{L-1}] specify the number of neurons in each layer (including inputs/outputs)</p>
+</dd>
+<dt>grid<span class="classifier">int</span></dt><dd><p>number of grid intervals. Default: 3.</p>
+</dd>
+<dt>k<span class="classifier">int</span></dt><dd><p>order of piecewise polynomial. Default: 3.</p>
+</dd>
+<dt>noise_scale<span class="classifier">float</span></dt><dd><p>initial injected noise to spline. Default: 0.1.</p>
+</dd>
+<dt>base_fun<span class="classifier">fun</span></dt><dd><p>the residual function b(x). Default: torch.nn.SiLU().</p>
+</dd>
+<dt>symbolic_enabled<span class="classifier">bool</span></dt><dd><p>compute or skip symbolic computations (for efficiency). By default: True.</p>
+</dd>
+<dt>bias_trainable<span class="classifier">bool</span></dt><dd><p>bias parameters are updated or not. By default: True</p>
+</dd>
+<dt>grid_eps<span class="classifier">float</span></dt><dd><p>When grid_eps = 0, the grid is uniform; when grid_eps = 1, the grid is partitioned using percentiles of samples. 0 &lt; grid_eps &lt; 1 interpolates between the two extremes. Default: 0.02.</p>
+</dd>
+<dt>grid_range<span class="classifier">list/np.array of shape (2,))</span></dt><dd><p>setting the range of grids. Default: [-1,1].</p>
+</dd>
+<dt>sp_trainable<span class="classifier">bool</span></dt><dd><p>If true, scale_sp is trainable. Default: True.</p>
+</dd>
+<dt>sb_trainable<span class="classifier">bool</span></dt><dd><p>If true, scale_base is trainable. Default: True.</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>device</p>
+</dd>
+<dt>seed<span class="classifier">int</span></dt><dd><p>random seed</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="returns">
+<h4>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>self</p>
+</div></blockquote>
+</section>
+<section id="example">
+<h4>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">out_dim</span><span class="p">),</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">out_dim</span><span class="p">)</span>
+<span class="go">((2, 5), (5, 1))</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.auto_symbolic">
+<span class="sig-name descname"><span class="pre">auto_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.auto_symbolic" title="Link to this definition"></a></dt>
+<dd><p>automatic symbolic regression: using top 1 suggestion from suggest_symbolic to replace splines with symbolic activations</p>
+<section id="id1">
+<h4>Args:<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>lib<span class="classifier">None or a list of function names</span></dt><dd><p>the symbolic library</p>
+</dd>
+<dt>verbose<span class="classifier">int</span></dt><dd><p>verbosity</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id2">
+<h4>Returns:<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None (print suggested symbolic formulas)</p>
+</div></blockquote>
+</section>
+<section id="example-1">
+<h4>Example 1<a class="headerlink" href="#example-1" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># default library</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">&gt;&gt;&gt;</span> <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">auto_symbolic</span><span class="p">()</span>
+<span class="go">fixing (0,0,0) with sin, r2=0.9994837045669556</span>
+<span class="go">fixing (0,1,0) with cosh, r2=0.9978033900260925</span>
+<span class="go">fixing (1,0,0) with arctan, r2=0.9997088313102722</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2">
+<h4>Example 2<a class="headerlink" href="#example-2" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># customized library</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">&gt;&gt;&gt;</span> <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">auto_symbolic</span><span class="p">(</span><span class="n">lib</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">,</span><span class="s1">&#39;x^2&#39;</span><span class="p">])</span>
+<span class="go">fixing (0,0,0) with sin, r2=0.999411404132843</span>
+<span class="go">fixing (0,1,0) with x^2, r2=0.9962921738624573</span>
+<span class="go">fixing (1,0,0) with exp, r2=0.9980258941650391</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.clear_ckpts">
+<span class="sig-name descname"><span class="pre">clear_ckpts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./model_ckpt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.clear_ckpts" title="Link to this definition"></a></dt>
+<dd><p>clear all checkpoints</p>
+<section id="id3">
+<h4>Args:<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>folder<span class="classifier">str</span></dt><dd><p>the folder that stores checkpoints</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id4">
+<h4>Returns:<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.fix_symbolic">
+<span class="sig-name descname"><span class="pre">fix_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_params_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.fix_symbolic" title="Link to this definition"></a></dt>
+<dd><p>set (l,i,j) activation to be symbolic (specified by fun_name)</p>
+<section id="id5">
+<h4>Args:<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>i<span class="classifier">int</span></dt><dd><p>input neuron index</p>
+</dd>
+<dt>j<span class="classifier">int</span></dt><dd><p>output neuron index</p>
+</dd>
+<dt>fun_name<span class="classifier">str</span></dt><dd><p>function name</p>
+</dd>
+<dt>fit_params_bool<span class="classifier">bool</span></dt><dd><p>obtaining affine parameters through fitting (True) or setting default values (False)</p>
+</dd>
+<dt>a_range<span class="classifier">tuple</span></dt><dd><p>sweeping range of a</p>
+</dd>
+<dt>b_range<span class="classifier">tuple</span></dt><dd><p>sweeping range of b</p>
+</dd>
+<dt>verbose<span class="classifier">bool</span></dt><dd><p>If True, more information is printed.</p>
+</dd>
+<dt>random<span class="classifier">bool</span></dt><dd><p>initialize affine parameteres randomly or as [1,0,1,0]</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id6">
+<h4>Returns:<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None or r2 (coefficient of determination)</p>
+</div></blockquote>
+</section>
+<section id="id7">
+<h4>Example 1<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># when fit_params_bool = False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">,</span><span class="n">fit_params_bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">symbolic_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="go">tensor([[1., 1., 1., 1., 1.],</span>
+<span class="go">        [1., 1., 0., 1., 1.]])</span>
+<span class="go">tensor([[0., 0., 0., 0., 0.],</span>
+<span class="go">        [0., 0., 1., 0., 0.]])</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h4>Example 2<a class="headerlink" href="#id8" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># when fit_params_bool = True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># obtain activations (otherwise model does not have attributes acts)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">,</span><span class="n">fit_params_bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">symbolic_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="go">r2 is 0.8131332993507385</span>
+<span class="go">r2 is not very high, please double check if you are choosing the correct symbolic function.</span>
+<span class="go">tensor([[1., 1., 1., 1., 1.],</span>
+<span class="go">        [1., 1., 0., 1., 1.]])</span>
+<span class="go">tensor([[0., 0., 0., 0., 0.],</span>
+<span class="go">        [0., 0., 1., 0., 0.]])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.forward" title="Link to this definition"></a></dt>
+<dd><p>KAN forward</p>
+<section id="id9">
+<h4>Args:<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>x<span class="classifier">2D torch.float</span></dt><dd><p>inputs, shape (batch, input dimension)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id10">
+<h4>Returns:<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>y<span class="classifier">2D torch.float</span></dt><dd><p>outputs, shape (batch, output dimension)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id11">
+<h4>Example<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">torch.Size([100, 3])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.get_range">
+<span class="sig-name descname"><span class="pre">get_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.get_range" title="Link to this definition"></a></dt>
+<dd><p>Get the input range and output range of the (l,i,j) activation</p>
+<section id="id12">
+<h4>Args:<a class="headerlink" href="#id12" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>i<span class="classifier">int</span></dt><dd><p>input neuron index</p>
+</dd>
+<dt>j<span class="classifier">int</span></dt><dd><p>output neuron index</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id13">
+<h4>Returns:<a class="headerlink" href="#id13" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>x_min<span class="classifier">float</span></dt><dd><p>minimum of input</p>
+</dd>
+<dt>x_max<span class="classifier">float</span></dt><dd><p>maximum of input</p>
+</dd>
+<dt>y_min<span class="classifier">float</span></dt><dd><p>minimum of output</p>
+</dd>
+<dt>y_max<span class="classifier">float</span></dt><dd><p>maximum of output</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id14">
+<h4>Example<a class="headerlink" href="#id14" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># do a forward pass to obtain model.acts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">get_range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">x range: [-2.13 , 2.75 ]</span>
+<span class="go">y range: [-0.50 , 1.83 ]</span>
+<span class="go">(tensor(-2.1288), tensor(2.7498), tensor(-0.5042), tensor(1.8275))</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.initialize_from_another_model">
+<span class="sig-name descname"><span class="pre">initialize_from_another_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">another_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.initialize_from_another_model" title="Link to this definition"></a></dt>
+<dd><p>initialize from a parent model. The parent has the same width as the current model but may have different grids.</p>
+<section id="id15">
+<h4>Args:<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>another_model<span class="classifier">KAN</span></dt><dd><p>the parent model used to initialize the current model</p>
+</dd>
+<dt>x<span class="classifier">2D torch.float</span></dt><dd><p>inputs, shape (batch, input dimension)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id16">
+<h4>Returns:<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>self : KAN</p>
+</div></blockquote>
+</section>
+<section id="id17">
+<h4>Example<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_coarse</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_fine</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model_fine</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_fine</span><span class="o">.</span><span class="n">initialize_from_another_model</span><span class="p">(</span><span class="n">model_coarse</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model_fine</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">tensor(-0.0030)</span>
+<span class="go">tensor(0.0506)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.initialize_grid_from_another_model">
+<span class="sig-name descname"><span class="pre">initialize_grid_from_another_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.initialize_grid_from_another_model" title="Link to this definition"></a></dt>
+<dd><p>initialize grid from a parent model</p>
+<section id="id18">
+<h4>Args:<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>model<span class="classifier">KAN</span></dt><dd><p>parent model</p>
+</dd>
+<dt>x<span class="classifier">2D torch.float</span></dt><dd><p>inputs, shape (batch, input dimension)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id19">
+<h4>Returns:<a class="headerlink" href="#id19" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+<section id="id20">
+<h4>Example<a class="headerlink" href="#id20" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_parent</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_parent</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="mi">6</span><span class="p">)[</span><span class="kc">None</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="mi">1001</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">initialize_from_another_model</span><span class="p">(</span><span class="n">model_parent</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">tensor([[-1.0000, -0.6000, -0.2000,  0.2000,  0.6000,  1.0000]])</span>
+<span class="go">tensor([[-2.0000, -1.2000, -0.4000,  0.4000,  1.2000,  2.0000]])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.load_ckpt">
+<span class="sig-name descname"><span class="pre">load_ckpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./model_ckpt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.load_ckpt" title="Link to this definition"></a></dt>
+<dd><p>load a checkpoint to the current model</p>
+<section id="id21">
+<h4>Args:<a class="headerlink" href="#id21" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>name: str</dt><dd><p>the name of the checkpoint to be loaded</p>
+</dd>
+<dt>folder<span class="classifier">str</span></dt><dd><p>the folder that stores checkpoints</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id22">
+<h4>Returns:<a class="headerlink" href="#id22" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.lock">
+<span class="sig-name descname"><span class="pre">lock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.lock" title="Link to this definition"></a></dt>
+<dd><p>lock ids in the l-th layer to be the same function</p>
+<section id="id23">
+<h4>Args:<a class="headerlink" href="#id23" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>ids<span class="classifier">2D list</span></dt><dd><p>[[i1,j1],[i2,j2],…] set (l,ii,j1), (l,i2,j2), … to be the same function</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id24">
+<h4>Returns:<a class="headerlink" href="#id24" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+<section id="id25">
+<h4>Example<a class="headerlink" href="#id25" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">weight_sharing</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">lock</span><span class="p">(</span><span class="mi">0</span><span class="p">,[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">weight_sharing</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">tensor([[0, 1],</span>
+<span class="go">        [2, 3],</span>
+<span class="go">        [4, 5]])</span>
+<span class="go">tensor([[0, 1],</span>
+<span class="go">        [2, 1],</span>
+<span class="go">        [4, 5]])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./figures'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'supervised'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.plot" title="Link to this definition"></a></dt>
+<dd><p>plot KAN</p>
+<section id="id26">
+<h4>Args:<a class="headerlink" href="#id26" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>folder<span class="classifier">str</span></dt><dd><p>the folder to store pngs</p>
+</dd>
+<dt>beta<span class="classifier">float</span></dt><dd><p>positive number. control the transparency of each activation. transparency = tanh(beta*l1).</p>
+</dd>
+<dt>mask<span class="classifier">bool</span></dt><dd><p>If True, plot with mask (need to run prune() first to obtain mask). If False (by default), plot all activation functions.</p>
+</dd>
+<dt>mode<span class="classifier">bool</span></dt><dd><p>“supervised” or “unsupervised”. If “supervised”, l1 is measured by absolution value (not subtracting mean); if “unsupervised”, l1 is measured by standard deviation (subtracting mean).</p>
+</dd>
+<dt>scale<span class="classifier">float</span></dt><dd><p>control the size of the diagram</p>
+</dd>
+<dt>in_vars: None or list of str</dt><dd><p>the name(s) of input variables</p>
+</dd>
+<dt>out_vars: None or list of str</dt><dd><p>the name(s) of output variables</p>
+</dd>
+<dt>title: None or str</dt><dd><p>title</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id27">
+<h4>Returns:<a class="headerlink" href="#id27" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>Figure</p>
+</div></blockquote>
+</section>
+<section id="id28">
+<h4>Example<a class="headerlink" href="#id28" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># see more interactive examples in demos</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># do a forward pass to obtain model.acts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.prune">
+<span class="sig-name descname"><span class="pre">prune</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_neurons_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.prune" title="Link to this definition"></a></dt>
+<dd><p>pruning KAN on the node level. If a node has small incoming or outgoing connection, it will be pruned away.</p>
+<section id="id29">
+<h4>Args:<a class="headerlink" href="#id29" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>threshold<span class="classifier">float</span></dt><dd><p>the threshold used to determine whether a node is small enough</p>
+</dd>
+<dt>mode<span class="classifier">str</span></dt><dd><p>“auto” or “manual”. If “auto”, the thresold will be used to automatically prune away nodes. If “manual”, active_neuron_id is needed to specify which neurons are kept (others are thrown away).</p>
+</dd>
+<dt>active_neuron_id<span class="classifier">list of id lists</span></dt><dd><p>For example, [[0,1],[0,2,3]] means keeping the 0/1 neuron in the 1st hidden layer and the 0/2/3 neuron in the 2nd hidden layer. Pruning input and output neurons is not supported yet.</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id30">
+<h4>Returns:<a class="headerlink" href="#id30" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>model2<span class="classifier">KAN</span></dt><dd><p>pruned model</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id31">
+<h4>Example<a class="headerlink" href="#id31" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># for more interactive examples, please see demos</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.remove_edge">
+<span class="sig-name descname"><span class="pre">remove_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.remove_edge" title="Link to this definition"></a></dt>
+<dd><p>remove activtion phi(l,i,j) (set its mask to zero)</p>
+<section id="id32">
+<h4>Args:<a class="headerlink" href="#id32" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>i<span class="classifier">int</span></dt><dd><p>input neuron index</p>
+</dd>
+<dt>j<span class="classifier">int</span></dt><dd><p>output neuron index</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id33">
+<h4>Returns:<a class="headerlink" href="#id33" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.remove_node">
+<span class="sig-name descname"><span class="pre">remove_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.remove_node" title="Link to this definition"></a></dt>
+<dd><p>remove neuron (l,i) (set the masks of all incoming and outgoing activation functions to zero)</p>
+<section id="id34">
+<h4>Args:<a class="headerlink" href="#id34" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>i<span class="classifier">int</span></dt><dd><p>neuron index</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id35">
+<h4>Returns:<a class="headerlink" href="#id35" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.save_ckpt">
+<span class="sig-name descname"><span class="pre">save_ckpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./model_ckpt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.save_ckpt" title="Link to this definition"></a></dt>
+<dd><p>save the current model as checkpoint</p>
+<section id="id36">
+<h4>Args:<a class="headerlink" href="#id36" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>name: str</dt><dd><p>the name of the checkpoint to be saved</p>
+</dd>
+<dt>folder<span class="classifier">str</span></dt><dd><p>the folder that stores checkpoints</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id37">
+<h4>Returns:<a class="headerlink" href="#id37" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.set_mode">
+<span class="sig-name descname"><span class="pre">set_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.set_mode" title="Link to this definition"></a></dt>
+<dd><p>set (l,i,j) activation to have mode</p>
+<section id="id38">
+<h4>Args:<a class="headerlink" href="#id38" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>i<span class="classifier">int</span></dt><dd><p>input neuron index</p>
+</dd>
+<dt>j<span class="classifier">int</span></dt><dd><p>output neuron index</p>
+</dd>
+<dt>mode<span class="classifier">str</span></dt><dd><p>‘n’ (numeric) or ‘s’ (symbolic) or ‘ns’ (combined)</p>
+</dd>
+<dt>mask_n<span class="classifier">None or float)</span></dt><dd><p>magnitude of the numeric front</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id39">
+<h4>Returns:<a class="headerlink" href="#id39" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.suggest_symbolic">
+<span class="sig-name descname"><span class="pre">suggest_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.suggest_symbolic" title="Link to this definition"></a></dt>
+<dd><p>suggest the symbolic candidates of phi(l,i,j)</p>
+<section id="id40">
+<h4>Args:<a class="headerlink" href="#id40" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>i<span class="classifier">int </span></dt><dd><p>input neuron index</p>
+</dd>
+<dt>j<span class="classifier">int </span></dt><dd><p>output neuron index</p>
+</dd>
+<dt>lib<span class="classifier">dic</span></dt><dd><p>library of symbolic bases. If lib = None, the global default library will be used.</p>
+</dd>
+<dt>topk<span class="classifier">int</span></dt><dd><p>display the top k symbolic functions (according to r2)</p>
+</dd>
+<dt>verbose<span class="classifier">bool</span></dt><dd><p>If True, more information will be printed.</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id41">
+<h4>Returns:<a class="headerlink" href="#id41" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+<section id="id42">
+<h4>Example<a class="headerlink" href="#id42" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">suggest_symbolic</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">function , r2</span>
+<span class="go">sin , 0.9994412064552307</span>
+<span class="go">gaussian , 0.9196369051933289</span>
+<span class="go">tanh , 0.8608126044273376</span>
+<span class="go">sigmoid , 0.8578218817710876</span>
+<span class="go">arctan , 0.842217743396759</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.symbolic_formula">
+<span class="sig-name descname"><span class="pre">symbolic_formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">floating_digit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simplify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.symbolic_formula" title="Link to this definition"></a></dt>
+<dd><p>obtain the symbolic formula</p>
+<section id="id43">
+<h4>Args:<a class="headerlink" href="#id43" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>floating_digit<span class="classifier">int</span></dt><dd><p>the number of digits to display</p>
+</dd>
+<dt>var<span class="classifier">list of str</span></dt><dd><p>the name of variables (if not provided, by default using [‘x_1’, ‘x_2’, …])</p>
+</dd>
+<dt>normalizer<span class="classifier">[mean array (floats), varaince array (floats)]</span></dt><dd><p>the normalization applied to inputs</p>
+</dd>
+<dt>simplify<span class="classifier">bool</span></dt><dd><p>If True, simplify the equation at each step (usually quite slow), so set up False by default.</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id44">
+<h4>Returns:<a class="headerlink" href="#id44" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>symbolic formula : sympy function</p>
+</div></blockquote>
+</section>
+<section id="id45">
+<h4>Example<a class="headerlink" href="#id45" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">grid_eps</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prune</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">auto_symbolic</span><span class="p">(</span><span class="n">lib</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">,</span><span class="s1">&#39;x^2&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.00</span><span class="p">,</span> <span class="n">update_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">symbolic_formula</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LBFGS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb_l1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb_entropy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb_coefdiff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_update_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_grid_update_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">small_mag_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">small_reg_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sglr_avoid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fig_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./video'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.train" title="Link to this definition"></a></dt>
+<dd><p>training</p>
+<section id="id46">
+<h4>Args:<a class="headerlink" href="#id46" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>dataset<span class="classifier">dic</span></dt><dd><p>contains dataset[‘train_input’], dataset[‘train_label’], dataset[‘test_input’], dataset[‘test_label’]</p>
+</dd>
+<dt>opt<span class="classifier">str</span></dt><dd><p>“LBFGS” or “Adam”</p>
+</dd>
+<dt>steps<span class="classifier">int</span></dt><dd><p>training steps</p>
+</dd>
+<dt>log<span class="classifier">int</span></dt><dd><p>logging frequency</p>
+</dd>
+<dt>lamb<span class="classifier">float</span></dt><dd><p>overall penalty strength</p>
+</dd>
+<dt>lamb_l1<span class="classifier">float</span></dt><dd><p>l1 penalty strength</p>
+</dd>
+<dt>lamb_entropy<span class="classifier">float</span></dt><dd><p>entropy penalty strength</p>
+</dd>
+<dt>lamb_coef<span class="classifier">float</span></dt><dd><p>coefficient magnitude penalty strength</p>
+</dd>
+<dt>lamb_coefdiff<span class="classifier">float</span></dt><dd><p>difference of nearby coefficits (smoothness) penalty strength</p>
+</dd>
+<dt>update_grid<span class="classifier">bool</span></dt><dd><p>If True, update grid regularly before stop_grid_update_step</p>
+</dd>
+<dt>grid_update_num<span class="classifier">int</span></dt><dd><p>the number of grid updates before stop_grid_update_step</p>
+</dd>
+<dt>stop_grid_update_step<span class="classifier">int</span></dt><dd><p>no grid updates after this training step</p>
+</dd>
+<dt>batch<span class="classifier">int</span></dt><dd><p>batch size, if -1 then full.</p>
+</dd>
+<dt>small_mag_threshold<span class="classifier">float</span></dt><dd><p>threshold to determine large or small numbers (may want to apply larger penalty to smaller numbers)</p>
+</dd>
+<dt>small_reg_factor<span class="classifier">float</span></dt><dd><p>penalty strength applied to small factors relative to large factos</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>device</p>
+</dd>
+<dt>save_fig_freq<span class="classifier">int</span></dt><dd><p>save figure every (save_fig_freq) step</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id47">
+<h4>Returns:<a class="headerlink" href="#id47" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>results<span class="classifier">dic</span></dt><dd><p>results[‘train_loss’], 1D array of training losses (RMSE)
+results[‘test_loss’], 1D array of test losses (RMSE)
+results[‘reg’], 1D array of regularization</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id48">
+<h4>Example<a class="headerlink" href="#id48" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># for interactive examples, please see demos</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s1">&#39;LBFGS&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">lamb</span><span class="o">=</span><span class="mf">0.01</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.unfix_symbolic">
+<span class="sig-name descname"><span class="pre">unfix_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.unfix_symbolic" title="Link to this definition"></a></dt>
+<dd><p>unfix the (l,i,j) activation function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.unfix_symbolic_all">
+<span class="sig-name descname"><span class="pre">unfix_symbolic_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.unfix_symbolic_all" title="Link to this definition"></a></dt>
+<dd><p>unfix all activation functions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.unlock">
+<span class="sig-name descname"><span class="pre">unlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.unlock" title="Link to this definition"></a></dt>
+<dd><p>unlock ids in the l-th layer to be the same function</p>
+<section id="id49">
+<h4>Args:<a class="headerlink" href="#id49" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>l<span class="classifier">int</span></dt><dd><p>layer index</p>
+</dd>
+<dt>ids<span class="classifier">2D list)</span></dt><dd><p>[[i1,j1],[i2,j2],…] set (l,ii,j1), (l,i2,j2), … to be unlocked</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id50">
+<h4>Example:<a class="headerlink" href="#id50" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noise_scale</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">lock</span><span class="p">(</span><span class="mi">0</span><span class="p">,[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">weight_sharing</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="mi">0</span><span class="p">,[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">weight_sharing</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">tensor([[0, 1],</span>
+<span class="go">        [2, 1],</span>
+<span class="go">        [4, 5]])</span>
+<span class="go">tensor([[0, 1],</span>
+<span class="go">        [2, 3],</span>
+<span class="go">        [4, 5]])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kan.KAN.KAN.update_grid_from_samples">
+<span class="sig-name descname"><span class="pre">update_grid_from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KAN.KAN.update_grid_from_samples" title="Link to this definition"></a></dt>
+<dd><p>update grid from samples</p>
+<section id="id51">
+<h4>Args:<a class="headerlink" href="#id51" title="Link to this heading"></a></h4>
+<blockquote>
+<div><dl class="simple">
+<dt>x<span class="classifier">2D torch.float</span></dt><dd><p>inputs, shape (batch, input dimension)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id52">
+<h4>Returns:<a class="headerlink" href="#id52" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>None</p>
+</div></blockquote>
+</section>
+<section id="id53">
+<h4>Example<a class="headerlink" href="#id53" title="Link to this heading"></a></h4>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KAN</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_grid_from_samples</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">act_fun</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="go">tensor([-1.0000, -0.6000, -0.2000,  0.2000,  0.6000,  1.0000])</span>
+<span class="go">tensor([0.0128, 1.0064, 2.0000, 2.9937, 3.9873, 4.9809])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
 </section>
 <section id="module-kan.KANLayer">
 <span id="kan-kanlayer-module"></span><h2>kan.KANLayer module<a class="headerlink" href="#module-kan.KANLayer" title="Link to this heading"></a></h2>
@@ -125,8 +1040,8 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kan.KANLayer.</span></span><span class="sig-name descname"><span class="pre">KANLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>KANLayer class</p>
-<section id="attributes">
-<h3>Attributes:<a class="headerlink" href="#attributes" title="Link to this heading"></a></h3>
+<section id="id54">
+<h3>Attributes:<a class="headerlink" href="#id54" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>in_dim: int</dt><dd><p>input dimension</p>
@@ -164,8 +1079,8 @@
 </dl>
 </div></blockquote>
 </section>
-<section id="methods">
-<h3>Methods:<a class="headerlink" href="#methods" title="Link to this heading"></a></h3>
+<section id="id55">
+<h3>Methods:<a class="headerlink" href="#id55" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>__init__():</dt><dd><p>initialize a KANLayer</p>
@@ -189,8 +1104,8 @@
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_sp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_fun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.nn.SiLU</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sp_trainable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sb_trainable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.__init__" title="Link to this definition"></a></dt>
 <dd><p>‘
 initialize a KANLayer</p>
-<section id="args">
-<h4>Args:<a class="headerlink" href="#args" title="Link to this heading"></a></h4>
+<section id="id56">
+<h4>Args:<a class="headerlink" href="#id56" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>in_dim<span class="classifier">int</span></dt><dd><p>input dimension. Default: 2.</p>
@@ -222,14 +1137,14 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="returns">
-<h4>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<section id="id57">
+<h4>Returns:<a class="headerlink" href="#id57" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>self</p>
 </div></blockquote>
 </section>
-<section id="example">
-<h4>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h4>
+<section id="id58">
+<h4>Example<a class="headerlink" href="#id58" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">out_dim</span><span class="p">)</span>
 <span class="go">(3, 5)</span>
@@ -242,8 +1157,8 @@ initialize a KANLayer</p>
 <dt class="sig sig-object py" id="kan.KANLayer.KANLayer.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.forward" title="Link to this definition"></a></dt>
 <dd><p>KANLayer forward given input x</p>
-<section id="id1">
-<h4>Args:<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<section id="id59">
+<h4>Args:<a class="headerlink" href="#id59" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">2D torch.float</span></dt><dd><p>inputs, shape (number of samples, input dimension)</p>
@@ -251,8 +1166,8 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id2">
-<h4>Returns:<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<section id="id60">
+<h4>Returns:<a class="headerlink" href="#id60" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>y<span class="classifier">2D torch.float</span></dt><dd><p>outputs, shape (number of samples, output dimension)</p>
@@ -266,8 +1181,8 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id3">
-<h4>Example<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<section id="id61">
+<h4>Example<a class="headerlink" href="#id61" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">preacts</span><span class="p">,</span> <span class="n">postacts</span><span class="p">,</span> <span class="n">postspline</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -285,8 +1200,8 @@ initialize a KANLayer</p>
 <dt class="sig sig-object py" id="kan.KANLayer.KANLayer.get_subset">
 <span class="sig-name descname"><span class="pre">get_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.get_subset" title="Link to this definition"></a></dt>
 <dd><p>get a smaller KANLayer from a larger KANLayer (used for pruning)</p>
-<section id="id4">
-<h4>Args:<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<section id="id62">
+<h4>Args:<a class="headerlink" href="#id62" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>in_id<span class="classifier">list</span></dt><dd><p>id of selected input neurons</p>
@@ -296,14 +1211,14 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id5">
-<h4>Returns:<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<section id="id63">
+<h4>Returns:<a class="headerlink" href="#id63" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>spb : KANLayer</p>
 </div></blockquote>
 </section>
-<section id="id6">
-<h4>Example<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
+<section id="id64">
+<h4>Example<a class="headerlink" href="#id64" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kanlayer_large</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kanlayer_small</span> <span class="o">=</span> <span class="n">kanlayer_large</span><span class="o">.</span><span class="n">get_subset</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">9</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kanlayer_small</span><span class="o">.</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">kanlayer_small</span><span class="o">.</span><span class="n">out_dim</span>
@@ -317,8 +1232,8 @@ initialize a KANLayer</p>
 <dt class="sig sig-object py" id="kan.KANLayer.KANLayer.initialize_grid_from_parent">
 <span class="sig-name descname"><span class="pre">initialize_grid_from_parent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.initialize_grid_from_parent" title="Link to this definition"></a></dt>
 <dd><p>update grid from a parent KANLayer &amp; samples</p>
-<section id="id7">
-<h4>Args:<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<section id="id65">
+<h4>Args:<a class="headerlink" href="#id65" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>parent<span class="classifier">KANLayer</span></dt><dd><p>a parent KANLayer (whose grid is usually coarser than the current model)</p>
@@ -328,14 +1243,14 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id8">
-<h4>Returns:<a class="headerlink" href="#id8" title="Link to this heading"></a></h4>
+<section id="id66">
+<h4>Returns:<a class="headerlink" href="#id66" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>None</p>
 </div></blockquote>
 </section>
-<section id="id9">
-<h4>Example<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
+<section id="id67">
+<h4>Example<a class="headerlink" href="#id67" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">batch</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parent_model</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">parent_model</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
@@ -355,8 +1270,8 @@ initialize a KANLayer</p>
 <dt class="sig sig-object py" id="kan.KANLayer.KANLayer.lock">
 <span class="sig-name descname"><span class="pre">lock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.lock" title="Link to this definition"></a></dt>
 <dd><p>lock activation functions to share parameters based on ids</p>
-<section id="id10">
-<h4>Args:<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
+<section id="id68">
+<h4>Args:<a class="headerlink" href="#id68" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>ids<span class="classifier">list</span></dt><dd><p>list of ids of activation functions</p>
@@ -364,14 +1279,14 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id11">
-<h4>Returns:<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<section id="id69">
+<h4>Returns:<a class="headerlink" href="#id69" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>None</p>
 </div></blockquote>
 </section>
-<section id="id12">
-<h4>Example<a class="headerlink" href="#id12" title="Link to this heading"></a></h4>
+<section id="id70">
+<h4>Example<a class="headerlink" href="#id70" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">weight_sharing</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">lock</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span> <span class="c1"># set (0,0),(1,2),(2,1) functions to be the same</span>
@@ -391,8 +1306,8 @@ initialize a KANLayer</p>
 <dt class="sig sig-object py" id="kan.KANLayer.KANLayer.unlock">
 <span class="sig-name descname"><span class="pre">unlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.unlock" title="Link to this definition"></a></dt>
 <dd><p>unlock activation functions</p>
-<section id="id13">
-<h4>Args:<a class="headerlink" href="#id13" title="Link to this heading"></a></h4>
+<section id="id71">
+<h4>Args:<a class="headerlink" href="#id71" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>ids<span class="classifier">list</span></dt><dd><p>list of ids of activation functions</p>
@@ -400,14 +1315,14 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id14">
-<h4>Returns:<a class="headerlink" href="#id14" title="Link to this heading"></a></h4>
+<section id="id72">
+<h4>Returns:<a class="headerlink" href="#id72" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>None</p>
 </div></blockquote>
 </section>
-<section id="id15">
-<h4>Example<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<section id="id73">
+<h4>Example<a class="headerlink" href="#id73" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">lock</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span> <span class="c1"># set (0,0),(1,2),(2,1) functions to be the same</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">weight_sharing</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
@@ -428,8 +1343,8 @@ initialize a KANLayer</p>
 <dt class="sig sig-object py" id="kan.KANLayer.KANLayer.update_grid_from_samples">
 <span class="sig-name descname"><span class="pre">update_grid_from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.KANLayer.KANLayer.update_grid_from_samples" title="Link to this definition"></a></dt>
 <dd><p>update grid from samples</p>
-<section id="id16">
-<h4>Args:<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<section id="id74">
+<h4>Args:<a class="headerlink" href="#id74" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">2D torch.float</span></dt><dd><p>inputs, shape (number of samples, input dimension)</p>
@@ -437,14 +1352,14 @@ initialize a KANLayer</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id17">
-<h4>Returns:<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<section id="id75">
+<h4>Returns:<a class="headerlink" href="#id75" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>None</p>
 </div></blockquote>
 </section>
-<section id="id18">
-<h4>Example<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
+<section id="id76">
+<h4>Example<a class="headerlink" href="#id76" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="mi">100</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span>
@@ -531,8 +1446,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kan.Symbolic_KANLayer.</span></span><span class="sig-name descname"><span class="pre">Symbolic_KANLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>KANLayer class</p>
-<section id="id19">
-<h3>Attributes:<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<section id="id77">
+<h3>Attributes:<a class="headerlink" href="#id77" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>in_dim: int</dt><dd><p>input dimension</p>
@@ -550,8 +1465,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id20">
-<h3>Methods:<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<section id="id78">
+<h3>Methods:<a class="headerlink" href="#id78" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>__init__(): </dt><dd><p>initialize a Symbolic_KANLayer</p>
@@ -568,8 +1483,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.__init__" title="Link to this definition"></a></dt>
 <dd><p>initialize a Symbolic_KANLayer (activation functions are initialized to be identity functions)</p>
-<section id="id21">
-<h4>Args:<a class="headerlink" href="#id21" title="Link to this heading"></a></h4>
+<section id="id79">
+<h4>Args:<a class="headerlink" href="#id79" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>in_dim<span class="classifier">int</span></dt><dd><p>input dimension</p>
@@ -579,14 +1494,14 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id22">
-<h4>Returns:<a class="headerlink" href="#id22" title="Link to this heading"></a></h4>
+<section id="id80">
+<h4>Returns:<a class="headerlink" href="#id80" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>self</p>
 </div></blockquote>
 </section>
-<section id="id23">
-<h4>Example<a class="headerlink" href="#id23" title="Link to this heading"></a></h4>
+<section id="id81">
+<h4>Example<a class="headerlink" href="#id81" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">funs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">sb</span><span class="o">.</span><span class="n">funs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="go">(3, 3)</span>
@@ -599,8 +1514,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.fix_symbolic">
 <span class="sig-name descname"><span class="pre">fix_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.fix_symbolic" title="Link to this definition"></a></dt>
 <dd><p>fix an activation function to be symbolic</p>
-<section id="id24">
-<h4>Args:<a class="headerlink" href="#id24" title="Link to this heading"></a></h4>
+<section id="id82">
+<h4>Args:<a class="headerlink" href="#id82" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>i<span class="classifier">int</span></dt><dd><p>the id of input neuron</p>
@@ -622,14 +1537,14 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id25">
-<h4>Returns:<a class="headerlink" href="#id25" title="Link to this heading"></a></h4>
+<section id="id83">
+<h4>Returns:<a class="headerlink" href="#id83" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>r2 (coefficient of determination)</p>
 </div></blockquote>
 </section>
-<section id="example-1">
-<h4>Example 1<a class="headerlink" href="#example-1" title="Link to this heading"></a></h4>
+<section id="id84">
+<h4>Example 1<a class="headerlink" href="#id84" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># when x &amp; y are not provided. Affine parameters are set to a = 1, b = 0, c = 1, d = 0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;sin&#39;</span><span class="p">)</span>
@@ -650,8 +1565,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="example-2">
-<h4>Example 2<a class="headerlink" href="#example-2" title="Link to this heading"></a></h4>
+<section id="id85">
+<h4>Example 2<a class="headerlink" href="#id85" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># when x &amp; y are provided, fit_params() is called to find the best fit coefficients</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">batch</span> <span class="o">=</span> <span class="mi">100</span>
@@ -672,8 +1587,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.forward" title="Link to this definition"></a></dt>
-<dd><section id="id26">
-<h4>Args:<a class="headerlink" href="#id26" title="Link to this heading"></a></h4>
+<dd><section id="id86">
+<h4>Args:<a class="headerlink" href="#id86" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">2D array</span></dt><dd><p>inputs, shape (batch, input dimension)</p>
@@ -681,8 +1596,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id27">
-<h4>Returns:<a class="headerlink" href="#id27" title="Link to this heading"></a></h4>
+<section id="id87">
+<h4>Returns:<a class="headerlink" href="#id87" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>y<span class="classifier">2D array</span></dt><dd><p>outputs, shape (batch, output dimension)</p>
@@ -692,8 +1607,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id28">
-<h4>Example<a class="headerlink" href="#id28" title="Link to this heading"></a></h4>
+<section id="id88">
+<h4>Example<a class="headerlink" href="#id88" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sb</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">postacts</span> <span class="o">=</span> <span class="n">sb</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -708,8 +1623,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.get_subset">
 <span class="sig-name descname"><span class="pre">get_subset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.get_subset" title="Link to this definition"></a></dt>
 <dd><p>get a smaller Symbolic_KANLayer from a larger Symbolic_KANLayer (used for pruning)</p>
-<section id="id29">
-<h4>Args:<a class="headerlink" href="#id29" title="Link to this heading"></a></h4>
+<section id="id89">
+<h4>Args:<a class="headerlink" href="#id89" title="Link to this heading"></a></h4>
 <blockquote>
 <div><dl class="simple">
 <dt>in_id<span class="classifier">list</span></dt><dd><p>id of selected input neurons</p>
@@ -719,14 +1634,14 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id30">
-<h4>Returns:<a class="headerlink" href="#id30" title="Link to this heading"></a></h4>
+<section id="id90">
+<h4>Returns:<a class="headerlink" href="#id90" title="Link to this heading"></a></h4>
 <blockquote>
 <div><p>spb : Symbolic_KANLayer</p>
 </div></blockquote>
 </section>
-<section id="id31">
-<h4>Example<a class="headerlink" href="#id31" title="Link to this heading"></a></h4>
+<section id="id91">
+<h4>Example<a class="headerlink" href="#id91" title="Link to this heading"></a></h4>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sb_large</span> <span class="o">=</span> <span class="n">Symbolic_KANLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb_small</span> <span class="o">=</span> <span class="n">sb_large</span><span class="o">.</span><span class="n">get_subset</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">9</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sb_small</span><span class="o">.</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">sb_small</span><span class="o">.</span><span class="n">out_dim</span>
@@ -746,8 +1661,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.spline.B_batch">
 <span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">B_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.B_batch" title="Link to this definition"></a></dt>
 <dd><p>evaludate x on B-spline bases</p>
-<section id="id32">
-<h3>Args:<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
+<section id="id92">
+<h3>Args:<a class="headerlink" href="#id92" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">2D torch.tensor</span></dt><dd><p>inputs, shape (number of splines, number of samples)</p>
@@ -763,8 +1678,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id33">
-<h3>Returns:<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
+<section id="id93">
+<h3>Returns:<a class="headerlink" href="#id93" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>spline values<span class="classifier">3D torch.tensor</span></dt><dd><p>shape (number of splines, number of B-spline bases (coeffcients), number of samples). The numbef of B-spline bases = number of grid points + k - 1.</p>
@@ -772,8 +1687,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id34">
-<h3>Example<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
+<section id="id94">
+<h3>Example<a class="headerlink" href="#id94" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
@@ -791,8 +1706,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.spline.coef2curve">
 <span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">coef2curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.coef2curve" title="Link to this definition"></a></dt>
 <dd><p>converting B-spline coefficients to B-spline curves. Evaluate x on B-spline curves (summing up B_batch results over B-spline basis).</p>
-<section id="id35">
-<h3>Args:<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
+<section id="id95">
+<h3>Args:<a class="headerlink" href="#id95" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x_eval<span class="classifier">2D torch.tensor)</span></dt><dd><p>shape (number of splines, number of samples)</p>
@@ -808,8 +1723,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id36">
-<h3>Returns:<a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
+<section id="id96">
+<h3>Returns:<a class="headerlink" href="#id96" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>y_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
@@ -817,8 +1732,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id37">
-<h3>Example<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
+<section id="id97">
+<h3>Example<a class="headerlink" href="#id97" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
@@ -837,8 +1752,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.spline.curve2coef">
 <span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">curve2coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.curve2coef" title="Link to this definition"></a></dt>
 <dd><p>converting B-spline curves to B-spline coefficients using least squares.</p>
-<section id="id38">
-<h3>Args:<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
+<section id="id98">
+<h3>Args:<a class="headerlink" href="#id98" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
@@ -854,8 +1769,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id39">
-<h3>Example<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
+<section id="id99">
+<h3>Example<a class="headerlink" href="#id99" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
@@ -877,8 +1792,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.utils.add_symbolic">
 <span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">add_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.add_symbolic" title="Link to this definition"></a></dt>
 <dd><p>add a symbolic function to library</p>
-<section id="id40">
-<h3>Args:<a class="headerlink" href="#id40" title="Link to this heading"></a></h3>
+<section id="id100">
+<h3>Args:<a class="headerlink" href="#id100" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>name<span class="classifier">str</span></dt><dd><p>name of the function</p>
@@ -888,14 +1803,14 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id41">
-<h3>Returns:<a class="headerlink" href="#id41" title="Link to this heading"></a></h3>
+<section id="id101">
+<h3>Returns:<a class="headerlink" href="#id101" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>None</p>
 </div></blockquote>
 </section>
-<section id="id42">
-<h3>Example<a class="headerlink" href="#id42" title="Link to this heading"></a></h3>
+<section id="id102">
+<h3>Example<a class="headerlink" href="#id102" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">SYMBOLIC_LIB</span><span class="p">[</span><span class="s1">&#39;Bessel&#39;</span><span class="p">])</span>
 <span class="go">KeyError: &#39;Bessel&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">add_symbolic</span><span class="p">(</span><span class="s1">&#39;Bessel&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">bessel_j0</span><span class="p">)</span>
@@ -910,8 +1825,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt class="sig sig-object py" id="kan.utils.create_dataset">
 <span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">create_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.create_dataset" title="Link to this definition"></a></dt>
 <dd><p>create dataset</p>
-<section id="id43">
-<h3>Args:<a class="headerlink" href="#id43" title="Link to this heading"></a></h3>
+<section id="id103">
+<h3>Args:<a class="headerlink" href="#id103" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>f<span class="classifier">function</span></dt><dd><p>the symbolic formula used to create the synthetic dataset</p>
@@ -933,8 +1848,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id44">
-<h3>Returns:<a class="headerlink" href="#id44" title="Link to this heading"></a></h3>
+<section id="id104">
+<h3>Returns:<a class="headerlink" href="#id104" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>dataset<span class="classifier">dic</span></dt><dd><dl class="simple">
@@ -945,8 +1860,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id45">
-<h3>Example<a class="headerlink" href="#id45" title="Link to this heading"></a></h3>
+<section id="id105">
+<h3>Example<a class="headerlink" href="#id105" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">create_dataset</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">n_var</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">train_num</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span><span class="p">[</span><span class="s1">&#39;train_input&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
@@ -963,8 +1878,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <div class="math notranslate nohighlight">
 \[|y-(cf(ax+b)+d)|^2\]</div>
 <p>is minimized. Both x and y are 1D array. Sweep a and b, find the best fitted model.</p>
-<section id="id46">
-<h3>Args:<a class="headerlink" href="#id46" title="Link to this heading"></a></h3>
+<section id="id106">
+<h3>Args:<a class="headerlink" href="#id106" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>x<span class="classifier">1D array</span></dt><dd><p>x values</p>
@@ -986,8 +1901,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id47">
-<h3>Returns:<a class="headerlink" href="#id47" title="Link to this heading"></a></h3>
+<section id="id107">
+<h3>Returns:<a class="headerlink" href="#id107" title="Link to this heading"></a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>a_best<span class="classifier">float</span></dt><dd><p>best fitted a</p>
@@ -1003,8 +1918,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dl>
 </div></blockquote>
 </section>
-<section id="id48">
-<h3>Example<a class="headerlink" href="#id48" title="Link to this heading"></a></h3>
+<section id="id108">
+<h3>Example<a class="headerlink" href="#id108" title="Link to this heading"></a></h3>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">noises</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,(</span><span class="n">num</span><span class="p">,))</span> <span class="o">*</span> <span class="mf">0.02</span>
@@ -1018,8 +1933,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </dd></dl>
 
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="module-kan">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kan" title="Link to this heading"></a></h2>
 </section>
 </section>
 
