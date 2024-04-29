@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -15,9 +15,9 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -102,7 +102,7 @@
            <div itemprop="articleBody">
              
   <section id="example-4-symbolic-regression">
-<h1>Example 4: Symbolic Regression<a class="headerlink" href="#example-4-symbolic-regression" title="Permalink to this heading"></a></h1>
+<h1>Example 4: Symbolic Regression<a class="headerlink" href="#example-4-symbolic-regression" title="Link to this heading"></a></h1>
 <p>The symbolic space is very dense, which means getting the correct
 symbolic formula (if existing at all) is a hard task. We will show how
 sentitive symbolic regression is, especially in the presence of noise.
@@ -122,7 +122,7 @@ a (hopefully) clear signal of the correctness of a symbolic formula by
 noticing the loss to go down to near machine precision. We will use an
 example to demonstrate this below.</p>
 <section id="part-i-automated-vs-manual-symbolic-regression-how-can-we-know-that-we-get-the-exact-formula">
-<h2>Part I: Automated vs manual symbolic regression (How can we know that we get the exact formula?)<a class="headerlink" href="#part-i-automated-vs-manual-symbolic-regression-how-can-we-know-that-we-get-the-exact-formula" title="Permalink to this heading"></a></h2>
+<h2>Part I: Automated vs manual symbolic regression (How can we know that we get the exact formula?)<a class="headerlink" href="#part-i-automated-vs-manual-symbolic-regression-how-can-we-know-that-we-get-the-exact-formula" title="Link to this heading"></a></h2>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
 # create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
 model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
@@ -361,14 +361,14 @@ model.plot()
 <img alt="../_images/Example_4_symbolic_regression_24_1.png" src="../_images/Example_4_symbolic_regression_24_1.png" />
 </section>
 <section id="part-ii-how-hard-ill-defined-is-symbolic-regression-really">
-<h2>Part II: How hard (ill-defined) is symbolic regression, really?<a class="headerlink" href="#part-ii-how-hard-ill-defined-is-symbolic-regression-really" title="Permalink to this heading"></a></h2>
+<h2>Part II: How hard (ill-defined) is symbolic regression, really?<a class="headerlink" href="#part-ii-how-hard-ill-defined-is-symbolic-regression-really" title="Link to this heading"></a></h2>
 <p>In part I, we show how people can use KANs for symbolic regression, but
 caveat that we need to train KANs to quite high precision. This is not a
 problem specific to KANs though; this issue originates from symbolic
 regression. The space of symbolic formulas is actually quite dense, so
 tiny noise can make one symbolic formula transit to another.</p>
 <section id="d-example-adding-noise-to-a-bounded-region-sine">
-<h3>1D example: Adding noise to a bounded region sine<a class="headerlink" href="#d-example-adding-noise-to-a-bounded-region-sine" title="Permalink to this heading"></a></h3>
+<h3>1D example: Adding noise to a bounded region sine<a class="headerlink" href="#d-example-adding-noise-to-a-bounded-region-sine" title="Link to this heading"></a></h3>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def toy(bound=1., noise=0., fun=lambda x: torch.sin(torch.pi*x)):
 
     num_pts = 101
@@ -435,9 +435,9 @@ toy(bound = 0.1, noise=0.1)
 <img alt="../_images/Example_4_symbolic_regression_30_2.png" src="../_images/Example_4_symbolic_regression_30_2.png" />
 </section>
 <section id="phase-diagram-of-symbolic-regression-how-fratcal-chaotic-is-my-phase-diagram">
-<h3>Phase diagram of symbolic regression (how fratcal/chaotic is my phase diagram?)<a class="headerlink" href="#phase-diagram-of-symbolic-regression-how-fratcal-chaotic-is-my-phase-diagram" title="Permalink to this heading"></a></h3>
+<h3>Phase diagram of symbolic regression (how fratcal/chaotic is my phase diagram?)<a class="headerlink" href="#phase-diagram-of-symbolic-regression-how-fratcal-chaotic-is-my-phase-diagram" title="Link to this heading"></a></h3>
 <section id="mix-three-functions-f-1-x-rm-sin-x-f-2-x-x-2-and-f-3-x-rm-exp-x-such-that-f-x-af-1-x-bf-2-x-1-a-b-f-3-x-symbolically-regress-f-x">
-<h4>mix three functions <span class="math notranslate nohighlight">\(f_1(x)={\rm sin}(x)\)</span>, <span class="math notranslate nohighlight">\(f_2(x)=x^2\)</span>, and <span class="math notranslate nohighlight">\(f_3(x)={\rm exp}(x)\)</span> such that <span class="math notranslate nohighlight">\(f(x)=af_1(x)+bf_2(x)+(1-a-b)f_3(x)\)</span>. Symbolically regress <span class="math notranslate nohighlight">\(f(x)\)</span>.<a class="headerlink" href="#mix-three-functions-f-1-x-rm-sin-x-f-2-x-x-2-and-f-3-x-rm-exp-x-such-that-f-x-af-1-x-bf-2-x-1-a-b-f-3-x-symbolically-regress-f-x" title="Permalink to this heading"></a></h4>
+<h4>mix three functions <span class="math notranslate nohighlight">\(f_1(x)={\rm sin}(x)\)</span>, <span class="math notranslate nohighlight">\(f_2(x)=x^2\)</span>, and <span class="math notranslate nohighlight">\(f_3(x)={\rm exp}(x)\)</span> such that <span class="math notranslate nohighlight">\(f(x)=af_1(x)+bf_2(x)+(1-a-b)f_3(x)\)</span>. Symbolically regress <span class="math notranslate nohighlight">\(f(x)\)</span>.<a class="headerlink" href="#mix-three-functions-f-1-x-rm-sin-x-f-2-x-x-2-and-f-3-x-rm-exp-x-such-that-f-x-af-1-x-bf-2-x-1-a-b-f-3-x-symbolically-regress-f-x" title="Link to this heading"></a></h4>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def mix(a, b, bound=1):
     num_pts = 101
     x = torch.linspace(-bound,bound,steps=num_pts)

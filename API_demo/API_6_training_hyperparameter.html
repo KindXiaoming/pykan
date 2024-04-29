@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -15,9 +15,9 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -97,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="demo-6-training-hyperparamters">
-<h1>Demo 6: Training Hyperparamters<a class="headerlink" href="#demo-6-training-hyperparamters" title="Permalink to this heading"></a></h1>
+<h1>Demo 6: Training Hyperparamters<a class="headerlink" href="#demo-6-training-hyperparamters" title="Link to this heading"></a></h1>
 <p>Regularization helps interpretability by making KANs sparser. This may
 require some hyperparamter tuning. Let’s see how hyperparameters can
 affect training</p>
@@ -128,7 +128,7 @@ model.plot(mask=True)
 <img alt="../_images/API_6_training_hyperparameter_4_1.png" src="../_images/API_6_training_hyperparameter_4_1.png" />
 <img alt="../_images/API_6_training_hyperparameter_4_2.png" src="../_images/API_6_training_hyperparameter_4_2.png" />
 <section id="parameter-1-lambda-overall-penalty-strength">
-<h2>Parameter 1: <span class="math notranslate nohighlight">\(\lambda\)</span>, overall penalty strength.<a class="headerlink" href="#parameter-1-lambda-overall-penalty-strength" title="Permalink to this heading"></a></h2>
+<h2>Parameter 1: <span class="math notranslate nohighlight">\(\lambda\)</span>, overall penalty strength.<a class="headerlink" href="#parameter-1-lambda-overall-penalty-strength" title="Link to this heading"></a></h2>
 <p>Previously <span class="math notranslate nohighlight">\(\lambda=0.1\)</span>, now we try different <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
 <p><span class="math notranslate nohighlight">\(\lambda=0\)</span></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
@@ -174,7 +174,7 @@ model.plot(mask=True)
 <img alt="../_images/API_6_training_hyperparameter_11_2.png" src="../_images/API_6_training_hyperparameter_11_2.png" />
 </section>
 <section id="parameter-2-relative-penalty-strength-of-entropy-lambda-rm-ent">
-<h2>Parameter 2: (relative) penalty strength of entropy <span class="math notranslate nohighlight">\(\lambda_{\rm ent}\)</span>.<a class="headerlink" href="#parameter-2-relative-penalty-strength-of-entropy-lambda-rm-ent" title="Permalink to this heading"></a></h2>
+<h2>Parameter 2: (relative) penalty strength of entropy <span class="math notranslate nohighlight">\(\lambda_{\rm ent}\)</span>.<a class="headerlink" href="#parameter-2-relative-penalty-strength-of-entropy-lambda-rm-ent" title="Link to this heading"></a></h2>
 <p>The absolute magnitude is <span class="math notranslate nohighlight">\(\lambda\lambda_{\rm ent}\)</span>. Previously
 we set <span class="math notranslate nohighlight">\(\lambda=0.1\)</span> and <span class="math notranslate nohighlight">\(\lambda_{\rm ent}=10.0\)</span>. Below we
 fix <span class="math notranslate nohighlight">\(\lambda=0.1\)</span> and vary <span class="math notranslate nohighlight">\(\lambda_{\rm ent}\)</span>.</p>
@@ -220,7 +220,7 @@ model.plot(mask=True)
 <img alt="../_images/API_6_training_hyperparameter_18_2.png" src="../_images/API_6_training_hyperparameter_18_2.png" />
 </section>
 <section id="parameter-3-grid-size-g">
-<h2>Parameter 3: Grid size <span class="math notranslate nohighlight">\(G\)</span>.<a class="headerlink" href="#parameter-3-grid-size-g" title="Permalink to this heading"></a></h2>
+<h2>Parameter 3: Grid size <span class="math notranslate nohighlight">\(G\)</span>.<a class="headerlink" href="#parameter-3-grid-size-g" title="Link to this heading"></a></h2>
 <p>Previously we set <span class="math notranslate nohighlight">\(G=5\)</span>, we vary <span class="math notranslate nohighlight">\(G\)</span> below.</p>
 <p><span class="math notranslate nohighlight">\(G=1\)</span></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = KAN(width=[2,5,1], grid=1, k=3, seed=0)
@@ -289,7 +289,7 @@ model.plot(mask=True)
 <img alt="../_images/API_6_training_hyperparameter_29_2.png" src="../_images/API_6_training_hyperparameter_29_2.png" />
 </section>
 <section id="parameter-4-seed">
-<h2>Parameter 4: seed.<a class="headerlink" href="#parameter-4-seed" title="Permalink to this heading"></a></h2>
+<h2>Parameter 4: seed.<a class="headerlink" href="#parameter-4-seed" title="Link to this heading"></a></h2>
 <p>Previously we use seed = 0. Below we vary seed.</p>
 <p><span class="math notranslate nohighlight">\({\rm seed} = 1\)</span></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = KAN(width=[2,5,1], grid=5, k=3, seed=1, noise_scale_base=0.0)

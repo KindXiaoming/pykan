@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -15,9 +15,9 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -98,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="example-11-encouraging-linearity">
-<h1>Example 11: Encouraging linearity<a class="headerlink" href="#example-11-encouraging-linearity" title="Permalink to this heading"></a></h1>
+<h1>Example 11: Encouraging linearity<a class="headerlink" href="#example-11-encouraging-linearity" title="Link to this heading"></a></h1>
 <p>In cases where we don’t know how deep we should set KANs to be, one
 strategy is to try from small models, grudually making models
 wider/deeper until we find the minimal model that performs the task
@@ -113,7 +113,7 @@ activation functions to be linear (‘shortcut’ along depth).</p>
 activation function is linear.</p></li>
 </ol>
 <section id="case-1-1d-function">
-<h2>Case 1: 1D function<a class="headerlink" href="#case-1-1d-function" title="Permalink to this heading"></a></h2>
+<h2>Case 1: 1D function<a class="headerlink" href="#case-1-1d-function" title="Link to this heading"></a></h2>
 <p><span class="math notranslate nohighlight">\(f(x)={\rm sin}(\pi x)\)</span>. Although we know a [1,1] KAN suffices, we
 suppose we don’t know that and use a [1,1,1,1] KAN instead.</p>
 <p>without trick</p>
@@ -158,7 +158,7 @@ model.train(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=1e-4, lamb_coef=10.0)
 <img alt="../_images/Example_11_encouraing_linear_8_0.png" src="../_images/Example_11_encouraing_linear_8_0.png" />
 </section>
 <section id="case-2-2d-function">
-<h2>Case 2: 2D function<a class="headerlink" href="#case-2-2d-function" title="Permalink to this heading"></a></h2>
+<h2>Case 2: 2D function<a class="headerlink" href="#case-2-2d-function" title="Link to this heading"></a></h2>
 <p><span class="math notranslate nohighlight">\(f(x,y)={\rm exp}({\rm sin}(\pi x)+y^2)\)</span>. We know a [2,1,1] KAN
 represents it. Let’s suppose we don’t know about that and use a
 [2,3,3,3,1] KAN instead.</p>

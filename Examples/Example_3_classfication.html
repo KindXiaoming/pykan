@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -15,9 +15,9 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
-        <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -101,9 +101,9 @@
            <div itemprop="articleBody">
              
   <section id="example-3-classification">
-<h1>Example 3: Classification<a class="headerlink" href="#example-3-classification" title="Permalink to this heading"></a></h1>
+<h1>Example 3: Classification<a class="headerlink" href="#example-3-classification" title="Link to this heading"></a></h1>
 <section id="regression-formulation">
-<h2>Regression formulation<a class="headerlink" href="#regression-formulation" title="Permalink to this heading"></a></h2>
+<h2>Regression formulation<a class="headerlink" href="#regression-formulation" title="Link to this heading"></a></h2>
 <p>Let’s first treat the problem as a regression problem (output dimension
 = 1, MSE loss).</p>
 <p>create the two moon dataset</p>
@@ -182,7 +182,7 @@ print(&#39;test acc of the formula:&#39;, acc(formula, dataset[&#39;test_input&#
 </div>
 </section>
 <section id="classification-formulation">
-<h2>Classification formulation<a class="headerlink" href="#classification-formulation" title="Permalink to this heading"></a></h2>
+<h2>Classification formulation<a class="headerlink" href="#classification-formulation" title="Link to this heading"></a></h2>
 <p>Let’s then treat the problem as a regression problem (output dimension =
 2, CrossEntropy loss).</p>
 <p>Create the two moon datatset</p>
@@ -211,7 +211,7 @@ plt.scatter(X[:,0], X[:,1], c=y[:])
 </div>
 <img alt="../_images/Example_3_classfication_12_1.png" src="../_images/Example_3_classfication_12_1.png" />
 <section id="train-kan">
-<h3>Train KAN<a class="headerlink" href="#train-kan" title="Permalink to this heading"></a></h3>
+<h3>Train KAN<a class="headerlink" href="#train-kan" title="Link to this heading"></a></h3>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = KAN(width=[2,2], grid=3, k=3)
 
 def train_acc():
