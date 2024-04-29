@@ -58,7 +58,7 @@ Get started
 * API (advanced): :ref:`api`.
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
    :caption: Contents:
 
    intro.rst
