@@ -40,9 +40,7 @@ def skip(app, what, name, obj, would_skip, options):
 def setup(app):
     app.connect("autodoc-skip-member", skip)
     
-autodoc_mock_imports = ["sphinx_rtd_theme",
-                        "sphinx.ext.autodoc",
-                        "sphinx.ext.autosectionlabel"
+autodoc_mock_imports = ["torch"
                         ]
            
 
