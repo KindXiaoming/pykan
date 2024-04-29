@@ -47,7 +47,6 @@ autodoc_mock_imports = ["numpy",
                         "tqdm",
                         "sympy",
                         "scipy",
-                        "sklean",
                         "sklearn.linear_model"
                         "torch.optim"]
            
