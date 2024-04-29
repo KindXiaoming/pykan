@@ -57,8 +57,6 @@ Get started
 * KANs in Action: :ref:`api-demo`, :ref:`examples`
 * API (advanced): :ref:`api`.
 
-
-
 .. toctree::
    :maxdepth: 1
    :caption: Contents:

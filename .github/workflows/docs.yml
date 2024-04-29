@@ -19,6 +19,7 @@ jobs:
 
     - name: Install requirements
       run: |
+        pip3 install -U sphinx
         pip3 install sphinx-rtd-theme
     
     - name: Build docs
