@@ -19,10 +19,10 @@ jobs:
 
     - name: Install requirements
       run: |
-        pip3 install -U sphinx
-        pip3 install sphinx-rtd-theme
-        pip3 install scipy==1.10.0
-        pip3 install scikit-learn==1.1.3
+        pip install -U sphinx
+        pip install sphinx-rtd-theme
+        pip install scipy==1.12.0
+        pip install scikit-learn==1.1.3
     
     - name: Build docs
       run: |
