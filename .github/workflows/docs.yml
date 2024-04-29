@@ -24,6 +24,7 @@ jobs:
     
     - name: Build docs
       run: |
+        pip3 install .
         cd docs
         sphinx-apidoc -o . ../kan
         make clean html
