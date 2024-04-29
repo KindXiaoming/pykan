@@ -1,3 +1,9 @@
+kan package
+===========
+
+Submodules
+----------
+
 kan.KAN module
 --------------
 
@@ -5,7 +11,7 @@ kan.KAN module
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
 kan.KANLayer module
 -------------------
 
@@ -13,7 +19,15 @@ kan.KANLayer module
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
+kan.LBFGS module
+----------------
+
+.. automodule:: kan.LBFGS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kan.Symbolic\_KANLayer module
 -----------------------------
 
@@ -29,7 +43,7 @@ kan.spline module
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
 kan.utils module
 ----------------
 
@@ -38,3 +52,10 @@ kan.utils module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
+
+.. automodule:: kan
+   :members:
+   :undoc-members:
+   :show-inheritance:
