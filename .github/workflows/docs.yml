@@ -26,7 +26,7 @@ jobs:
       run: |
         cd docs
         sphinx-apidoc -o . ../kan
-        make html
+        make clean html
     # https://github.com/peaceiris/actions-gh-pages
     - name: Deploy
       if: success()
