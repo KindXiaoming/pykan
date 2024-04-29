@@ -1,7 +1,4 @@
 name: Upload Python Package to PyPI when a Release is Created
-uses: pypa/gh-action-pypi-publish@release/v1
-  with:
-    password: ${{ secrets.PYPI_API_TOKEN }}
     
 on:
   release:
