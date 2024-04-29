@@ -35,6 +35,11 @@ pip install -r requirements.txt
 The documenation can be found here [].
 
 ## Tutorials
-Jupyter Notebooks in ``docs/Examples`` and ``docs/API_demo`` are ready to play.
+
+**Quickstart**
+Get started with ``hellokan.ipynb`` notebook
+
+**More demos**
+Jupyter Notebooks in ``docs/Examples`` and ``docs/API_demo`` are ready to play. You may also find these examples in documentation.
 
 
