@@ -8,14 +8,12 @@ Welcome to Kolmogorov Aarnold Network (KAN) documentation!
 
 .. image:: kan_plot.png
 
-This documentation is for the paper "KAN: Kolmogorov-Arnold Networks" and the github repo can be found here.
+This documentation is for the paper "KAN: Kolmogorov-Arnold Networks" (link) and the `github repo`_.
 Kolmogorov-Arnold Networks, inspired by the Kolmogorov-Arnold representation theorem, are promising alternatives
 of Multi-Layer Preceptrons (MLPs). KANs have activation functions on edges, whereas MLPs have activation functions on nodes.
 This simple change makes KAN better than MLPs in terms of both accuracy and interpretability.
 
-Get the latest news at `CNN`_. (Add links to paper and github repo)
-
-.. _CNN: http://cnn.com/
+.. _github repo: https://github.com/KindXiaoming/pykan
 
 Installation
 ------------
@@ -31,13 +29,26 @@ Installation via github
    # pip install -r requirements.txt # install requirements
 
 
-Installation via PyPI (soon)
+Installation via PyPI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
    pip install pykan
    
+
+Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   matplotlib==3.6.2
+   numpy==1.24.4
+   scikit_learn==1.1.3
+   setuptools==65.5.0
+   sympy==1.11.1
+   torch==2.2.2
+   tqdm==4.66.2
 
 Get started
 -----------
