@@ -35,6 +35,9 @@ Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perc
 **Example 3: Discovering physical laws of Anderson localization**
 <img width="1295" alt="Screenshot 2024-04-30 at 11 05 53" src="https://github.com/KindXiaoming/pykan/assets/23551623/8ee507a0-d194-44a9-8837-15d7f5984301">
 
+**Example 4: Training of a three-layer KAN**
+
+![kan_training_low_res](https://github.com/KindXiaoming/pykan/assets/23551623/e9f215c7-a393-46b9-8528-c906878f015e)
 
 
 
