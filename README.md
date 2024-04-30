@@ -9,7 +9,7 @@ Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perc
 <img width="1163" alt="mlp_kan_compare" src="https://github.com/KindXiaoming/pykan/assets/23551623/695adc2d-0d0b-4e4b-bcff-db2c8070f841">
 
 ## Accuracy
-KANs have faster scaling than MLPs. KANs have comparable or even better accuracy than MLPs with much fewer parameters.
+**KANs have faster scaling than MLPs. KANs have comparable or even better accuracy than MLPs with much fewer parameters.**
 
 **Example 1: fitting symbolic formulas**
 <img width="1824" alt="Screenshot 2024-04-30 at 10 55 30" src="https://github.com/KindXiaoming/pykan/assets/23551623/e1fc3dcc-c1f6-49d5-b58e-79ff7b98a49b">
@@ -24,7 +24,7 @@ KANs have faster scaling than MLPs. KANs have comparable or even better accuracy
 <img width="1652" alt="Screenshot 2024-04-30 at 11 04 36" src="https://github.com/KindXiaoming/pykan/assets/23551623/57d81de6-7cff-4e55-b8f9-c4768ace2c77">
 
 ## Interpretability
-KANs can be intuitively visualized. KANs offer interpretability and interactivity that MLPs cannot provide. We can use KANs to potentially discover new scientific laws.
+**KANs can be intuitively visualized. KANs offer interpretability and interactivity that MLPs cannot provide. We can use KANs to potentially discover new scientific laws.**
 
 **Example 1: Symbolic formulas**
 <img width="1510" alt="Screenshot 2024-04-30 at 11 04 56" src="https://github.com/KindXiaoming/pykan/assets/23551623/3cfd1ca2-cd3e-4396-845e-ef8f3a7c55ef">
