@@ -1,6 +1,6 @@
 <img width="600" alt="kan_plot" src="https://github.com/KindXiaoming/pykan/assets/23551623/a2d2d225-b4d2-4c1e-823e-bc45c7ea96f9">
 
-# Kolmogorov-Arnold Newtworks (KANs)
+# Kolmogorov-Arnold Networks (KANs)
 
 This is the github repo for the paper ["KAN: Kolmogorov-Arnold Networks"](https://arxiv.org/abs/2404.19756). Find the documentation [here](https://kindxiaoming.github.io/pykan/).
 
