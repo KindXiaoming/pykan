@@ -2,7 +2,7 @@
 
 # Kolmogorov-Arnold Newtworks (KANs)
 
-This the github repo for the paper ["KAN: Kolmogorov-Arnold Networks"](https://arxiv.org/abs/2404.19756). Find the documentation [here](https://kindxiaoming.github.io/pykan/).
+This is the github repo for the paper ["KAN: Kolmogorov-Arnold Networks"](https://arxiv.org/abs/2404.19756). Find the documentation [here](https://kindxiaoming.github.io/pykan/).
 
 Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perceptrons (MLPs). KANs have strong mathematical foundations just like MLPs: MLPs are based on the universal approximation theorem, while KANs are based on Kolmogorov-Arnold representation theorem. KANs and MLPs are dual: KANs have activation functions on edges, while MLPs have activation functions on nodes. This simple change makes KANs better (sometimes much better!) than MLPs in terms of both model **accuracy** and **interpretability**. A quick intro of KANs [here](https://kindxiaoming.github.io/pykan/intro.html).
 
@@ -76,6 +76,10 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
+## Computation requirements
+
+Examples in [tutorials](tutorials) are runnable on a single CPU typically less than 10 minutes. All examples in the paper are runnable on a single CPU in less than one day. Training KANs for PDE is the most expensive and may take hours to days on a single CPU. We use CPUs to train our models because we carried out parameter sweeps (both for MLPs and KANs) to obtain Pareto Frontiers. There are thousands of small models which is why we use CPUs rather than GPUs. Admittedly, our problem scales are smaller than typical machine learning tasks, but are typical for science-related tasks. In case the scale of your task is large, it is advisable to use GPUs.
+
 ## Documentation
 The documenation can be found [here](https://kindxiaoming.github.io/pykan/).
 
@@ -88,5 +92,20 @@ Get started with [hellokan.ipynb](./hellokan.ipynb) notebook.
 **More demos**
 
 More Notebook tutorials can be found in [tutorials](tutorials).
+
+## Citation
+```python
+@misc{liu2024kan,
+      title={KAN: Kolmogorov-Arnold Networks}, 
+      author={Ziming Liu and Yixuan Wang and Sachin Vaidya and Fabian Ruehle and James Halverson and Marin Soljačić and Thomas Y. Hou and Max Tegmark},
+      year={2024},
+      eprint={2404.19756},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
+
+## Contact
+If you have any questions, please contact zmliu@mit.edu
 
 
