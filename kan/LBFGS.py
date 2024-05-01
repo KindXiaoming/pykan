@@ -2,7 +2,6 @@ import ast
 import inspect
 from functools import partial, reduce
 
-import astor
 import torch
 from torch.optim import LBFGS as _LBFGS
 
