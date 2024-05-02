@@ -108,7 +108,3 @@ More Notebook tutorials can be found in [tutorials](tutorials).
 ## Contact
 If you have any questions, please contact zmliu@mit.edu
 
-## Author's note: The purpose of this repo
-
-**This repo (and the pykan package) is mainly targetting users who are more intereted in making scientific discoveries with KANs. The accuracy and parameter efficiency experiments are also trying to convince people to use it for scientific tasks (which are relatively low-dimensional and potentially have compositional structures). To be honest, I did not expect the ML world to act strongly to this so did not make an attempt to make it efficient and extensible etc. I'd welcome the community to build their own projects to improve KANs efficiency/extensibility, but this is beyond the scope of this current repo. Thank you for understanding! More discussion in this [thread](https://github.com/KindXiaoming/pykan/issues/28)**
-
