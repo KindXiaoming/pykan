@@ -5,7 +5,6 @@ import sympy
 from .utils import *
 
 
-
 class Symbolic_KANLayer(nn.Module):
     '''
     KANLayer class
@@ -24,10 +23,10 @@ class Symbolic_KANLayer(nn.Module):
             symbolic functions (sympy)
         affine: 3D array of floats
             affine transformations of inputs and outputs
-        
+
     Methods:
     --------
-        __init__(): 
+        __init__():
             initialize a Symbolic_KANLayer
         forward():
             forward
@@ -36,21 +35,22 @@ class Symbolic_KANLayer(nn.Module):
         fix_symbolic():
             fix an activation function to be symbolic
     '''
+
     def __init__(self, in_dim=3, out_dim=2):
         '''
         initialize a Symbolic_KANLayer (activation functions are initialized to be identity functions)
-        
+
         Args:
         -----
             in_dim : int
                 input dimension
             out_dim : int
                 output dimension
-            
+
         Returns:
         --------
             self
-            
+
         Example
         -------
         >>> sb = Symbolic_KANLayer(in_dim=3, out_dim=3)
@@ -67,26 +67,26 @@ class Symbolic_KANLayer(nn.Module):
         self.funs_name = [['' for i in range(self.in_dim)] for j in range(self.out_dim)]
         # sympy
         self.funs_sympy = [['' for i in range(self.in_dim)] for j in range(self.out_dim)]
-        
+
         self.affine = torch.nn.Parameter(torch.zeros(out_dim, in_dim, 4))
         # c*f(a*x+b)+d
-    
+
     def forward(self, x):
         '''
         forward
-        
+
         Args:
         -----
             x : 2D array
                 inputs, shape (batch, input dimension)
-            
+
         Returns:
         --------
             y : 2D array
                 outputs, shape (batch, output dimension)
             postacts : 3D array
                 activations after activation functions but before summing on nodes
-        
+
         Example
         -------
         >>> sb = Symbolic_KANLayer(in_dim=3, out_dim=5)
@@ -95,39 +95,39 @@ class Symbolic_KANLayer(nn.Module):
         >>> y.shape, postacts.shape
         (torch.Size([100, 5]), torch.Size([100, 5, 3]))
         '''
-        
+
         batch = x.shape[0]
         postacts = []
 
         for i in range(self.in_dim):
             postacts_ = []
             for j in range(self.out_dim):
-                xij = self.affine[j,i,2]*self.funs[j][i](self.affine[j,i,0]*x[:,[i]]+self.affine[j,i,1])+self.affine[j,i,3]
-                postacts_.append(self.mask[j][i]*xij)
+                xij = self.affine[j, i, 2] * self.funs[j][i](self.affine[j, i, 0] * x[:, [i]] + self.affine[j, i, 1]) + \
+                      self.affine[j, i, 3]
+                postacts_.append(self.mask[j][i] * xij)
             postacts.append(torch.stack(postacts_))
 
         postacts = torch.stack(postacts)
-        postacts = postacts.permute(2,1,0,3)[:,:,:,0]
+        postacts = postacts.permute(2, 1, 0, 3)[:, :, :, 0]
         y = torch.sum(postacts, dim=2)
-        
+
         return y, postacts
-        
-        
+
     def get_subset(self, in_id, out_id):
         '''
         get a smaller Symbolic_KANLayer from a larger Symbolic_KANLayer (used for pruning)
-        
+
         Args:
         -----
             in_id : list
                 id of selected input neurons
             out_id : list
                 id of selected output neurons
-            
+
         Returns:
         --------
             spb : Symbolic_KANLayer
-         
+
         Example
         -------
         >>> sb_large = Symbolic_KANLayer(in_dim=10, out_dim=10)
@@ -138,23 +138,23 @@ class Symbolic_KANLayer(nn.Module):
         sbb = Symbolic_KANLayer(self.in_dim, self.out_dim)
         sbb.in_dim = len(in_id)
         sbb.out_dim = len(out_id)
-        sbb.mask.data = self.mask.data[out_id][:,in_id]
+        sbb.mask.data = self.mask.data[out_id][:, in_id]
         sbb.funs = [[self.funs[j][i] for i in in_id] for j in out_id]
         sbb.funs_sympy = [[self.funs_sympy[j][i] for i in in_id] for j in out_id]
         sbb.funs_name = [[self.funs_name[j][i] for i in in_id] for j in out_id]
-        sbb.affine.data = self.affine.data[out_id][:,in_id]
+        sbb.affine.data = self.affine.data[out_id][:, in_id]
         return sbb
-    
-    
-    def fix_symbolic(self, i, j, fun_name, x=None, y=None, random=False, a_range=(-10,10), b_range=(-10,10), verbose=True):
+
+    def fix_symbolic(self, i, j, fun_name, x=None, y=None, random=False, a_range=(-10, 10), b_range=(-10, 10),
+                     verbose=True):
         '''
         fix an activation function to be symbolic
-        
+
         Args:
         -----
             i : int
                 the id of input neuron
-            j : int 
+            j : int
                 the id of output neuron
             fun_name : str
                 the name of the symbolic functions
@@ -168,11 +168,11 @@ class Symbolic_KANLayer(nn.Module):
                 sweeping range of a
             verbose : bool
                 print more information if True
-            
+
         Returns:
         --------
             r2 (coefficient of determination)
-            
+
         Example 1
         ---------
         >>> # when x & y are not provided. Affine parameters are set to a = 1, b = 0, c = 1, d = 0
@@ -200,22 +200,22 @@ class Symbolic_KANLayer(nn.Module):
         [['', '', ''], ['', '', 'sin']]
         tensor([2.9981, 1.9997, 5.0039, 0.6978])
         '''
-        if isinstance(fun_name,str):
+        if isinstance(fun_name, str):
             fun = SYMBOLIC_LIB[fun_name][0]
             fun_sympy = SYMBOLIC_LIB[fun_name][1]
             self.funs_sympy[j][i] = fun_sympy
             self.funs_name[j][i] = fun_name
             if x == None or y == None:
-                #initialzie from just fun
+                # initialzie from just fun
                 self.funs[j][i] = fun
                 if random == False:
-                    self.affine.data[j][i] = torch.tensor([1.,0.,1.,0.])
+                    self.affine.data[j][i] = torch.tensor([1., 0., 1., 0.])
                 else:
-                    self.affine.data[j][i] = torch.rand(4,) * 2 - 1
+                    self.affine.data[j][i] = torch.rand(4, ) * 2 - 1
                 return None
             else:
-                #initialize from x & y and fun
-                params, r2 = fit_params(x,y,fun, a_range=a_range, b_range=b_range, verbose=verbose)
+                # initialize from x & y and fun
+                params, r2 = fit_params(x, y, fun, a_range=a_range, b_range=b_range, verbose=verbose)
                 self.funs[j][i] = fun
                 self.affine.data[j][i] = params
                 return r2
@@ -228,7 +228,7 @@ class Symbolic_KANLayer(nn.Module):
 
             self.funs[j][i] = fun
             if random == False:
-                self.affine.data[j][i] = torch.tensor([1.,0.,1.,0.])
+                self.affine.data[j][i] = torch.tensor([1., 0., 1., 0.])
             else:
-                self.affine.data[j][i] = torch.rand(4,) * 2 - 1
+                self.affine.data[j][i] = torch.rand(4, ) * 2 - 1
             return None
