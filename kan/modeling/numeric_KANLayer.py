@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from .spline import *
+from .spline import coef2curve, curve2coef
 
 
 class KANLayer(nn.Module):

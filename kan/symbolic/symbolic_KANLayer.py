@@ -1,12 +1,10 @@
 import torch
 import torch.nn as nn
-import numpy as np
-import sympy
-from .utils import *
+from ..utils import SYMBOLIC_LIB, fit_params
 
 
 
-class Symbolic_KANLayer(nn.Module):
+class SymbolicKANLayer(nn.Module):
     '''
     KANLayer class
 
@@ -57,7 +55,7 @@ class Symbolic_KANLayer(nn.Module):
         >>> len(sb.funs), len(sb.funs[0])
         (3, 3)
         '''
-        super(Symbolic_KANLayer, self).__init__()
+        super(SymbolicKANLayer, self).__init__()
         self.out_dim = out_dim
         self.in_dim = in_dim
         self.mask = torch.nn.Parameter(torch.zeros(out_dim, in_dim)).requires_grad_(False)
@@ -135,7 +133,7 @@ class Symbolic_KANLayer(nn.Module):
         >>> sb_small.in_dim, sb_small.out_dim
         (2, 3)
         '''
-        sbb = Symbolic_KANLayer(self.in_dim, self.out_dim)
+        sbb = SymbolicKANLayer(self.in_dim, self.out_dim)
         sbb.in_dim = len(in_id)
         sbb.out_dim = len(out_id)
         sbb.mask.data = self.mask.data[out_id][:,in_id]
