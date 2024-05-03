@@ -221,6 +221,63 @@ class KAN(NumericKAN):
 
         return x
 
+    def lock(self, l, ids):
+        '''
+        lock ids in the l-th layer to be the same function
+        
+        Args:
+        -----
+            l : int
+                layer index
+            ids : 2D list
+                :math:`[[i_1,j_1],[i_2,j_2],...]` set :math:`(l,i_i,j_1), (l,i_2,j_2), ...` to be the same function
+        
+        Returns:
+        --------
+            None
+         
+        Example
+        -------
+        >>> model = KAN(width=[2,3,1], grid=5, k=3, noise_scale=1.)
+        >>> print(model.act_fun[0].weight_sharing.reshape(3,2))
+        >>> model.lock(0,[[1,0],[1,1]])
+        >>> print(model.act_fun[0].weight_sharing.reshape(3,2))
+        tensor([[0, 1],
+                [2, 3],
+                [4, 5]])
+        tensor([[0, 1],
+                [2, 1],
+                [4, 5]])
+        '''
+        self.act_fun[l].lock(ids)
+
+    def unlock(self, l, ids):
+        '''
+        unlock ids in the l-th layer to be the same function
+        
+        Args:
+        -----
+            l : int
+                layer index
+            ids : 2D list)
+                [[i1,j1],[i2,j2],...] set (l,ii,j1), (l,i2,j2), ... to be unlocked
+            
+        Example:
+        --------
+        >>> model = KAN(width=[2,3,1], grid=5, k=3, noise_scale=1.)
+        >>> model.lock(0,[[1,0],[1,1]])
+        >>> print(model.act_fun[0].weight_sharing.reshape(3,2))
+        >>> model.unlock(0,[[1,0],[1,1]])
+        >>> print(model.act_fun[0].weight_sharing.reshape(3,2))
+        tensor([[0, 1],
+                [2, 1],
+                [4, 5]])
+        tensor([[0, 1],
+                [2, 3],
+                [4, 5]])
+        '''
+        self.act_fun[l].unlock(ids)
+
     def set_mode(self, l, i, j, mode, mask_n=None):
         '''
         set (l,i,j) activation to have mode 
