@@ -55,11 +55,11 @@ print(x.shape, y.shape)
 
 print('Training')
 batch_val = get_batch("val")
-for i in range(10):
+for i in range(1):
     batch_train = get_batch("train")
     dataset = {"train_input": batch_train[0], "train_label": batch_train[1], 'test_input':batch_val[0], 'test_label':batch_val[1]}
 
-    train_loss = model_kan.train(dataset, opt="Adam", steps=10)
+    train_loss = model_kan.train(dataset, opt="Adam", steps=1)
     print(f"loss: {np.array(train_loss['train_loss']).mean()}")
 
 

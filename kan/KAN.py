@@ -1360,14 +1360,14 @@ class KAN(nn.Module):
         """
         # ppl = torch.zeros(size=(idx.shape[0],1), device=device)
         for _ in tqdm(range(max_new_tokens), disable=not pbar):
-            # # if the sequence context is growing too long we must crop it at block_size
-            # idx_cond = (
-            #     idx
-            #     if len(idx) <= self.block_size
-            #     else idx[-self.block_size:]
-            # )
+            # if the sequence context is growing too long we must crop it at block_size
+            idx_cond = (
+                idx
+                if len(idx) <= self.block_size
+                else idx[-self.block_size:]
+            )
             # forward the model to get the logits for the index in the sequence
-            logits = self.forward(idx.unsqueeze(0), None)
+            logits = self.forward(idx_cond.unsqueeze(0), None)
             # pluck the logits at the final step and scale by desired temperature
             tlogits = logits[-1] / temperature
             # optionally crop the logits to only the top k options
