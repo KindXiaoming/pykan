@@ -42,22 +42,29 @@ Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perc
 
 
 ## Installation
-There are two ways to install pykan, through pypi or github.
+Pykan can be installed via PyPI or directly from GitHub. 
+
+**Pre-requisites:**
+
+```
+Python 3.9.7 or higher
+pip
+```
 
 **Installation via github**
 
-```python
-git clone https://github.com/KindXiaoming/pykan.git
-cd pykan
-pip install -e .
+```
+python -m venv pykan-env
+source pykan-env/bin/activate  # On Windows use `pykan-env\Scripts\activate`
+pip install git+https://github.com/KindXiaoming/pykan.git
 ```
 
-**Installation via pypi**
-
-```python
+**Installation via PyPI:**
+```
+python -m venv pykan-env
+source pykan-env/bin/activate  # On Windows use `pykan-env\Scripts\activate`
 pip install pykan
 ```
-
 Requirements
 
 ```python
@@ -71,9 +78,19 @@ torch==2.2.2
 tqdm==4.66.2
 ```
 
-To install requirements:
+After activating the virtual environment, you can install specific package requirements as follows:
 ```python
 pip install -r requirements.txt
+```
+
+**Optional: Conda Environment Setup**
+For those who prefer using Conda:
+```
+conda create --name pykan-env python=3.9.7
+conda activate pykan-env
+pip install git+https://github.com/KindXiaoming/pykan.git  # For GitHub installation
+# or
+pip install pykan  # For PyPI installation
 ```
 
 ## Computation requirements
