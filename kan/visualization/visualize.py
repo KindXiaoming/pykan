@@ -4,14 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Get the directory of the current script
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-# Path to the figures directory
-FIGURE_DIR = os.path.join(dir_path, 'figures')
-
-
-def plot(model, folder=FIGURE_DIR, beta=3, mask=False, mode="supervised", scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None):
+def plot(model, folder="./figures", beta=3, mask=False, mode="supervised", scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None):
     '''
     plot KAN
     
