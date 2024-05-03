@@ -51,16 +51,8 @@ class NumericKAN(nn.Module):
             unlock locked activations
         get_range():
             get the input and output ranges of an activation function
-        plot():
-            plot the diagram of KAN
         train():
             train KAN
-        prune():
-            prune KAN
-        remove_edge():
-            remove some edge of KAN
-        remove_node():
-            remove some node of KAN
     '''
 
     def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, noise_scale_base=0.1, base_fun=torch.nn.SiLU(), bias_trainable=True, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
