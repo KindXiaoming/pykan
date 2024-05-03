@@ -115,19 +115,19 @@ class KANLayer(nn.Module):
 
         # shape: (size, num)
         self.grid = torch.einsum('i,j->ij', torch.ones(size, ), torch.linspace(grid_range[0], grid_range[1], steps=num + 1))
-        self.grid = torch.nn.Parameter(self.grid).requires_grad_(False)
+        self.grid = torch.nn.Parameter(self.grid).requires_grad_(False).to(device)
         noises = (torch.rand(size, self.grid.shape[1]) - 1 / 2) * noise_scale / num
         noises = noises.to(device)
         # shape: (size, coef)
-        self.coef = torch.nn.Parameter(curve2coef(self.grid, noises, self.grid, k))
+        self.coef = torch.nn.Parameter(curve2coef(self.grid, noises, self.grid, k)).to(device)
         if isinstance(scale_base, float):
-            self.scale_base = torch.nn.Parameter(torch.ones(size, ) * scale_base).requires_grad_(sb_trainable)  # make scale trainable
+            self.scale_base = torch.nn.Parameter(torch.ones(size, ) * scale_base).requires_grad_(sb_trainable).to(device)  # make scale trainable
         else:
-            self.scale_base = torch.nn.Parameter(scale_base).requires_grad_(sb_trainable)
-        self.scale_sp = torch.nn.Parameter(torch.ones(size, ) * scale_sp).requires_grad_(sp_trainable)  # make scale trainable
+            self.scale_base = torch.nn.Parameter(scale_base).requires_grad_(sb_trainable).to(device)
+        self.scale_sp = torch.nn.Parameter(torch.ones(size, ) * scale_sp).requires_grad_(sp_trainable).to(device)  # make scale trainable
         self.base_fun = base_fun
 
-        self.mask = torch.nn.Parameter(torch.ones(size, )).requires_grad_(False)
+        self.mask = torch.nn.Parameter(torch.ones(size, )).requires_grad_(False).to(device)
         self.grid_eps = grid_eps
         self.weight_sharing = torch.arange(size)
         self.lock_counter = 0

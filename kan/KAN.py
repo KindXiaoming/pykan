@@ -142,7 +142,7 @@ class KAN(nn.Module):
             self.act_fun.append(sp_batch)
 
             # bias
-            bias = nn.Linear(width[l + 1], 1, bias=False).requires_grad_(bias_trainable)
+            bias = nn.Linear(width[l + 1], 1, bias=False).requires_grad_(bias_trainable).to(device)
             bias.weight.data *= 0.
             self.biases.append(bias)
 
