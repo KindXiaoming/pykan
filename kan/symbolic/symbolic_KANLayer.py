@@ -3,7 +3,6 @@ import torch.nn as nn
 from ..utils import SYMBOLIC_LIB, fit_params
 
 
-
 class SymbolicKANLayer(nn.Module):
     '''
     KANLayer class
