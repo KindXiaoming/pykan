@@ -1,7 +1,7 @@
 import setuptools
 
 # Load the long_description from README.md
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
@@ -12,7 +12,7 @@ setuptools.setup(
     description="Kolmogorov Arnold Networks",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    #url="https://github.com/kindxiaoming/",
+    # url="https://github.com/kindxiaoming/",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
