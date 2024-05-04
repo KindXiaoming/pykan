@@ -4,3 +4,5 @@ scikit_learn==1.1.3
 setuptools==65.5.0
 sympy==1.11.1
 torch==2.2.2
+as
+ds
