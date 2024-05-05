@@ -142,7 +142,7 @@ class KAN(nn.Module):
             self.act_fun.append(sp_batch)
 
             # bias
-            bias = nn.Linear(width[l + 1], 1, bias=False).requires_grad_(bias_trainable)
+            bias = nn.Linear(width[l + 1], 1, bias=False, device=device).requires_grad_(bias_trainable)
             bias.weight.data *= 0.
             self.biases.append(bias)
 
@@ -156,11 +156,13 @@ class KAN(nn.Module):
         ### initializing the symbolic front ###
         self.symbolic_fun = []
         for l in range(self.depth):
-            sb_batch = Symbolic_KANLayer(in_dim=width[l], out_dim=width[l + 1])
+            sb_batch = Symbolic_KANLayer(in_dim=width[l], out_dim=width[l + 1], device=device)
             self.symbolic_fun.append(sb_batch)
 
         self.symbolic_fun = nn.ModuleList(self.symbolic_fun)
         self.symbolic_enabled = symbolic_enabled
+        
+        self.device = device
 
     def initialize_from_another_model(self, another_model, x):
         '''
@@ -983,7 +985,7 @@ class KAN(nn.Module):
                 if i not in active_neurons[l + 1]:
                     self.remove_node(l + 1, i)
 
-        model2 = KAN(copy.deepcopy(self.width), self.grid, self.k, base_fun=self.base_fun)
+        model2 = KAN(copy.deepcopy(self.width), self.grid, self.k, base_fun=self.base_fun, device=self.device)
         model2.load_state_dict(self.state_dict())
         for i in range(len(self.acts_scale)):
             if i < len(self.acts_scale) - 1:
