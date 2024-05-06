@@ -99,6 +99,19 @@ pip install pykan  # For PyPI installation
 
 Examples in [tutorials](tutorials) are runnable on a single CPU typically less than 10 minutes. All examples in the paper are runnable on a single CPU in less than one day. Training KANs for PDE is the most expensive and may take hours to days on a single CPU. We use CPUs to train our models because we carried out parameter sweeps (both for MLPs and KANs) to obtain Pareto Frontiers. There are thousands of small models which is why we use CPUs rather than GPUs. Admittedly, our problem scales are smaller than typical machine learning tasks, but are typical for science-related tasks. In case the scale of your task is large, it is advisable to use GPUs.
 
+## Documentation
+The documentation can be found [here](https://kindxiaoming.github.io/pykan/).
+
+## Tutorials
+
+**Quickstart**
+
+Get started with [hellokan.ipynb](./hellokan.ipynb) notebook.
+
+**More demos**
+
+More Notebook tutorials can be found in [tutorials](tutorials).
+
 ## Advice on hyperparameter tuning
 Many intuition about MLPs and other networks may not directy transfer to KANs. So how can I tune the hyperparameters effectively? Here is my general advice based on my experience playing with the problems reported in the paper. Since these problems are relatively small-scale and science-oriented, it is likely that my advice is not suitable to your case. But I want to at least share my experience such that users can have better clues where to start and what to expect from tuning hyperparameters.
 
@@ -115,19 +128,6 @@ Many intuition about MLPs and other networks may not directy transfer to KANs. S
 Disclaimer: Try the simplest thing first is the mindset of physicists, which could be personal/biased but I find this mindset quite effective and make things well-controlled for me. Also, The reason why I tend to choose a small dataset at first is to get faster feedback in the debugging stage (my initial implementation is slow, after all!). The hidden assumption is that a small dataset behaves qualitatively similar to a large dataset, which is not necessarily true in general, but usually true in small-scale problems that I have tried. The know if your data is sufficient, see the next paragraph.
 
 Another thing that would be good to keep in mind is that please constantly checking if your model is in underfitting or overfitting regime. If there is a large gap between train/test losses, you probably want to increase data or reduce model (`grid` is more important than `width`, so first try decreasing `grid`, then `width`). This is also the reason why I'd love to start from simple models to make sure that the model is first in underfitting regime and then gradually expands to the "Goldilocks zone".
-
-## Documentation
-The documentation can be found [here](https://kindxiaoming.github.io/pykan/).
-
-## Tutorials
-
-**Quickstart**
-
-Get started with [hellokan.ipynb](./hellokan.ipynb) notebook.
-
-**More demos**
-
-More Notebook tutorials can be found in [tutorials](tutorials).
 
 ## Citation
 ```python
