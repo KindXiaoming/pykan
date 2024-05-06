@@ -123,7 +123,7 @@ class KANLayer(nn.Module):
         if isinstance(scale_base, float):
             self.scale_base = torch.nn.Parameter(torch.ones(size, device=device) * scale_base).requires_grad_(sb_trainable)  # make scale trainable
         else:
-            self.scale_base = torch.nn.Parameter(torch.FloatTensor(scale_base).cuda()).requires_grad_(sb_trainable)
+            self.scale_base = torch.nn.Parameter(torch.FloatTensor(scale_base).to(device)).requires_grad_(sb_trainable)
         self.scale_sp = torch.nn.Parameter(torch.ones(size, device=device) * scale_sp).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
@@ -249,8 +249,8 @@ class KANLayer(nn.Module):
         # preacts: shape (batch, in_dim) => shape (size, batch) (size = out_dim * in_dim)
         x_eval = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
         x_pos = parent.grid
-        sp2 = KANLayer(in_dim=1, out_dim=self.size, k=1, num=x_pos.shape[1] - 1, scale_base=0.).to(self.device)
-        sp2.coef.data = curve2coef(sp2.grid, x_pos, sp2.grid, k=1)
+        sp2 = KANLayer(in_dim=1, out_dim=self.size, k=1, num=x_pos.shape[1] - 1, scale_base=0., device=self.device)
+        sp2.coef.data = curve2coef(sp2.grid, x_pos, sp2.grid, k=1, device=self.device)
         y_eval = coef2curve(x_eval, parent.grid, parent.coef, parent.k, device=self.device)
         percentile = torch.linspace(-1, 1, self.num + 1).to(self.device)
         self.grid.data = sp2(percentile.unsqueeze(dim=1))[0].permute(1, 0)
