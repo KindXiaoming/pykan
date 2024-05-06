@@ -124,7 +124,7 @@ def create_dataset(f,
 
 
 
-def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, iteration=3, verbose=True):
+def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, iteration=3, verbose=True, device='cpu'):
     '''
     fit a, b, c, d such that
     
@@ -151,6 +151,8 @@ def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, i
             number of zooming in
         verbose : bool
             print extra information if True
+        device : str
+            device
         
     Returns:
     --------
@@ -178,8 +180,8 @@ def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, i
     # fit a, b, c, d such that y=c*fun(a*x+b)+d; both x and y are 1D array.
     # sweep a and b, choose the best fitted model   
     for _ in range(iteration):
-        a_ = torch.linspace(a_range[0], a_range[1], steps=grid_number)
-        b_ = torch.linspace(b_range[0], b_range[1], steps=grid_number)
+        a_ = torch.linspace(a_range[0], a_range[1], steps=grid_number, device=device)
+        b_ = torch.linspace(b_range[0], b_range[1], steps=grid_number, device=device)
         a_grid, b_grid = torch.meshgrid(a_, b_, indexing='ij')
         post_fun = fun(a_grid[None,:,:] * x[:,None,None] + b_grid[None,:,:])
         x_mean = torch.mean(post_fun, dim=[0], keepdim=True)
@@ -221,9 +223,9 @@ def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, i
             print(f'r2 is not very high, please double check if you are choosing the correct symbolic function.')
 
     post_fun = torch.nan_to_num(post_fun)
-    reg = LinearRegression().fit(post_fun[:,None].detach().numpy(), y.detach().numpy())
-    c_best = torch.from_numpy(reg.coef_)[0]
-    d_best = torch.from_numpy(np.array(reg.intercept_))
+    reg = LinearRegression().fit(post_fun[:,None].detach().cpu().numpy(), y.detach().cpu().numpy())
+    c_best = torch.from_numpy(reg.coef_)[0].to(device)
+    d_best = torch.from_numpy(np.array(reg.intercept_)).to(device)
     return torch.stack([a_best, b_best, c_best, d_best]), r2_best
 
 

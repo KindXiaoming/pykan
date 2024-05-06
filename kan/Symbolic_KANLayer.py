@@ -36,7 +36,7 @@ class Symbolic_KANLayer(nn.Module):
         fix_symbolic():
             fix an activation function to be symbolic
     '''
-    def __init__(self, in_dim=3, out_dim=2):
+    def __init__(self, in_dim=3, out_dim=2, device='cpu'):
         '''
         initialize a Symbolic_KANLayer (activation functions are initialized to be identity functions)
         
@@ -46,6 +46,8 @@ class Symbolic_KANLayer(nn.Module):
                 input dimension
             out_dim : int
                 output dimension
+            device : str
+                device
             
         Returns:
         --------
@@ -60,7 +62,7 @@ class Symbolic_KANLayer(nn.Module):
         super(Symbolic_KANLayer, self).__init__()
         self.out_dim = out_dim
         self.in_dim = in_dim
-        self.mask = torch.nn.Parameter(torch.zeros(out_dim, in_dim)).requires_grad_(False)
+        self.mask = torch.nn.Parameter(torch.zeros(out_dim, in_dim, device=device)).requires_grad_(False)
         # torch
         self.funs = [[lambda x: x for i in range(self.in_dim)] for j in range(self.out_dim)]
         # name
@@ -68,8 +70,10 @@ class Symbolic_KANLayer(nn.Module):
         # sympy
         self.funs_sympy = [['' for i in range(self.in_dim)] for j in range(self.out_dim)]
         
-        self.affine = torch.nn.Parameter(torch.zeros(out_dim, in_dim, 4))
+        self.affine = torch.nn.Parameter(torch.zeros(out_dim, in_dim, 4, device=device))
         # c*f(a*x+b)+d
+        
+        self.device = device
     
     def forward(self, x):
         '''
@@ -135,7 +139,7 @@ class Symbolic_KANLayer(nn.Module):
         >>> sb_small.in_dim, sb_small.out_dim
         (2, 3)
         '''
-        sbb = Symbolic_KANLayer(self.in_dim, self.out_dim)
+        sbb = Symbolic_KANLayer(self.in_dim, self.out_dim, device=self.device)
         sbb.in_dim = len(in_id)
         sbb.out_dim = len(out_id)
         sbb.mask.data = self.mask.data[out_id][:,in_id]
@@ -215,7 +219,7 @@ class Symbolic_KANLayer(nn.Module):
                 return None
             else:
                 #initialize from x & y and fun
-                params, r2 = fit_params(x,y,fun, a_range=a_range, b_range=b_range, verbose=verbose)
+                params, r2 = fit_params(x,y,fun, a_range=a_range, b_range=b_range, verbose=verbose, device=self.device)
                 self.funs[j][i] = fun
                 self.affine.data[j][i] = params
                 return r2
