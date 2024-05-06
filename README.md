@@ -133,13 +133,11 @@ Another thing that would be good to keep in mind is that please constantly check
 
 ## Citation
 ```python
-@misc{liu2024kan,
-      title={KAN: Kolmogorov-Arnold Networks}, 
-      author={Ziming Liu and Yixuan Wang and Sachin Vaidya and Fabian Ruehle and James Halverson and Marin Soljačić and Thomas Y. Hou and Max Tegmark},
-      year={2024},
-      eprint={2404.19756},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+@article{liu2024kan,
+  title={KAN: Kolmogorov-Arnold Networks},
+  author={Liu, Ziming and Wang, Yixuan and Vaidya, Sachin and Ruehle, Fabian and Halverson, James and Solja{\v{c}}i{\'c}, Marin and Hou, Thomas Y and Tegmark, Max},
+  journal={arXiv preprint arXiv:2404.19756},
+  year={2024}
 }
 ```
 
