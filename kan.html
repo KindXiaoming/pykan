@@ -1481,7 +1481,7 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 </div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="kan.Symbolic_KANLayer.Symbolic_KANLayer.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.Symbolic_KANLayer.Symbolic_KANLayer.__init__" title="Link to this definition"></a></dt>
 <dd><p>initialize a Symbolic_KANLayer (activation functions are initialized to be identity functions)</p>
 <section id="id79">
 <h4>Args:<a class="headerlink" href="#id79" title="Link to this heading"></a></h4>
@@ -1490,6 +1490,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt>in_dim<span class="classifier">int</span></dt><dd><p>input dimension</p>
 </dd>
 <dt>out_dim<span class="classifier">int</span></dt><dd><p>output dimension</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>device</p>
 </dd>
 </dl>
 </div></blockquote>
@@ -1863,7 +1865,7 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kan.utils.fit_params">
-<span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">fit_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.fit_params" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">fit_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.fit_params" title="Link to this definition"></a></dt>
 <dd><p>fit a, b, c, d such that</p>
 <div class="math notranslate nohighlight">
 \[|y-(cf(ax+b)+d)|^2\]</div>
@@ -1887,6 +1889,8 @@ line_search_fn (str): either ‘strong_wolfe’ or None (default: None).</p>
 <dt>iteration<span class="classifier">int</span></dt><dd><p>number of zooming in</p>
 </dd>
 <dt>verbose<span class="classifier">bool</span></dt><dd><p>print extra information if True</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>device</p>
 </dd>
 </dl>
 </div></blockquote>
