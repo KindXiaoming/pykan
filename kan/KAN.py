@@ -190,10 +190,10 @@ class KAN(nn.Module):
         tensor(-0.0030)
         tensor(0.0506)
         '''
-        another_model(x)  # get activations
+        another_model(x.to(another_model.device))  # get activations
         batch = x.shape[0]
 
-        self.initialize_grid_from_another_model(another_model, x)
+        self.initialize_grid_from_another_model(another_model, x.to(another_model.device))
 
         for l in range(self.depth):
             spb = self.act_fun[l]
