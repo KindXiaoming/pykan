@@ -1158,7 +1158,7 @@ class KAN(nn.Module):
                         if verbose >= 1:
                             print(f'fixing ({l},{i},{j}) with {name}, r2={r2}')
 
-    def symbolic_formula(self, floating_digit=2, var=None, normalizer=None, simplify=False):
+    def symbolic_formula(self, floating_digit=2, var=None, normalizer=None, simplify=False, output_normalizer = None ):
         '''
         obtain the symbolic formula
         
@@ -1172,6 +1172,8 @@ class KAN(nn.Module):
                 the normalization applied to inputs
             simplify : bool
                 If True, simplify the equation at each step (usually quite slow), so set up False by default.
+            output_normalizer: [mean array (floats), varaince array (floats)]
+                the normalization applied to outputs
             
         Returns:
         --------
@@ -1235,6 +1237,19 @@ class KAN(nn.Module):
 
             x = y
             symbolic_acts.append(x)
+
+        if output_normalizer != None:
+            output_layer = symbolic_acts[-1]
+            means = output_normalizer[0]
+            stds = output_normalizer[1]
+
+            assert len(output_layer) == len(means), 'output_normalizer does not match the output layer'
+            assert len(output_layer) == len(stds), 'output_normalizer does not match the output layer'
+            
+            output_layer = [(output_layer[i] * stds[i] + means[i]) for i in range(len(output_layer))]
+            symbolic_acts[-1] = output_layer
+
+
 
         self.symbolic_acts = [[ex_round(symbolic_acts[l][i]) for i in range(len(symbolic_acts[l]))] for l in range(len(symbolic_acts))]
 
