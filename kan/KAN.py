@@ -25,7 +25,7 @@ class KAN(nn.Module):
         depth: int
             depth of KAN
         width: list
-            number of neurons in each layer. e.g., [2,5,5,3] means 2D inputs, 5D outputs, with 2 layers of 5 hidden neurons.
+            number of neurons in each layer. e.g., [2,5,5,3] means 2D inputs, 3D outputs, with 2 layers of 5 hidden neurons.
         grid: int
             the number of grid intervals
         k: int
