@@ -185,7 +185,7 @@ class KAN(nn.Module):
         >>> model_fine = KAN(width=[2,5,1], grid=10, k=3)
         >>> print(model_fine.act_fun[0].coef[0][0].data)
         >>> x = torch.normal(0,1,size=(100,2))
-        >>> model_fine.initialize_from_another_model(model_coarse, x);
+        >>> model_fine.initialize_from_another_model(model_coarse, x)
         >>> print(model_fine.act_fun[0].coef[0][0].data)
         tensor(-0.0030)
         tensor(0.0506)
@@ -348,7 +348,7 @@ class KAN(nn.Module):
                 output neuron index
             mode : str
                 'n' (numeric) or 's' (symbolic) or 'ns' (combined)
-            mask_n : None or float)
+            mask_n : None or float
                 magnitude of the numeric front
         
         Returns:
@@ -356,19 +356,19 @@ class KAN(nn.Module):
             None
         '''
         if mode == "s":
-            mask_n = 0.;
+            mask_n = 0.
             mask_s = 1.
         elif mode == "n":
-            mask_n = 1.;
+            mask_n = 1.
             mask_s = 0.
         elif mode == "sn" or mode == "ns":
-            if mask_n == None:
+            if mask_n is None:
                 mask_n = 1.
             else:
                 mask_n = mask_n
             mask_s = 1.
         else:
-            mask_n = 0.;
+            mask_n = 0.
             mask_s = 0.
 
         self.act_fun[l].mask.data[j * self.act_fun[l].in_dim + i] = mask_n
@@ -814,7 +814,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model.plot()
         '''
 
@@ -842,7 +842,7 @@ class KAN(nn.Module):
 
         pbar = tqdm(range(steps), desc='description', ncols=100)
 
-        if loss_fn == None:
+        if loss_fn is None:
             loss_fn = loss_fn_eval = lambda x, y: torch.mean((x - y) ** 2)
         else:
             loss_fn = loss_fn_eval = loss_fn
@@ -958,7 +958,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model.prune()
         >>> model.plot(mask=True)
         '''
@@ -1063,7 +1063,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.suggest_symbolic(0,0,0)
@@ -1076,7 +1076,7 @@ class KAN(nn.Module):
         '''
         r2s = []
 
-        if lib == None:
+        if lib is None:
             symbolic_lib = SYMBOLIC_LIB
         else:
             symbolic_lib = {}
@@ -1124,8 +1124,8 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
-        >>> >>> model = model.prune()
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
+        >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic()
         fixing (0,0,0) with sin, r2=0.9994837045669556
@@ -1139,8 +1139,8 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
-        >>> >>> model = model.prune()
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
+        >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic(lib=['exp','sin','x^2'])
         fixing (0,0,0) with sin, r2=0.999411404132843
@@ -1184,11 +1184,11 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0, grid_eps=0.02)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic(lib=['exp','sin','x^2'])
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.00, update_grid=False);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.00, update_grid=False)
         >>> model.symbolic_formula()
         '''
         symbolic_acts = []
@@ -1202,7 +1202,7 @@ class KAN(nn.Module):
             return ex2
 
         # define variables
-        if var == None:
+        if var is None:
             for ii in range(1, self.width[0] + 1):
                 exec(f"x{ii} = sympy.Symbol('x_{ii}')")
                 exec(f"x.append(x{ii})")
