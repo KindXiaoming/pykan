@@ -119,7 +119,7 @@ def curve2coef(x_eval, y_eval, grid, k, device="cpu"):
         k : int
             the piecewise polynomial order of splines.
         device : str
-            devicde
+            device
         
     Example
     -------
