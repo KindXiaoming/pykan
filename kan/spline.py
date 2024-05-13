@@ -21,7 +21,7 @@ def B_batch(x, grid, k=0, extend=True, device='cpu'):
     Returns:
     --------
         spline values : 3D torch.tensor
-            shape (number of splines, number of B-spline bases (coefficients), number of samples). The numbef of B-spline bases = number of grid points + k - 1.
+            shape (number of splines, number of B-spline bases (coefficients), number of samples). The number of B-spline bases = number of grid points + k - 1.
       
     Example
     -------
