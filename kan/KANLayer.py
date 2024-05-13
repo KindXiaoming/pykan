@@ -28,7 +28,7 @@ class KANLayer(nn.Module):
         scale_base: 1D torch.float
             magnitude of the residual function b(x)
         scale_sp: 1D torch.float
-            mangitude of the spline function spline(x)
+            magnitude of the spline function spline(x)
         base_fun: fun
             residual function b(x)
         mask: 1D torch.float
