@@ -1,4 +1,6 @@
 <img width="600" alt="kan_plot" src="https://github.com/KindXiaoming/pykan/assets/23551623/a2d2d225-b4d2-4c1e-823e-bc45c7ea96f9">
+[![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://console.paperspace.com/github/gradient-ai/pykan?machine=Free-GPU)
+
 
 # Kolmogorov-Arnold Networks (KANs)
 
