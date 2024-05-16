@@ -15,7 +15,7 @@ Let’s construct a dataset which contains singularity
     dataset = create_dataset(f, n_var=2, ranges=[0.2,5])
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -56,7 +56,7 @@ Let’s construct a dataset which contains singularity
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -92,7 +92,7 @@ is a singularity point.
     dataset = create_dataset(f, n_var=2)
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
 
 
 .. parsed-literal::
@@ -122,7 +122,7 @@ is a singularity point.
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -168,7 +168,7 @@ is a singularity point.
 
     # will give nan, it's a bug that should be resolved later. 
     # But happy to see the above already give a formula that is close enough to ground truth
-    model.train(dataset, opt="LBFGS", steps=20, lr=1e-3, update_grid=False);
+    model.fit(dataset, opt="LBFGS", steps=20, lr=1e-3, update_grid=False);
 
 
 .. parsed-literal::

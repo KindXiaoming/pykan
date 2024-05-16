@@ -101,7 +101,7 @@ Intialize model and create dataset
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=50, lamb=0.002, lamb_entropy=10.0);
+    model.fit(dataset, opt="LBFGS", steps=50, lamb=0.002, lamb_entropy=10.0);
 
 
 .. parsed-literal::
@@ -155,7 +155,7 @@ seed can give dependence among :math:`(x_4,x_5)`.
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=100, lamb=0.001, lamb_entropy=10.0);
+    model.fit(dataset, opt="LBFGS", steps=100, lamb=0.001, lamb_entropy=10.0);
 
 
 .. parsed-literal::

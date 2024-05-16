@@ -21,7 +21,7 @@ Train KAN (grid=3)
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -42,7 +42,7 @@ Train KAN (grid=10)
 
 .. code:: ipython3
 
-    model2.train(dataset, opt="LBFGS", steps=20);
+    model2.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -67,7 +67,7 @@ grids finer.
             model = KAN(width=[2,1,1], grid=grids[i], k=k)
         if i != 0:
             model = KAN(width=[2,1,1], grid=grids[i], k=k).initialize_from_another_model(model, dataset['train_input'])
-        results = model.train(dataset, opt="LBFGS", steps=steps, stop_grid_update_step=30)
+        results = model.fit(dataset, opt="LBFGS", steps=steps, stop_grid_update_step=30)
         train_losses += results['train_loss']
         test_losses += results['test_loss']
         

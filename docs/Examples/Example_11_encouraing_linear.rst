@@ -34,7 +34,7 @@ without trick
     
     model = KAN(width=[1,1,1,1], grid=5, k=3, seed=0)
     
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -65,7 +65,7 @@ with tricks
     model = KAN(width=[1,1,1,1], grid=5, k=3, seed=0, base_fun=lambda x: x)
     
     # penality spline coefficients
-    model.train(dataset, opt="LBFGS", steps=20, lamb=1e-4, lamb_coef=10.0);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=1e-4, lamb_coef=10.0);
 
 
 .. parsed-literal::
@@ -98,7 +98,7 @@ without tricks
     dataset = create_dataset(f, n_var=2)
     
     model = KAN(width=[2,3,3,3,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01);
 
 
 .. parsed-literal::
@@ -135,7 +135,7 @@ with tricks
     dataset = create_dataset(f, n_var=2)
     
     model = KAN(width=[2,3,3,3,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_coef=1.0);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_coef=1.0);
 
 
 .. parsed-literal::

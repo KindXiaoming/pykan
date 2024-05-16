@@ -56,7 +56,7 @@ truth solution is :math:`f(x,y)={\rm sin}(\pi x){\rm sin}(\pi y)`.
     alpha = 0.1
     log = 1
     
-    def train():
+    def fit():
         optimizer = LBFGS(model.parameters(), lr=1, history_size=10, line_search_fn="strong_wolfe", tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
     
         pbar = tqdm(range(steps), desc='description')
@@ -94,7 +94,7 @@ truth solution is :math:`f(x,y)={\rm sin}(\pi x){\rm sin}(\pi y)`.
             if _ % log == 0:
                 pbar.set_description("pde loss: %.2e | bc loss: %.2e | l2: %.2e " % (pde_loss.cpu().detach().numpy(), bc_loss.cpu().detach().numpy(), l2.detach().numpy()))
     
-    train()
+    fit()
 
 
 .. parsed-literal::
@@ -147,7 +147,7 @@ precision!
 
 .. code:: ipython3
 
-    train()
+    fit()
 
 
 .. parsed-literal::

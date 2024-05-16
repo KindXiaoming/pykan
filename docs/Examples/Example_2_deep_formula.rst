@@ -23,7 +23,7 @@ Three-layer KAN
     dataset = create_dataset(f, n_var=4, train_num=3000)
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.001, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.001, lamb_entropy=2.);
 
 
 .. parsed-literal::
@@ -63,7 +63,7 @@ Three-layer KAN
     
     for i in range(len(grids)):
         model = KAN(width=[4,2,1,1], grid=grids[i], k=3, seed=0).initialize_from_another_model(model, dataset['train_input'])
-        results = model.train(dataset, opt="LBFGS", steps=50, stop_grid_update_step=30);
+        results = model.fit(dataset, opt="LBFGS", steps=50, stop_grid_update_step=30);
         train_rmse.append(results['train_loss'][-1].item())
         test_rmse.append(results['test_loss'][-1].item())
 
@@ -119,7 +119,7 @@ Now we show that a 2 two-layer KAN performs much worse for this task
     dataset = create_dataset(f, n_var=4, train_num=3000)
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.001, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.001, lamb_entropy=2.);
 
 
 .. parsed-literal::
@@ -137,7 +137,7 @@ Now we show that a 2 two-layer KAN performs much worse for this task
     
     for i in range(len(grids)):
         model = KAN(width=[4,9,1], grid=grids[i], k=3, seed=0).initialize_from_another_model(model, dataset['train_input'])
-        results = model.train(dataset, opt="LBFGS", steps=50, stop_grid_update_step=30);
+        results = model.fit(dataset, opt="LBFGS", steps=50, stop_grid_update_step=30);
         train_rmse.append(results['train_loss'][-1].item())
         test_rmse.append(results['test_loss'][-1].item())
 

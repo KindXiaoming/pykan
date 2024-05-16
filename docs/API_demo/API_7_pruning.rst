@@ -27,7 +27,7 @@ manually prune away nodes and edges.
     dataset['train_input'].shape, dataset['train_label'].shape
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
     model = model.prune()
     model(dataset['train_input'])
     model.plot()
@@ -58,7 +58,7 @@ threshold = 1e-4 leaves more hidden nodes.
     dataset['train_input'].shape, dataset['train_label'].shape
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
     model = model.prune(threshold=1e-4)
     model(dataset['train_input'])
     model.plot()

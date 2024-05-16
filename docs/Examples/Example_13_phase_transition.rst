@@ -62,7 +62,7 @@ Intialize model and create dataset
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=50, lamb=0.001, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=50, lamb=0.001, lamb_entropy=10.);
 
 
 .. parsed-literal::

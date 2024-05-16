@@ -107,7 +107,7 @@ Train KAN with sparsity regularization
 .. code:: ipython3
 
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
 
 
 .. parsed-literal::
@@ -155,7 +155,7 @@ Continue training and replot
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=50);
+    model.fit(dataset, opt="LBFGS", steps=50);
 
 
 .. parsed-literal::
@@ -200,7 +200,7 @@ Continue training to almost machine precision
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=50);
+    model.fit(dataset, opt="LBFGS", steps=50);
 
 
 .. parsed-literal::

@@ -16,7 +16,7 @@ Bessel function.
     dataset = create_dataset(f, n_var=2)
     
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
 
 
 .. parsed-literal::
@@ -146,7 +146,7 @@ After adding Bessel, we check suggest_symbolic again
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -231,7 +231,7 @@ Finish the rest of symbolic regression
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -294,7 +294,7 @@ Finish the rest of symbolic regression
 .. code:: ipython3
 
     # why can't we reach machine precision (because LBFGS early stops?)? The symbolic formula is correct though.
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
     model.symbolic_formula()[0][0]
 
 

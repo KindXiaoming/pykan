@@ -90,7 +90,7 @@ Training KAN
         dataset['train_label'] = y_sample[group_id*n_num_per_peak:(group_id+1)*n_num_per_peak][:,None]
         dataset['test_input'] = x_sample[group_id*n_num_per_peak:(group_id+1)*n_num_per_peak][:,None]
         dataset['test_label'] = y_sample[group_id*n_num_per_peak:(group_id+1)*n_num_per_peak][:,None]
-        model.train(dataset, opt = 'LBFGS', steps=100, update_grid=False);
+        model.fit(dataset, opt = 'LBFGS', steps=100, update_grid=False);
         y_pred = model(x_grid[:,None])
         ys.append(y_pred.detach().numpy()[:,0])
 

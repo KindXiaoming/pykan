@@ -55,7 +55,7 @@ Train KAN
     def test_acc():
         return torch.mean((torch.round(model(dataset['test_input'])[:,0]) == dataset['test_label'][:,0]).float())
     
-    results = model.train(dataset, opt="LBFGS", steps=20, metrics=(train_acc, test_acc));
+    results = model.fit(dataset, opt="LBFGS", steps=20, metrics=(train_acc, test_acc));
     results['train_acc'][-1], results['test_acc'][-1]
 
 
@@ -173,7 +173,7 @@ Train KAN
     def test_acc():
         return torch.mean((torch.argmax(model(dataset['test_input']), dim=1) == dataset['test_label']).float())
     
-    results = model.train(dataset, opt="LBFGS", steps=20, metrics=(train_acc, test_acc), loss_fn=torch.nn.CrossEntropyLoss());
+    results = model.fit(dataset, opt="LBFGS", steps=20, metrics=(train_acc, test_acc), loss_fn=torch.nn.CrossEntropyLoss());
 
 
 .. parsed-literal::

@@ -23,7 +23,7 @@ Train KAN and plot
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -60,7 +60,7 @@ Now there are lock symbols in their top left corners!
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::
@@ -123,7 +123,7 @@ list! So we can set both to arctanh, retrain the model, and plot it.
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20, update_grid=False);
+    model.fit(dataset, opt="LBFGS", steps=20, update_grid=False);
 
 
 .. parsed-literal::
@@ -191,7 +191,7 @@ formula.
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
 
 
 .. parsed-literal::

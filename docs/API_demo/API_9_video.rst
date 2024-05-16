@@ -3,7 +3,7 @@ Demo 9: Videos
 
 We have shown one can visualize KAN with the plot() method. If one wants
 to save the training dynamics of KAN plots, one only needs to pass
-argument save_video = True to train() method (and set some video related
+argument save_video = True to fit() method (and set some video related
 parameters)
 
 .. code:: ipython3
@@ -19,8 +19,8 @@ parameters)
     image_folder = 'video_img'
     
     # train the model
-    #model.train(dataset, opt="LBFGS", steps=20, lamb=1e-3, lamb_entropy=2.);
-    model.train(dataset, opt="LBFGS", steps=50, lamb=5e-5, lamb_entropy=2., save_fig=True, beta=10, 
+    #model.fit(dataset, opt="LBFGS", steps=20, lamb=1e-3, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=50, lamb=5e-5, lamb_entropy=2., save_fig=True, beta=10, 
                 in_vars=[r'$x_1$', r'$x_2$', r'$x_3$', r'$x_4$'],
                 out_vars=[r'${\rm exp}({\rm sin}(x_1^2+x_2^2)+{\rm sin}(x_3^2+x_4^2))$'],
                 img_folder=image_folder);

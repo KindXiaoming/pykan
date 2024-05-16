@@ -32,7 +32,7 @@ size)
                 model = KAN(width=[2,1,1], grid=grids[i], k=k)
             if i != 0:
                 model = KAN(width=[2,1,1], grid=grids[i], k=k).initialize_from_another_model(model, dataset['train_input'])
-            results = model.train(dataset, opt="LBFGS", steps=steps, stop_grid_update_step = 30)
+            results = model.fit(dataset, opt="LBFGS", steps=steps, stop_grid_update_step = 30)
             train_losses[j][i] = results['train_loss'][-1]
             test_losses[j][i] = results['test_loss'][-1]
 

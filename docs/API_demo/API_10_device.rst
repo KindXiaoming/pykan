@@ -25,8 +25,8 @@ use cuda, we should pass the device argument to model and dataset.
     dataset = create_dataset(f, n_var=4, train_num=3000, device=device)
     
     # train the model
-    #model.train(dataset, opt="LBFGS", steps=20, lamb=1e-3, lamb_entropy=2.);
-    model.train(dataset, opt="LBFGS", steps=50, lamb=5e-5, lamb_entropy=2.);
+    #model.fit(dataset, opt="LBFGS", steps=20, lamb=1e-3, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=50, lamb=5e-5, lamb_entropy=2.);
 
 
 .. parsed-literal::

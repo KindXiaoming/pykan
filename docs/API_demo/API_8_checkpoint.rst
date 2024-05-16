@@ -35,7 +35,7 @@ and think that you need to start all over again.
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
     model.plot()
     model.save_ckpt('ckpt2')
     # save the trained model as ckpt2
@@ -62,7 +62,7 @@ strength to be too large and training messes the whole thing up.
 
 .. code:: ipython3
 
-    model.train(dataset, opt="Adam", steps=20, lamb=100., lamb_entropy=10.);
+    model.fit(dataset, opt="Adam", steps=20, lamb=100., lamb_entropy=10.);
     model.plot()
     model.save_ckpt('ckpt3')
 

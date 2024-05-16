@@ -31,7 +31,7 @@ Default setup
 
     # train the model
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.1);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.1);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -61,7 +61,7 @@ Previously :math:`\lambda=0.1`, now we try different :math:`\lambda`.
 
     # train the model
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.00);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.00);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -86,7 +86,7 @@ Previously :math:`\lambda=0.1`, now we try different :math:`\lambda`.
 
     # train the model
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=10.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -111,7 +111,7 @@ Previously :math:`\lambda=0.1`, now we try different :math:`\lambda`.
 
     # train the model
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=1);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=1);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -143,7 +143,7 @@ fix :math:`\lambda=0.1` and vary :math:`\lambda_{\rm ent}`.
 
     # train the model
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=0.0);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=0.0);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -167,7 +167,7 @@ fix :math:`\lambda=0.1` and vary :math:`\lambda_{\rm ent}`.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=10.0);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=10.0);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -191,7 +191,7 @@ fix :math:`\lambda=0.1` and vary :math:`\lambda_{\rm ent}`.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=100.0);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.1, lamb_entropy=100.0);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -220,7 +220,7 @@ Previously we set :math:`G=5`, we vary :math:`G` below.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=1, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -244,7 +244,7 @@ Previously we set :math:`G=5`, we vary :math:`G` below.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=3, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -268,7 +268,7 @@ Previously we set :math:`G=5`, we vary :math:`G` below.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -292,7 +292,7 @@ Previously we set :math:`G=5`, we vary :math:`G` below.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=10, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -316,7 +316,7 @@ Previously we set :math:`G=5`, we vary :math:`G` below.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=20, k=3, seed=0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=2.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -345,7 +345,7 @@ Previously we use seed = 0. Below we vary seed.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=5, k=3, seed=1, noise_scale_base=0.0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -369,7 +369,7 @@ Previously we use seed = 0. Below we vary seed.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=5, k=3, seed=42, noise_scale_base=0.0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
     model.plot()
     model.prune()
     model.plot(mask=True)
@@ -393,7 +393,7 @@ Previously we use seed = 0. Below we vary seed.
 .. code:: ipython3
 
     model = KAN(width=[2,5,1], grid=5, k=3, seed=2024, noise_scale_base=0.0)
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
     model.plot()
     model.prune()
     model.plot(mask=True)

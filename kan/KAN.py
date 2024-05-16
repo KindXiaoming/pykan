@@ -63,7 +63,7 @@ class KAN(nn.Module):
             get the input and output ranges of an activation function
         plot():
             plot the diagram of KAN
-        train():
+        fit():
             train KAN
         prune():
             prune KAN
@@ -758,7 +758,7 @@ class KAN(nn.Module):
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, y0 * (len(self.width) - 1) + 0.2, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
-    def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
+    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
               small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
         '''
         training
@@ -814,7 +814,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.01);
         >>> model.plot()
         '''
 
@@ -958,7 +958,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.01);
         >>> model.prune()
         >>> model.plot(mask=True)
         '''
@@ -1063,7 +1063,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.01);
         >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.suggest_symbolic(0,0,0)
@@ -1124,7 +1124,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.01);
         >>> >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic()
@@ -1139,7 +1139,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.01);
         >>> >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic(lib=['exp','sin','x^2'])
@@ -1184,11 +1184,11 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0, grid_eps=0.02)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.01);
         >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic(lib=['exp','sin','x^2'])
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.00, update_grid=False);
+        >>> model.fit(dataset, opt='LBFGS', steps=50, lamb=0.00, update_grid=False);
         >>> model.symbolic_formula()
         '''
         symbolic_acts = []

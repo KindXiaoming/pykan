@@ -48,7 +48,7 @@ Part I: Automated vs manual symbolic regression (How can we know that we get the
 .. code:: ipython3
 
     # train the model
-    model.train(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
+    model.fit(dataset, opt="LBFGS", steps=20, lamb=0.01, lamb_entropy=10.);
 
 
 .. parsed-literal::
@@ -187,7 +187,7 @@ exact
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
     model.plot()
 
 
@@ -305,7 +305,7 @@ signal that this formula is (very likely to be) exact!
 
 .. code:: ipython3
 
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
     model.plot()
 
 
@@ -389,7 +389,7 @@ machine precision
 .. code:: ipython3
 
     # this loss is stuck at around 1e-3 RMSE, which is good, but not machine precision.
-    model.train(dataset, opt="LBFGS", steps=20);
+    model.fit(dataset, opt="LBFGS", steps=20);
     model.plot()
 
 
@@ -426,7 +426,7 @@ tiny noise can make one symbolic formula transit to another.
         dataset['train_input'] = dataset['test_input'] = x
         dataset['train_label'] = dataset['test_label'] = y
         model = KAN(width=[1,1], grid=5, k=3, seed=0, grid_range=(-bound,bound))
-        model.train(dataset, opt="LBFGS", steps=20)
+        model.fit(dataset, opt="LBFGS", steps=20)
         model.suggest_symbolic(0,0,0)
         model.plot()
 
@@ -523,7 +523,7 @@ mix three functions :math:`f_1(x)={\rm sin}(x)`, :math:`f_2(x)=x^2`, and :math:`
         dataset['train_input'] = dataset['test_input'] = x
         dataset['train_label'] = dataset['test_label'] = y
         model = KAN(width=[1,1], grid=10, k=3, seed=0, grid_range=(-bound,bound))
-        model.train(dataset, opt="LBFGS", steps=20)
+        model.fit(dataset, opt="LBFGS", steps=20)
         return model.suggest_symbolic(0,0,0)[0]
         
 
@@ -2445,7 +2445,7 @@ search space), SR will become more robust.
         dataset['train_input'] = dataset['test_input'] = x
         dataset['train_label'] = dataset['test_label'] = y
         model = KAN(width=[1,1], grid=10, k=3, seed=0, grid_range=(-bound,bound))
-        model.train(dataset, opt="LBFGS", steps=20)
+        model.fit(dataset, opt="LBFGS", steps=20)
         return model.suggest_symbolic(0,0,0,lib=lib)[0]
 
 
