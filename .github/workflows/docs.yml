@@ -1,0 +1,40 @@
+name: docs
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Install Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9.19
+
+    - name: Install requirements
+      run: |
+        pip install -U sphinx
+        pip install sphinx-rtd-theme
+
+    
+    - name: Build docs
+      run: |
+        pip3 install .
+        cd docs
+        sphinx-apidoc -o . ../kan
+        make clean html
+        make html
+    # https://github.com/peaceiris/actions-gh-pages
+    - name: Deploy
+      if: success()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        publish_branch: gh-pages
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/_build/html/

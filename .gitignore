@@ -1,0 +1,7 @@
+__pycache__/
+.DS_Store
+docs/_build/
+docs/_static/
+docs/_templates
+folder
+test
