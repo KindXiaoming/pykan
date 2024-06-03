@@ -143,7 +143,7 @@ class KAN(nn.Module):
 
             # bias
             bias = nn.Linear(width[l + 1], 1, bias=False, device=device).requires_grad_(bias_trainable)
-            bias.weight.data *= 0.
+            torch.nn.init.zeros_(bias.weight)
             self.biases.append(bias)
 
         self.biases = nn.ModuleList(self.biases)
@@ -154,12 +154,8 @@ class KAN(nn.Module):
         self.base_fun = base_fun
 
         ### initializing the symbolic front ###
-        self.symbolic_fun = []
-        for l in range(self.depth):
-            sb_batch = Symbolic_KANLayer(in_dim=width[l], out_dim=width[l + 1], device=device)
-            self.symbolic_fun.append(sb_batch)
-
-        self.symbolic_fun = nn.ModuleList(self.symbolic_fun)
+        self.symbolic_fun = nn.ModuleList(
+            [Symbolic_KANLayer(in_dim=width[l], out_dim=width[l + 1], device=device) for l in range(self.depth)])
         self.symbolic_enabled = symbolic_enabled
         
         self.device = device
@@ -185,7 +181,7 @@ class KAN(nn.Module):
         >>> model_fine = KAN(width=[2,5,1], grid=10, k=3)
         >>> print(model_fine.act_fun[0].coef[0][0].data)
         >>> x = torch.normal(0,1,size=(100,2))
-        >>> model_fine.initialize_from_another_model(model_coarse, x);
+        >>> model_fine.initialize_from_another_model(model_coarse, x)
         >>> print(model_fine.act_fun[0].coef[0][0].data)
         tensor(-0.0030)
         tensor(0.0506)
@@ -356,10 +352,10 @@ class KAN(nn.Module):
             None
         '''
         if mode == "s":
-            mask_n = 0.;
+            mask_n = 0.
             mask_s = 1.
         elif mode == "n":
-            mask_n = 1.;
+            mask_n = 1.
             mask_s = 0.
         elif mode == "sn" or mode == "ns":
             if mask_n == None:
@@ -368,7 +364,7 @@ class KAN(nn.Module):
                 mask_n = mask_n
             mask_s = 1.
         else:
-            mask_n = 0.;
+            mask_n = 0.
             mask_s = 0.
 
         self.act_fun[l].mask.data[j * self.act_fun[l].in_dim + i] = mask_n
@@ -814,7 +810,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model.plot()
         '''
 
@@ -958,7 +954,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model.prune()
         >>> model.plot(mask=True)
         '''
@@ -1063,7 +1059,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.suggest_symbolic(0,0,0)
@@ -1124,7 +1120,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic()
@@ -1139,7 +1135,7 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic(lib=['exp','sin','x^2'])
@@ -1184,11 +1180,11 @@ class KAN(nn.Module):
         >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.1, seed=0, grid_eps=0.02)
         >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
         >>> dataset = create_dataset(f, n_var=2)
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.01)
         >>> model = model.prune()
         >>> model(dataset['train_input'])
         >>> model.auto_symbolic(lib=['exp','sin','x^2'])
-        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.00, update_grid=False);
+        >>> model.train(dataset, opt='LBFGS', steps=50, lamb=0.00, update_grid=False)
         >>> model.symbolic_formula()
         '''
         symbolic_acts = []

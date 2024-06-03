@@ -116,8 +116,7 @@ class KANLayer(nn.Module):
         # shape: (size, num)
         self.grid = torch.einsum('i,j->ij', torch.ones(size, device=device), torch.linspace(grid_range[0], grid_range[1], steps=num + 1, device=device))
         self.grid = torch.nn.Parameter(self.grid).requires_grad_(False)
-        noises = (torch.rand(size, self.grid.shape[1]) - 1 / 2) * noise_scale / num
-        noises = noises.to(device)
+        noises = (torch.rand(size, self.grid.shape[1], device=device) - 1 / 2) * noise_scale / num
         # shape: (size, coef)
         self.coef = torch.nn.Parameter(curve2coef(self.grid, noises, self.grid, k, device))
         if isinstance(scale_base, float):
