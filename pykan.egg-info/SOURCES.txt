@@ -8,6 +8,7 @@ kan/Symbolic_KANLayer.py
 kan/__init__.py
 kan/spline.py
 kan/utils.py
+kan/figures/lock.png
 pykan.egg-info/PKG-INFO
 pykan.egg-info/SOURCES.txt
 pykan.egg-info/dependency_links.txt

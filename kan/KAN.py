@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import random
 import copy
-
+RESOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")
 
 class KAN(nn.Module):
     '''
@@ -644,7 +644,8 @@ class KAN(nn.Module):
 
                     lock_id = self.act_fun[l].lock_id[j * self.width[l] + i].long().item()
                     if lock_id > 0:
-                        im = plt.imread(f'{folder}/lock.png')
+                        # im = plt.imread(f'{folder}/lock.png')
+                        im = plt.imread(f'{RESOURCE_DIR}/lock.png')
                         newax = fig.add_axes([0.15, 0.7, 0.15, 0.15])
                         plt.text(500, 400, lock_id, fontsize=15)
                         newax.imshow(im)
