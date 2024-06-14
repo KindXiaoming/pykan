@@ -3,7 +3,7 @@ import torch
 
 def B_batch(x, grid, k=0, extend=True, device='cpu'):
     '''
-    evaludate x on B-spline bases
+    evaluate x on B-spline bases
     
     Args:
     -----
