@@ -77,7 +77,7 @@ class KAN(nn.Module):
             obtain the symbolic formula of the KAN network
     '''
 
-    def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, noise_scale_base=0.1, base_fun=torch.nn.SiLU(), symbolic_enabled=True, bias_trainable=True, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
+    def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, bias_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
                  device='cpu', seed=0):
         '''
         initalize a KAN model
@@ -136,7 +136,9 @@ class KAN(nn.Module):
 
         for l in range(self.depth):
             # splines
-            scale_base = 1 / np.sqrt(width[l]) + (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * noise_scale_base
+            #scale_base = 1 / np.sqrt(width[l]) + (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * noise_scale_base
+            scale_base = scale_base_mu * 1 / np.sqrt(width[l]) + \
+                         scale_base_sigma * (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * 1/np.sqrt(width[l])
             sp_batch = KANLayer(in_dim=width[l], out_dim=width[l + 1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable,
                                 sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
@@ -301,8 +303,6 @@ class KAN(nn.Module):
         self.spline_postsplines = []
         self.spline_postacts = []
         self.acts_scale = []
-        self.acts_scale_std = []
-        # self.neurons_scale = []
 
         self.acts.append(x)  # acts shape: (batch, width[l])
 
@@ -321,10 +321,10 @@ class KAN(nn.Module):
 
             # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
             grid_reshape = self.act_fun[l].grid.reshape(self.width[l + 1], self.width[l], -1)
-            input_range = grid_reshape[:, :, -1] - grid_reshape[:, :, 0] + 1e-4
-            output_range = torch.mean(torch.abs(postacts), dim=0)
+            #input_range = grid_reshape[:, :, -1] - grid_reshape[:, :, 0] + 1e-4
+            input_range = torch.std(preacts, dim=0) + 0.1
+            output_range = torch.std(postacts, dim=0)
             self.acts_scale.append(output_range / input_range)
-            self.acts_scale_std.append(torch.std(postacts, dim=0))
             self.spline_preacts.append(preacts.detach())
             self.spline_postacts.append(postacts.detach())
             self.spline_postsplines.append(postspline.detach())
@@ -656,10 +656,7 @@ class KAN(nn.Module):
         def score2alpha(score):
             return np.tanh(beta * score)
 
-        if mode == "supervised":
-            alpha = [score2alpha(score.cpu().detach().numpy()) for score in self.acts_scale]
-        elif mode == "unsupervised":
-            alpha = [score2alpha(score.cpu().detach().numpy()) for score in self.acts_scale_std]
+        alpha = [score2alpha(score.cpu().detach().numpy()) for score in self.acts_scale]
 
         # draw skeleton
         width = np.array(self.width)
@@ -758,7 +755,7 @@ class KAN(nn.Module):
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, y0 * (len(self.width) - 1) + 0.2, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
-    def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
+    def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=0., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
               small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
         '''
         training
