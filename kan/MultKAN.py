@@ -16,7 +16,7 @@ from .MultKANLayer import MultKANLayer
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, noise_scale_base=0.1, base_fun=torch.nn.SiLU(), symbolic_enabled=True, bias_trainable=True, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
+    def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, bias_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
                  device='cpu', seed=0):
         
         super(MultKAN, self).__init__()
@@ -45,7 +45,8 @@ class MultKAN(nn.Module):
         
         for l in range(self.depth):
             # splines
-            scale_base = 1 / np.sqrt(width_in[l]) + (torch.randn(width_in[l] * width_out[l + 1], ) * 2 - 1) * noise_scale_base
+            scale_base = scale_base_mu * 1 / np.sqrt(width_in[l]) + \
+                         scale_base_sigma * (torch.randn(width_in[l] * width_out[l + 1], ) * 2 - 1) * 1/np.sqrt(width_in[l])
             sp_batch = MultKANLayer(in_dim=width_in[l], out_dim_sum=width[l+1][0], out_dim_mult=width[l+1][1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
 
@@ -102,7 +103,7 @@ class MultKAN(nn.Module):
     def update_grid_from_samples(self, x):
         for l in range(self.depth):
             self.forward(x)
-            self.act_fun[l].update_grid_from_samples(self.acts[l])
+            self.act_fun[l].kanlayer.update_grid_from_samples(self.acts[l])
 
     def initialize_grid_from_another_model(self, model, x):
         model(x)
@@ -115,7 +116,6 @@ class MultKAN(nn.Module):
         self.spline_postsplines = []
         self.spline_postacts = []
         self.acts_scale = []
-        self.acts_scale_std = []
         # self.neurons_scale = []
 
         self.acts.append(x)  # acts shape: (batch, width[l])
@@ -134,11 +134,10 @@ class MultKAN(nn.Module):
             postacts = postacts_numerical + postacts_symbolic
 
             # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
-            grid_reshape = self.act_fun[l].kanlayer.grid.reshape(self.width_out[l + 1], self.width_in[l], -1)
-            input_range = grid_reshape[:, :, -1] - grid_reshape[:, :, 0] + 1e-4
-            output_range = torch.mean(torch.abs(postacts), dim=0)
+            #grid_reshape = self.act_fun[l].kanlayer.grid.reshape(self.width_out[l + 1], self.width_in[l], -1)
+            input_range = torch.std(preacts, dim=0) + 0.1
+            output_range = torch.std(postacts, dim=0)
             self.acts_scale.append(output_range / input_range)
-            self.acts_scale_std.append(torch.std(postacts, dim=0))
             self.spline_preacts.append(preacts.detach())
             self.spline_postacts.append(postacts.detach())
             self.spline_postsplines.append(postspline.detach())
@@ -438,8 +437,8 @@ class MultKAN(nn.Module):
 
             # regularize coefficient to encourage spline to be zero
             for i in range(len(self.act_fun)):
-                coeff_l1 = torch.sum(torch.mean(torch.abs(self.act_fun[i].coef), dim=1))
-                coeff_diff_l1 = torch.sum(torch.mean(torch.abs(torch.diff(self.act_fun[i].coef)), dim=1))
+                coeff_l1 = torch.sum(torch.mean(torch.abs(self.act_fun[i].kanlayer.coef), dim=1))
+                coeff_diff_l1 = torch.sum(torch.mean(torch.abs(torch.diff(self.act_fun[i].kanlayer.coef)), dim=1))
                 reg_ += lamb_coef * coeff_l1 + lamb_coefdiff * coeff_diff_l1
 
             return reg_
