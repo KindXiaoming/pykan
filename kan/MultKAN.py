@@ -11,6 +11,7 @@ from tqdm import tqdm
 import random
 import copy
 from .MultKANLayer import MultKANLayer
+import pandas as pd
 
 
 class MultKAN(nn.Module):
@@ -38,10 +39,8 @@ class MultKAN(nn.Module):
             
         self.width = width
 
-        width_in = [width[l][0]+width[l][1] for l in range(len(width))]
-        width_out = [width[l][0]+2*width[l][1] for l in range(len(width))]
-        self.width_in = width_in
-        self.width_out = width_out
+        width_in = self.width_in
+        width_out = self.width_out
         
         for l in range(self.depth):
             # splines
@@ -73,6 +72,8 @@ class MultKAN(nn.Module):
         self.symbolic_enabled = symbolic_enabled
         
         self.device = device
+        
+        self.cache_data = None
 
     def initialize_from_another_model(self, another_model, x):
         another_model(x.to(another_model.device))  # get activations
@@ -100,6 +101,18 @@ class MultKAN(nn.Module):
 
         return self
 
+    @property
+    def width_in(self):
+        width = self.width
+        width_in = [width[l][0]+width[l][1] for l in range(len(width))]
+        return width_in
+        
+    @property
+    def width_out(self):
+        width = self.width
+        width_out = [width[l][0]+2*width[l][1] for l in range(len(width))]
+        return width_out
+    
     def update_grid_from_samples(self, x):
         for l in range(self.depth):
             self.forward(x)
@@ -111,6 +124,10 @@ class MultKAN(nn.Module):
             self.act_fun[l].initialize_grid_from_parent(model.act_fun[l], model.acts[l])
 
     def forward(self, x):
+        
+        # cache data
+        self.cache_data = x
+        
         self.acts = []  # shape ([batch, n0], [batch, n1], ..., [batch, n_L])
         self.spline_preacts = []
         self.spline_postsplines = []
@@ -144,7 +161,7 @@ class MultKAN(nn.Module):
 
             x = x + self.biases[l].weight
             self.acts.append(x)
-
+        
         return x
 
     def set_mode(self, l, i, j, mode, mask_n=None):
@@ -164,19 +181,21 @@ class MultKAN(nn.Module):
             mask_n = 0.;
             mask_s = 0.
 
-        self.act_fun[l].mask.data[j * self.act_fun[l].in_dim + i] = mask_n
-        self.symbolic_fun[l].mask.data[j, i] = mask_s
+        self.act_fun[l].kanlayer.mask.data[j * self.act_fun[l].in_dim + i] = mask_n
+        self.symbolic_fun[l].symbolic_kanlayer.mask.data[j, i] = mask_s
 
     def fix_symbolic(self, l, i, j, fun_name, fit_params_bool=True, a_range=(-10, 10), b_range=(-10, 10), verbose=True, random=False):
-        self.set_mode(l, i, j, mode="s")
         if not fit_params_bool:
-            self.symbolic_fun[l].fix_symbolic(i, j, fun_name, verbose=verbose, random=random)
-            return None
+            self.symbolic_fun[l].symbolic_kanlayer.fix_symbolic(i, j, fun_name, verbose=verbose, random=random)
+            result = None
         else:
             x = self.acts[l][:, i]
-            y = self.spline_postacts[l][:, j, i]
-            r2 = self.symbolic_fun[l].fix_symbolic(i, j, fun_name, x, y, a_range=a_range, b_range=b_range, verbose=verbose)
-            return r2
+            mask = self.act_fun[l].kanlayer.mask.reshape(self.width_out[l+1], self.width_in[l])
+            y = self.spline_postacts[l][:, j, i] * mask[j, i]
+            r2 = self.symbolic_fun[l].symbolic_kanlayer.fix_symbolic(i, j, fun_name, x, y, a_range=a_range, b_range=b_range, verbose=verbose)
+            result = r2
+        self.set_mode(l, i, j, mode="s")
+        return result
 
     def unfix_symbolic(self, l, i, j):
         self.set_mode(l, i, j, mode="n")
@@ -200,6 +219,9 @@ class MultKAN(nn.Module):
         return x_min, x_max, y_min, y_max
 
     def plot(self, folder="./figures", beta=3, mask=False, mode="supervised", scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None):
+        
+        # forward to obtain activations
+        self.forward(self.cache_data)
         
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -342,7 +364,7 @@ class MultKAN(nn.Module):
                         j = i
                     else:
                         j = (i-width[l+1][0])//2 + width[l+1][0]
-                    plt.plot([1 / (2 * n_in) + i / n_in, 1 / (2 * n_out) + j / n_out], [l * (y0+z0) + y0, (l+1) * (y0+z0)], color=color, lw=2 * scale)
+                    plt.plot([1 / (2 * n_in) + i / n_in, 1 / (2 * n_out) + j / n_out], [l * (y0+z0) + y0, (l+1) * (y0+z0)], color='black', lw=2 * scale)
 
                     
                     
@@ -537,53 +559,97 @@ class MultKAN(nn.Module):
         return results
 
     def prune(self, threshold=1e-2, mode="auto", active_neurons_id=None):
-        mask = [torch.ones(self.width[0], )]
-        active_neurons = [list(range(self.width[0]))]
+
+        mask_up = [torch.ones(self.width_in[0], )]
+        mask_down = []
+        active_neurons_up = [list(range(self.width_in[0]))]
+        active_neurons_down = []
+
         for i in range(len(self.acts_scale) - 1):
             if mode == "auto":
-                in_important = torch.max(self.acts_scale[i], dim=1)[0] > threshold
-                out_important = torch.max(self.acts_scale[i + 1], dim=0)[0] > threshold
-                overall_important = in_important * out_important
+                in_important = torch.max(self.acts_scale[i], dim=1)[0] > threshold # num_sum + 2 * num_mult
+                in_important_sum = in_important[:self.width[i+1][0]]
+                in_important_mult = in_important[self.width[i+1][0]:].reshape(self.width[i+1][1], 2)
+                in_important_mult = torch.prod(in_important_mult, dim=1)
+                in_important = torch.cat([in_important_sum, in_important_mult], dim=0)
+
+                out_important = torch.max(self.acts_scale[i + 1], dim=0)[0] > threshold # num_sum + num_mult
+                overall_important_up = in_important * out_important # num_sum + num_mult
+                overall_important_down = torch.cat([overall_important_up[:self.width[i+1][0]], (overall_important_up[2:][None,:] * torch.ones(2,)[:,None]).T.reshape(-1,)], dim=0) # num_sum + 2 * num_mult
+
             elif mode == "manual":
-                overall_important = torch.zeros(self.width[i + 1], dtype=torch.bool)
-                overall_important[active_neurons_id[i + 1]] = True
-            mask.append(overall_important.float())
-            active_neurons.append(torch.where(overall_important == True)[0])
-        active_neurons.append(list(range(self.width[-1])))
-        mask.append(torch.ones(self.width[-1], ))
+                overall_important_up = torch.zeros(self.width_in[i + 1], dtype=torch.bool)
+                overall_important_up[active_neurons_up[i]] = True
+                overall_important_down = torch.cat([overall_important_up[:self.width[i+1][0]], (overall_important_up[2:][None,:] * torch.ones(2,)[:,None]).T.reshape(-1,)], dim=0) # num_sum + 2 * num_mult
 
-        self.mask = mask  # this is neuron mask for the whole model
+            mask_up.append(overall_important_up.float())
+            mask_down.append(overall_important_down.float())
 
-        # update act_fun[l].mask
+            active_neurons_up.append(torch.where(overall_important_up == True)[0])
+            active_neurons_down.append(torch.where(overall_important_down == True)[0])
+
+        active_neurons_down.append(list(range(self.width_in[-1])))
+        mask_down.append(torch.ones(self.width_in[-1], ))
+
+        self.mask_up = mask_up
+        self.mask_down = mask_down
+
+        # update act_fun[l].mask up
         for l in range(len(self.acts_scale) - 1):
-            for i in range(self.width[l + 1]):
-                if i not in active_neurons[l + 1]:
-                    self.remove_node(l + 1, i)
+            for i in range(self.width_in[l + 1]):
+                if i not in active_neurons_up[l + 1]:
+                    self.remove_node(l + 1, i, mode='up')
+                    
+            for i in range(self.width_out[l + 1]):
+                if i not in active_neurons_down[l]:
+                    self.remove_node(l + 1, i, mode='down')
 
-        model2 = KAN(copy.deepcopy(self.width), self.grid, self.k, base_fun=self.base_fun, device=self.device)
+        model2 = MultKAN(copy.deepcopy(self.width), self.grid, self.k, base_fun=self.base_fun, device=self.device)
         model2.load_state_dict(self.state_dict())
         for i in range(len(self.acts_scale)):
+            
+            
             if i < len(self.acts_scale) - 1:
-                model2.biases[i].weight.data = model2.biases[i].weight.data[:, active_neurons[i + 1]]
+                num_mult = len(active_neurons_down[i]) - len(active_neurons_up[i+1])
+                num_sum = len(active_neurons_down[i]) - 2 * num_mult
+                model2.biases[i].weight.data = model2.biases[i].weight.data[:, active_neurons_up[i+1]]
+                model2.width[i+1] = [num_sum, num_mult]
+                
+                model2.act_fun[i].out_dim_sum = num_sum
+                model2.act_fun[i].out_dim_mult = num_mult
+                
+                model2.symbolic_fun[i].out_dim_sum = num_sum
+                model2.symbolic_fun[i].out_dim_mult = num_mult
 
-            model2.act_fun[i] = model2.act_fun[i].get_subset(active_neurons[i], active_neurons[i + 1])
-            model2.width[i] = len(active_neurons[i])
-            model2.symbolic_fun[i] = self.symbolic_fun[i].get_subset(active_neurons[i], active_neurons[i + 1])
-
+            model2.act_fun[i].kanlayer = model2.act_fun[i].kanlayer.get_subset(active_neurons_up[i], active_neurons_down[i])
+            model2.symbolic_fun[i].symbolic_kanlayer = self.symbolic_fun[i].symbolic_kanlayer.get_subset(active_neurons_up[i], active_neurons_down[i])
+            
+        model2.cache_data = self.cache_data
+            
         return model2
-
+    
+    def prune_edge(self, threshold=1e-2):
+        for i in range(len(self.width)-1):
+            self.act_fun[i].kanlayer.mask.data = ((self.acts_scale[i] > threshold).reshape(-1,)).float()
+    
+    
     def remove_edge(self, l, i, j):
-        self.act_fun[l].mask[j * self.width[l] + i] = 0.
+        self.act_fun[l].kanlayer.mask[j * self.width[l] + i] = 0.
 
-    def remove_node(self, l, i):
-        self.act_fun[l - 1].mask[i * self.width[l - 1] + torch.arange(self.width[l - 1])] = 0.
-        self.act_fun[l].mask[torch.arange(self.width[l + 1]) * self.width[l] + i] = 0.
-        self.symbolic_fun[l - 1].mask[i, :] *= 0.
-        self.symbolic_fun[l].mask[:, i] *= 0.
+    def remove_node(self, l ,i, mode='down'):
+        if mode == 'down':
+            self.act_fun[l - 1].kanlayer.mask[i * self.width_in[l - 1] + torch.arange(self.width_in[l - 1])] = 0.
+            self.symbolic_fun[l - 1].symbolic_kanlayer.mask[i, :] *= 0.
 
-    def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True):
+        elif mode == 'up':
+            self.act_fun[l].kanlayer.mask[torch.arange(self.width_out[l + 1]) * self.width_in[l] + i] = 0.
+            self.symbolic_fun[l].symbolic_kanlayer.mask[:, i] *= 0.
+
+    def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: x < 0.99, c_loss_fun=lambda x: x, weight_simple = 0.01):
+        
         r2s = []
-
+        cs = []
+        
         if lib == None:
             symbolic_lib = SYMBOLIC_LIB
         else:
@@ -591,38 +657,78 @@ class MultKAN(nn.Module):
             for item in lib:
                 symbolic_lib[item] = SYMBOLIC_LIB[item]
 
-        for (name, fun) in symbolic_lib.items():
+        # getting r2 and complexities
+        for (name, content) in symbolic_lib.items():
             r2 = self.fix_symbolic(l, i, j, name, a_range=a_range, b_range=b_range, verbose=False)
+            self.unfix_symbolic(l, i, j)
             r2s.append(r2.item())
+            c = content[2]
+            cs.append(c)
 
-        self.unfix_symbolic(l, i, j)
-
-        sorted_ids = np.argsort(r2s)[::-1][:topk]
-        r2s = np.array(r2s)[sorted_ids][:topk]
+        r2s = np.array(r2s)
+        cs = np.array(cs)
+        r2_loss = r2_loss_fun(r2s).astype('float')
+        cs_loss = c_loss_fun(cs)
+        
+        loss = weight_simple * cs_loss + (1-weight_simple) * r2_loss
+            
+        sorted_ids = np.argsort(loss)[:topk]
+        r2s = r2s[sorted_ids][:topk]
+        cs = cs[sorted_ids][:topk]
+        r2_loss = r2_loss[sorted_ids][:topk]
+        cs_loss = cs_loss[sorted_ids][:topk]
+        loss = loss[sorted_ids][:topk]
+        
         topk = np.minimum(topk, len(symbolic_lib))
+        
         if verbose == True:
-            print('function', ',', 'r2')
+            # print results in a dataframe
+            results = {}
+            results['function'] = [list(symbolic_lib.items())[sorted_ids[i]][0] for i in range(topk)]
+            results['fitting r2'] = r2s[:topk]
+            results['r2 loss'] = r2_loss[:topk]
+            results['complexity'] = cs[:topk]
+            results['complexity loss'] = cs_loss[:topk]
+            results['total loss'] = loss[:topk]
+
+            df = pd.DataFrame(results)
+            print(df)
+
+        '''if verbose == True:
+            print('function', ',', 'r2', ',', 'c', ',', 'r2 loss', ',', 'c loss', ',', 'total loss')
             for i in range(topk):
-                print(list(symbolic_lib.items())[sorted_ids[i]][0], ',', r2s[i])
+                print(list(symbolic_lib.items())[sorted_ids[i]][0], ',', r2s[i], ',', cs[i], ',', r2_loss[i], ',', cs_loss[i], ',', loss[i])'''
 
         best_name = list(symbolic_lib.items())[sorted_ids[0]][0]
         best_fun = list(symbolic_lib.items())[sorted_ids[0]][1]
         best_r2 = r2s[0]
-        return best_name, best_fun, best_r2
+        best_c = cs[0]
+            
+        '''if best_r2 < 1e-3:
+            # zero function
+            zero_id = list(SYMBOLIC_LIB).index('0')
+            best_r2 = 0.0
+            best_name = '0'
+            best_fun = list(symbolic_lib.items())[zero_id][1]
+            best_c = 0.0
+            print('behave like a zero function')'''
+        
+        return best_name, best_fun, best_r2, best_c;
 
     def auto_symbolic(self, a_range=(-10, 10), b_range=(-10, 10), lib=None, verbose=1):
-        for l in range(len(self.width) - 1):
-            for i in range(self.width[l]):
-                for j in range(self.width[l + 1]):
-                    if self.symbolic_fun[l].mask[j, i] > 0.:
+        for l in range(len(self.width_in) - 1):
+            for i in range(self.width_in[l]):
+                for j in range(self.width_out[l + 1]):
+                    if self.symbolic_fun[l].symbolic_kanlayer.mask[j, i] > 0.:
                         print(f'skipping ({l},{i},{j}) since already symbolic')
                     else:
-                        name, fun, r2 = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False)
+                        name, fun, r2, c = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False)
                         self.fix_symbolic(l, i, j, name, verbose=verbose > 1)
                         if verbose >= 1:
-                            print(f'fixing ({l},{i},{j}) with {name}, r2={r2}')
+                            print(f'fixing ({l},{i},{j}) with {name}, r2={r2}, c={c}')
 
-    def symbolic_formula(self, floating_digit=2, var=None, normalizer=None, simplify=False, output_normalizer = None ):
+    def symbolic_formula(self, floating_digit=2, var=None, normalizer=None, simplify=False, output_normalizer = None):
+        
         symbolic_acts = []
         x = []
 
@@ -635,7 +741,7 @@ class MultKAN(nn.Module):
 
         # define variables
         if var == None:
-            for ii in range(1, self.width[0] + 1):
+            for ii in range(1, self.width[0][0] + 1):
                 exec(f"x{ii} = sympy.Symbol('x_{ii}')")
                 exec(f"x.append(x{ii})")
         else:
@@ -650,23 +756,33 @@ class MultKAN(nn.Module):
 
         symbolic_acts.append(x)
 
-        for l in range(len(self.width) - 1):
+        for l in range(len(self.width_in) - 1):
+            num_sum = self.width[l + 1][0]
+            num_mult = self.width[l + 1][1]
             y = []
-            for j in range(self.width[l + 1]):
+            for j in range(self.width_out[l + 1]):
                 yj = 0.
-                for i in range(self.width[l]):
-                    a, b, c, d = self.symbolic_fun[l].affine[j, i]
-                    sympy_fun = self.symbolic_fun[l].funs_sympy[j][i]
+                for i in range(self.width_in[l]):
+                    a, b, c, d = self.symbolic_fun[l].symbolic_kanlayer.affine[j, i]
+                    sympy_fun = self.symbolic_fun[l].symbolic_kanlayer.funs_sympy[j][i]
                     try:
                         yj += c * sympy_fun(a * x[i] + b) + d
                     except:
                         print('make sure all activations need to be converted to symbolic formulas first!')
                         return
                 if simplify == True:
-                    y.append(sympy.simplify(yj + self.biases[l].weight.data[0, j]))
+                    y.append(sympy.simplify(yj))
                 else:
-                    y.append(yj + self.biases[l].weight.data[0, j])
-
+                    y.append(yj)
+                  
+            mult = []
+            for k in range(num_mult):
+                mult.append(y[num_sum+2*k] * y[num_sum+2*k+1])
+            y = y[:num_sum] + mult
+            
+            for j in range(self.width_in[l+1]):
+                y[j] += self.biases[l].weight.data[0, j]
+            
             x = y
             symbolic_acts.append(x)
 
@@ -682,8 +798,8 @@ class MultKAN(nn.Module):
             symbolic_acts[-1] = output_layer
 
 
-
         self.symbolic_acts = [[ex_round(symbolic_acts[l][i]) for i in range(len(symbolic_acts[l]))] for l in range(len(symbolic_acts))]
 
         out_dim = len(symbolic_acts[-1])
-        return [ex_round(symbolic_acts[-1][i]) for i in range(len(symbolic_acts[-1]))], x0
+        #return [symbolic_acts[-1][i] for i in range(len(symbolic_acts[-1]))], x0
+        return [ex_round(ex_round(symbolic_acts[-1][i])) for i in range(len(symbolic_acts[-1]))], x0
