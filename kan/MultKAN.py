@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 from .KANLayer import *
-from .Symbolic_MultKANLayer import *
+#from .Symbolic_MultKANLayer import *
+from .Symbolic_KANLayer import *
 from .LBFGS import *
 import os
 import glob
@@ -10,7 +11,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import random
 import copy
-from .MultKANLayer import MultKANLayer
+#from .MultKANLayer import MultKANLayer
 import pandas as pd
 
 
@@ -46,7 +47,7 @@ class MultKAN(nn.Module):
             # splines
             scale_base = scale_base_mu * 1 / np.sqrt(width_in[l]) + \
                          scale_base_sigma * (torch.randn(width_in[l] * width_out[l + 1], ) * 2 - 1) * 1/np.sqrt(width_in[l])
-            sp_batch = MultKANLayer(in_dim=width_in[l], out_dim_sum=width[l+1][0], out_dim_mult=width[l+1][1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, device=device)
+            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
 
             # bias
@@ -64,8 +65,7 @@ class MultKAN(nn.Module):
         ### initializing the symbolic front ###
         self.symbolic_fun = []
         for l in range(self.depth):
-            # [todo] shape is correct, but should include multiplication in Symbolic_MultKANLayer
-            sb_batch = Symbolic_MultKANLayer(in_dim=width_in[l], out_dim_sum=width[l+1][0], out_dim_mult=width[l+1][1], device=device)
+            sb_batch = Symbolic_KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], device=device)
             self.symbolic_fun.append(sb_batch)
 
         self.symbolic_fun = nn.ModuleList(self.symbolic_fun)
@@ -116,7 +116,7 @@ class MultKAN(nn.Module):
     def update_grid_from_samples(self, x):
         for l in range(self.depth):
             self.forward(x)
-            self.act_fun[l].kanlayer.update_grid_from_samples(self.acts[l])
+            self.act_fun[l].update_grid_from_samples(self.acts[l])
 
     def initialize_grid_from_another_model(self, model, x):
         model(x)
@@ -129,10 +129,12 @@ class MultKAN(nn.Module):
         self.cache_data = x
         
         self.acts = []  # shape ([batch, n0], [batch, n1], ..., [batch, n_L])
+        self.acts_premult = []
         self.spline_preacts = []
         self.spline_postsplines = []
         self.spline_postacts = []
         self.acts_scale = []
+        self.acts_scale_spline = []
         # self.neurons_scale = []
 
         self.acts.append(x)  # acts shape: (batch, width[l])
@@ -151,16 +153,28 @@ class MultKAN(nn.Module):
             postacts = postacts_numerical + postacts_symbolic
 
             # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
-            #grid_reshape = self.act_fun[l].kanlayer.grid.reshape(self.width_out[l + 1], self.width_in[l], -1)
+            #grid_reshape = self.act_fun[l].grid.reshape(self.width_out[l + 1], self.width_in[l], -1)
             input_range = torch.std(preacts, dim=0) + 0.1
-            output_range = torch.std(postacts, dim=0)
-            self.acts_scale.append(output_range / input_range)
+            output_range_spline = torch.std(postacts_numerical, dim=0) # for training, only penalize the spline part
+            output_range = torch.std(postacts, dim=0) # for visualization, include the contribution from both spline + symbolic
+            self.acts_scale.append((output_range / input_range).detach())
+            self.acts_scale_spline.append(output_range_spline / input_range)
             self.spline_preacts.append(preacts.detach())
             self.spline_postacts.append(postacts.detach())
             self.spline_postsplines.append(postspline.detach())
-
+            
+            self.acts_premult.append(x.detach())
+            
+            # multiplication
+            dim_sum = self.width[l+1][0]
+            dim_mult = self.width[l+1][1]
+            
+            x_mult = x[:,dim_sum::2] * x[:,dim_sum+1::2]
+            x = torch.cat([x[:,:dim_sum], x_mult], dim=1)
+            
             x = x + self.biases[l].weight
-            self.acts.append(x)
+            
+            self.acts.append(x.detach())
         
         return x
 
@@ -181,24 +195,26 @@ class MultKAN(nn.Module):
             mask_n = 0.;
             mask_s = 0.
 
-        self.act_fun[l].kanlayer.mask.data[j * self.act_fun[l].in_dim + i] = mask_n
-        self.symbolic_fun[l].symbolic_kanlayer.mask.data[j, i] = mask_s
+        self.act_fun[l].mask.data[j * self.act_fun[l].in_dim + i] = mask_n
+        self.symbolic_fun[l].mask.data[j, i] = mask_s
 
     def fix_symbolic(self, l, i, j, fun_name, fit_params_bool=True, a_range=(-10, 10), b_range=(-10, 10), verbose=True, random=False):
         if not fit_params_bool:
-            self.symbolic_fun[l].symbolic_kanlayer.fix_symbolic(i, j, fun_name, verbose=verbose, random=random)
-            result = None
+            self.symbolic_fun[l].fix_symbolic(i, j, fun_name, verbose=verbose, random=random)
+            r2 = None
         else:
             x = self.acts[l][:, i]
-            mask = self.act_fun[l].kanlayer.mask.reshape(self.width_out[l+1], self.width_in[l])
-            y = self.spline_postacts[l][:, j, i] * mask[j, i]
-            r2 = self.symbolic_fun[l].symbolic_kanlayer.fix_symbolic(i, j, fun_name, x, y, a_range=a_range, b_range=b_range, verbose=verbose)
-            result = r2
+            mask = self.act_fun[l].mask.reshape(self.width_out[l+1], self.width_in[l])
+            y = self.spline_postacts[l][:, j, i]
+            r2 = self.symbolic_fun[l].fix_symbolic(i, j, fun_name, x, y, a_range=a_range, b_range=b_range, verbose=verbose)
+            if mask[j ,i] == 0:
+                r2 = - 1e8
         self.set_mode(l, i, j, mode="s")
-        return result
+        return r2
 
     def unfix_symbolic(self, l, i, j):
         self.set_mode(l, i, j, mode="n")
+        self.symbolic_fun[l].funs_name[j][i] = ""
 
     def unfix_symbolic_all(self):
         for l in range(len(self.width) - 1):
@@ -236,18 +252,18 @@ class MultKAN(nn.Module):
 
                     num = rank.shape[0]
 
-                    symbol_mask = self.symbolic_fun[l].symbolic_kanlayer.mask[j][i]
-                    numerical_mask = self.act_fun[l].kanlayer.mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
-                    if symbol_mask > 0. and numerical_mask > 0.:
+                    symbolic_mask = self.symbolic_fun[l].mask[j][i]
+                    numeric_mask = self.act_fun[l].mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
+                    if symbolic_mask > 0. and numeric_mask > 0.:
                         color = 'purple'
                         alpha_mask = 1
-                    if symbol_mask > 0. and numerical_mask == 0.:
+                    if symbolic_mask > 0. and numeric_mask == 0.:
                         color = "red"
                         alpha_mask = 1
-                    if symbol_mask == 0. and numerical_mask > 0.:
+                    if symbolic_mask == 0. and numeric_mask > 0.:
                         color = "black"
                         alpha_mask = 1
-                    if symbol_mask == 0. and numerical_mask == 0.:
+                    if symbolic_mask == 0. and numeric_mask == 0.:
                         color = "white"
                         alpha_mask = 0
 
@@ -333,8 +349,8 @@ class MultKAN(nn.Module):
                     for j in range(n_next):
                         id_ = i * n_next + j
 
-                        symbol_mask = self.symbolic_fun[l].symbolic_kanlayer.mask[j][i]
-                        numerical_mask = self.act_fun[l].kanlayer.mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
+                        symbol_mask = self.symbolic_fun[l].mask[j][i]
+                        numerical_mask = self.act_fun[l].mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
                         if symbol_mask == 1. and numerical_mask == 1.:
                             color = 'purple'
                             alpha_mask = 1.
@@ -392,7 +408,7 @@ class MultKAN(nn.Module):
                     if mask == False:
                         newax.imshow(im, alpha=alpha[l][j][i])
                     else:
-                        ### make sure to run model.prune() first to compute mask ###
+                        ### make sure to run model.prune_node() first to compute mask ###
                         newax.imshow(im, alpha=alpha[l][j][i] * self.mask[l][i].item() * self.mask[l + 1][j].item())
                     newax.axis('off')
                     
@@ -452,15 +468,15 @@ class MultKAN(nn.Module):
             for i in range(len(acts_scale)):
                 vec = acts_scale[i].reshape(-1, )
 
-                p = vec / torch.sum(vec)
+                p = vec / (torch.sum(vec) + 1e-4)
                 l1 = torch.sum(nonlinear(vec))
                 entropy = - torch.sum(p * torch.log2(p + 1e-4))
                 reg_ += lamb_l1 * l1 + lamb_entropy * entropy  # both l1 and entropy
 
             # regularize coefficient to encourage spline to be zero
             for i in range(len(self.act_fun)):
-                coeff_l1 = torch.sum(torch.mean(torch.abs(self.act_fun[i].kanlayer.coef), dim=1))
-                coeff_diff_l1 = torch.sum(torch.mean(torch.abs(torch.diff(self.act_fun[i].kanlayer.coef)), dim=1))
+                coeff_l1 = torch.sum(torch.mean(torch.abs(self.act_fun[i].coef), dim=1))
+                coeff_diff_l1 = torch.sum(torch.mean(torch.abs(torch.diff(self.act_fun[i].coef)), dim=1))
                 reg_ += lamb_coef * coeff_l1 + lamb_coefdiff * coeff_diff_l1
 
             return reg_
@@ -478,6 +494,7 @@ class MultKAN(nn.Module):
             optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         elif opt == "LBFGS":
             optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, line_search_fn="strong_wolfe", tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+            #optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, debug=True)
 
         results = {}
         results['train_loss'] = []
@@ -505,7 +522,7 @@ class MultKAN(nn.Module):
                 train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(device))
             else:
                 train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
-            reg_ = reg(self.acts_scale)
+            reg_ = reg(self.acts_scale_spline)
             objective = train_loss + lamb * reg_
             objective.backward()
             return objective
@@ -532,7 +549,7 @@ class MultKAN(nn.Module):
                     train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(device))
                 else:
                     train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
-                reg_ = reg(self.acts_scale)
+                reg_ = reg(self.acts_scale_spline)
                 loss = train_loss + lamb * reg_
                 optimizer.zero_grad()
                 loss.backward()
@@ -558,7 +575,7 @@ class MultKAN(nn.Module):
 
         return results
 
-    def prune(self, threshold=1e-2, mode="auto", active_neurons_id=None):
+    def prune_node(self, threshold=1e-2, mode="auto", active_neurons_id=None):
 
         mask_up = [torch.ones(self.width_in[0], )]
         mask_down = []
@@ -575,12 +592,12 @@ class MultKAN(nn.Module):
 
                 out_important = torch.max(self.acts_scale[i + 1], dim=0)[0] > threshold # num_sum + num_mult
                 overall_important_up = in_important * out_important # num_sum + num_mult
-                overall_important_down = torch.cat([overall_important_up[:self.width[i+1][0]], (overall_important_up[2:][None,:] * torch.ones(2,)[:,None]).T.reshape(-1,)], dim=0) # num_sum + 2 * num_mult
+                overall_important_down = torch.cat([overall_important_up[:self.width[i+1][0]], (overall_important_up[self.width[i+1][0]:][None,:].expand(2,-1)).T.reshape(-1,)], dim=0) # num_sum + 2 * num_mult
 
             elif mode == "manual":
                 overall_important_up = torch.zeros(self.width_in[i + 1], dtype=torch.bool)
                 overall_important_up[active_neurons_up[i]] = True
-                overall_important_down = torch.cat([overall_important_up[:self.width[i+1][0]], (overall_important_up[2:][None,:] * torch.ones(2,)[:,None]).T.reshape(-1,)], dim=0) # num_sum + 2 * num_mult
+                overall_important_down = torch.cat([overall_important_up[:self.width[i+1][0]], (overall_important_up[self.width[i+1][0]:][None,:].expand(2,-1)).T.reshape(-1,)], dim=0) # num_sum + 2 * num_mult
 
             mask_up.append(overall_important_up.float())
             mask_down.append(overall_important_down.float())
@@ -621,31 +638,31 @@ class MultKAN(nn.Module):
                 model2.symbolic_fun[i].out_dim_sum = num_sum
                 model2.symbolic_fun[i].out_dim_mult = num_mult
 
-            model2.act_fun[i].kanlayer = model2.act_fun[i].kanlayer.get_subset(active_neurons_up[i], active_neurons_down[i])
-            model2.symbolic_fun[i].symbolic_kanlayer = self.symbolic_fun[i].symbolic_kanlayer.get_subset(active_neurons_up[i], active_neurons_down[i])
+            model2.act_fun[i] = model2.act_fun[i].get_subset(active_neurons_up[i], active_neurons_down[i])
+            model2.symbolic_fun[i] = self.symbolic_fun[i].get_subset(active_neurons_up[i], active_neurons_down[i])
             
         model2.cache_data = self.cache_data
             
         return model2
     
-    def prune_edge(self, threshold=1e-2):
+    def prune_edge(self, threshold=3e-2):
         for i in range(len(self.width)-1):
-            self.act_fun[i].kanlayer.mask.data = ((self.acts_scale[i] > threshold).reshape(-1,)).float()
+            self.act_fun[i].mask.data = ((self.acts_scale[i] > threshold).reshape(-1,)).float()
     
     
     def remove_edge(self, l, i, j):
-        self.act_fun[l].kanlayer.mask[j * self.width[l] + i] = 0.
+        self.act_fun[l].mask[j * self.width[l] + i] = 0.
 
     def remove_node(self, l ,i, mode='down'):
         if mode == 'down':
-            self.act_fun[l - 1].kanlayer.mask[i * self.width_in[l - 1] + torch.arange(self.width_in[l - 1])] = 0.
-            self.symbolic_fun[l - 1].symbolic_kanlayer.mask[i, :] *= 0.
+            self.act_fun[l - 1].mask[i * self.width_in[l - 1] + torch.arange(self.width_in[l - 1])] = 0.
+            self.symbolic_fun[l - 1].mask[i, :] *= 0.
 
         elif mode == 'up':
-            self.act_fun[l].kanlayer.mask[torch.arange(self.width_out[l + 1]) * self.width_in[l] + i] = 0.
-            self.symbolic_fun[l].symbolic_kanlayer.mask[:, i] *= 0.
+            self.act_fun[l].mask[torch.arange(self.width_out[l + 1]) * self.width_in[l] + i] = 0.
+            self.symbolic_fun[l].mask[:, i] *= 0.
 
-    def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: x < 0.99, c_loss_fun=lambda x: x, weight_simple = 0.01):
+    def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: 1 - x, c_loss_fun=lambda x: x, weight_simple = 0.02):
         
         r2s = []
         cs = []
@@ -660,8 +677,11 @@ class MultKAN(nn.Module):
         # getting r2 and complexities
         for (name, content) in symbolic_lib.items():
             r2 = self.fix_symbolic(l, i, j, name, a_range=a_range, b_range=b_range, verbose=False)
-            self.unfix_symbolic(l, i, j)
-            r2s.append(r2.item())
+            if r2 == -1e8: # zero function
+                r2s.append(-1e8)
+            else:
+                r2s.append(r2.item())
+                self.unfix_symbolic(l, i, j)
             c = content[2]
             cs.append(c)
 
@@ -719,7 +739,7 @@ class MultKAN(nn.Module):
         for l in range(len(self.width_in) - 1):
             for i in range(self.width_in[l]):
                 for j in range(self.width_out[l + 1]):
-                    if self.symbolic_fun[l].symbolic_kanlayer.mask[j, i] > 0.:
+                    if self.symbolic_fun[l].mask[j, i] > 0.:
                         print(f'skipping ({l},{i},{j}) since already symbolic')
                     else:
                         name, fun, r2, c = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False)
@@ -727,16 +747,17 @@ class MultKAN(nn.Module):
                         if verbose >= 1:
                             print(f'fixing ({l},{i},{j}) with {name}, r2={r2}, c={c}')
 
-    def symbolic_formula(self, floating_digit=2, var=None, normalizer=None, simplify=False, output_normalizer = None):
+    def symbolic_formula(self, n_digit=2, var=None, normalizer=None, simplify=False, output_normalizer = None):
         
         symbolic_acts = []
+        symbolic_acts_premult = []
         x = []
 
-        def ex_round(ex1, floating_digit=floating_digit):
+        def ex_round(ex1, n_digit=n_digit):
             ex2 = ex1
             for a in sympy.preorder_traversal(ex1):
                 if isinstance(a, sympy.Float):
-                    ex2 = ex2.subs(a, round(a, floating_digit))
+                    ex2 = ex2.subs(a, round(a, n_digit))
             return ex2
 
         # define variables
@@ -763,8 +784,8 @@ class MultKAN(nn.Module):
             for j in range(self.width_out[l + 1]):
                 yj = 0.
                 for i in range(self.width_in[l]):
-                    a, b, c, d = self.symbolic_fun[l].symbolic_kanlayer.affine[j, i]
-                    sympy_fun = self.symbolic_fun[l].symbolic_kanlayer.funs_sympy[j][i]
+                    a, b, c, d = self.symbolic_fun[l].affine[j, i]
+                    sympy_fun = self.symbolic_fun[l].funs_sympy[j][i]
                     try:
                         yj += c * sympy_fun(a * x[i] + b) + d
                     except:
@@ -774,6 +795,8 @@ class MultKAN(nn.Module):
                     y.append(sympy.simplify(yj))
                 else:
                     y.append(yj)
+                    
+            symbolic_acts_premult.append(y)
                   
             mult = []
             for k in range(num_mult):
@@ -799,7 +822,11 @@ class MultKAN(nn.Module):
 
 
         self.symbolic_acts = [[ex_round(symbolic_acts[l][i]) for i in range(len(symbolic_acts[l]))] for l in range(len(symbolic_acts))]
+        self.symbolic_acts_premult = [[ex_round(symbolic_acts_premult[l][i]) for i in range(len(symbolic_acts_premult[l]))] for l in range(len(symbolic_acts_premult))]
 
         out_dim = len(symbolic_acts[-1])
         #return [symbolic_acts[-1][i] for i in range(len(symbolic_acts[-1]))], x0
-        return [ex_round(ex_round(symbolic_acts[-1][i])) for i in range(len(symbolic_acts[-1]))], x0
+        if simplify:
+            return [sympy.simplify(ex_round(ex_round(symbolic_acts[-1][i]))) for i in range(len(symbolic_acts[-1]))], x0
+        else:
+            return [ex_round(ex_round(symbolic_acts[-1][i])) for i in range(len(symbolic_acts[-1]))], x0

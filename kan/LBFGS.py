@@ -57,6 +57,7 @@ def _strong_wolfe(obj_func,
     ls_iter = 0
     while ls_iter < max_ls:
         # check conditions
+        #print(f_prev, f_new, g_new)
         if f_new > (f + c1 * t * gtd) or (ls_iter > 1 and f_new >= f_prev):
             bracket = [t_prev, t]
             bracket_f = [f_prev, f_new]
@@ -100,6 +101,7 @@ def _strong_wolfe(obj_func,
         ls_func_evals += 1
         gtd_new = g_new.dot(d)
         ls_iter += 1
+        
 
     # reached max number of iterations?
     if ls_iter == max_ls:
@@ -174,10 +176,15 @@ def _strong_wolfe(obj_func,
             bracket_g[low_pos] = g_new.clone(memory_format=torch.contiguous_format)
             bracket_gtd[low_pos] = gtd_new
 
-    # return stuff
-    t = bracket[low_pos]
-    f_new = bracket_f[low_pos]
-    g_new = bracket_g[low_pos]
+    #print(bracket)
+    if len(bracket) == 1:
+        t = bracket[0]
+        f_new = bracket_f[0]
+        g_new = bracket_g[0]
+    else:
+        t = bracket[low_pos]
+        f_new = bracket_f[low_pos]
+        g_new = bracket_g[low_pos]
     return f_new, g_new, t, ls_func_evals
 
 

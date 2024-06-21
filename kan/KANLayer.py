@@ -123,7 +123,7 @@ class KANLayer(nn.Module):
         if isinstance(scale_base, float):
             self.scale_base = torch.nn.Parameter(torch.ones(size, device=device) * scale_base).requires_grad_(sb_trainable)  # make scale trainable
         else:
-            self.scale_base = torch.nn.Parameter(torch.FloatTensor(scale_base).to(device)).requires_grad_(sb_trainable)
+            self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
         self.scale_sp = torch.nn.Parameter(torch.ones(size, device=device) * scale_sp).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
