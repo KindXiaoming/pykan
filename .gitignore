@@ -5,3 +5,10 @@ docs/_static/
 docs/_templates
 folder
 test
+tutorials/figures/
+tutorials/model_ckpt/model_oct0.ckpt
+tutorials/continual_learning_structural.py
+tutorials/model_ckpt/model_oct1.ckpt
+tutorials/model_ckpt/model_oct2.ckpt
+tutorials/continual_learning_step_by_stop.ipynb
+tutorials/continual_learning_structural.ipynb

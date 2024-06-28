@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from sklearn.linear_model import LinearRegression
 import sympy
+import pdb
 
 # sigmoid = sympy.Function('sigmoid')
 # name: (torch implementation, sympy implementation)
@@ -39,6 +40,7 @@ def create_dataset(f,
                    ranges = [-1,1],
                    train_num=1000, 
                    test_num=1000,
+                   step_size=None,
                    normalize_input=False,
                    normalize_label=False,
                    device='cpu',
@@ -56,6 +58,8 @@ def create_dataset(f,
             the number of training samples. Default: 1000.
         test_num : int
             the number of test samples. Default: 1000.
+        step_size : float
+            step_size within the specified range. Default: None.
         normalize_input : bool
             If True, apply normalization to inputs. Default: False.
         normalize_label : bool
@@ -64,6 +68,7 @@ def create_dataset(f,
             device. Default: 'cpu'.
         seed : int
             random seed. Default: 0.
+
         
     Returns:
     --------
@@ -87,13 +92,36 @@ def create_dataset(f,
     else:
         ranges = np.array(ranges)
         
-    train_input = torch.zeros(train_num, n_var)
-    test_input = torch.zeros(test_num, n_var)
-    for i in range(n_var):
-        train_input[:,i] = torch.rand(train_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
-        test_input[:,i] = torch.rand(test_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
-        
-        
+
+    if step_size is None:
+        train_input = torch.zeros(train_num, n_var)
+        test_input = torch.zeros(test_num, n_var)
+        for i in range(n_var):
+            train_input[:,i] = torch.rand(train_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
+            test_input[:,i] = torch.rand(test_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
+    else:
+        # generate warning that if step_size is provided, test_num is only the required argument
+        if test_num is not None:
+            print('Warning: if step_size is provided, test_num is only the required argument. train_num equals to all possible combinations minus test_num.')
+        def generate_grid(dimensions, ranges, step_size):
+            # Generate an array of values for each dimension
+            axisvalues = []
+            for _ in range(dimensions):
+                axisvalues.append(np.arange(ranges[_][0], ranges[_][1], step_size))
+            
+            # Create the grid using numpy's meshgrid function
+            grid = np.meshgrid(*axisvalues, indexing='ij')
+            
+            # Reshape the grid to list all possible combinations of coordinates
+            grid = np.stack(grid, axis=-1).reshape(-1, dimensions)
+            
+            return grid
+
+        all_data = torch.from_numpy(generate_grid(n_var, ranges, step_size)).float()
+        train_input = all_data[np.random.choice(all_data.shape[0], all_data.shape[0]-test_num, replace=False)]
+        test_input = all_data[np.random.choice(all_data.shape[0], test_num, replace=False)]
+
+     
     train_label = f(train_input)
     test_label = f(test_input)
         
