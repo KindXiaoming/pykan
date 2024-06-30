@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from .KANLayer import *
+from .KANLayer import KANLayer
 #from .Symbolic_MultKANLayer import *
-from .Symbolic_KANLayer import *
+from .Symbolic_KANLayer import Symbolic_KANLayer
 from .LBFGS import *
 import os
 import glob
@@ -13,13 +13,14 @@ import random
 import copy
 #from .MultKANLayer import MultKANLayer
 import pandas as pd
-
+from sympy.printing import latex
+from sympy import *
+import yaml
 
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, bias_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
-                 device='cpu', seed=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0):
         
         super(MultKAN, self).__init__()
 
@@ -29,19 +30,36 @@ class MultKAN(nn.Module):
 
         ### initializeing the numerical front ###
 
-        self.biases = []
         self.act_fun = []
         self.depth = len(width) - 1
         
-        if type(width[0]) == int:
-            width[0] = [width[0],0]
-        if type(width[-1]) == int:
-            width[-1] = [width[-1],0]
+        for i in range(len(width)):
+            if type(width[i]) == int:
+                width[i] = [width[i],0]
             
         self.width = width
+        
+        # if mult_arity is just a scalar, we extend it to a list of lists
+        # e.g, mult_arity = [[2,3],[4]] means that in the first hidden layer, 2 mult ops have arity 2 and 3, respectively;
+        # in the second hidden layer, 1 mult op has arity 4.
+        if isinstance(mult_arity, int):
+            self.mult_homo = True # when homo is True, parallelization is possible
+        else:
+            self.mult_homo = False # when home if False, for loop is required. 
+        self.mult_arity = mult_arity
 
         width_in = self.width_in
         width_out = self.width_out
+        
+        self.base_fun_name = base_fun
+        if base_fun == 'silu':
+            base_fun = torch.nn.SiLU()
+        elif base_fun == 'identity':
+            base_fun = torch.nn.Identity()
+            
+        self.grid_eps = grid_eps
+        self.grid_range = grid_range
+            
         
         for l in range(self.depth):
             # splines
@@ -50,12 +68,34 @@ class MultKAN(nn.Module):
             sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
 
-            # bias
-            bias = nn.Linear(width_in[l+1], 1, bias=False, device=device).requires_grad_(bias_trainable)
-            bias.weight.data *= 0.
-            self.biases.append(bias)
-
-        self.biases = nn.ModuleList(self.biases)
+        
+        #self.node_bias = [torch.nn.Parameter(torch.zeros(width_in[l+1],)).requires_grad_(affine_trainable).to(device) for l in range(self.depth)]
+        #self.node_scale = [torch.nn.Parameter(torch.ones(width_in[l+1],)).requires_grad_(affine_trainable).to(device) for l in range(self.depth)]
+        #self.subnode_bias = [torch.nn.Parameter(torch.zeros(width_out[l+1],)).requires_grad_(affine_trainable).to(device) for l in range(self.depth)]
+        #self.subnode_scale = [torch.nn.Parameter(torch.ones(width_out[l+1],)).requires_grad_(affine_trainable).to(device) for l in range(self.depth)]
+        
+        self.node_bias = []
+        self.node_scale = []
+        self.subnode_bias = []
+        self.subnode_scale = []
+        
+        globals()['self.node_bias_0'] = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)
+        #self.node_bias_0 = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)
+        exec('self.node_bias_0' + " = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)")
+        
+        for l in range(self.depth):
+            exec(f'self.node_bias_{l} = torch.nn.Parameter(torch.zeros(width_in[l+1],)).requires_grad_(affine_trainable).to(device)')
+            exec(f'self.node_scale_{l} = torch.nn.Parameter(torch.ones(width_in[l+1],)).requires_grad_(affine_trainable).to(device)')
+            exec(f'self.subnode_bias_{l} = torch.nn.Parameter(torch.zeros(width_out[l+1],)).requires_grad_(affine_trainable).to(device)')
+            exec(f'self.subnode_scale_{l} = torch.nn.Parameter(torch.ones(width_out[l+1],)).requires_grad_(affine_trainable).to(device)')
+            exec(f'self.node_bias.append(self.node_bias_{l})')
+            exec(f'self.node_scale.append(self.node_scale_{l})')
+            exec(f'self.subnode_bias.append(self.subnode_bias_{l})')
+            exec(f'self.subnode_scale.append(self.subnode_scale_{l})')
+            
+            
+        
+        
         self.act_fun = nn.ModuleList(self.act_fun)
 
         self.grid = grid
@@ -70,6 +110,9 @@ class MultKAN(nn.Module):
 
         self.symbolic_fun = nn.ModuleList(self.symbolic_fun)
         self.symbolic_enabled = symbolic_enabled
+        self.affine_trainable = affine_trainable
+        self.sp_trainable = sp_trainable
+        self.sb_trainable = sb_trainable
         
         self.device = device
         
@@ -94,7 +137,11 @@ class MultKAN(nn.Module):
             spb.mask.data = spb_parent.mask.data
 
         for l in range(self.depth):
-            self.biases[l].weight.data = another_model.biases[l].weight.data
+            self.node_bias[l].data = another_model.node_bias[l].data
+            self.node_scale[l].data = another_model.node_scale[l].data
+            
+            self.subnode_bias[l].data = another_model.subnode_bias[l].data
+            self.subnode_scale[l].data = another_model.subnode_scale[l].data
 
         for l in range(self.depth):
             self.symbolic_fun[l] = another_model.symbolic_fun[l]
@@ -110,8 +157,23 @@ class MultKAN(nn.Module):
     @property
     def width_out(self):
         width = self.width
-        width_out = [width[l][0]+2*width[l][1] for l in range(len(width))]
+        if self.mult_homo == True:
+            width_out = [width[l][0]+self.mult_arity*width[l][1] for l in range(len(width))]
+        else:
+            width_out = [width[l][0]+int(np.sum(self.mult_arity[l])) for l in range(len(width))]
         return width_out
+    
+    @property
+    def n_sum(self):
+        width = self.width
+        n_sum = [width[l][0] for l in range(1,len(width)-1)]
+        return n_sum
+    
+    @property
+    def n_mult(self):
+        width = self.width
+        n_mult = [width[l][1] for l in range(1,len(width)-1)]
+        return n_mult
     
     def update_grid_from_samples(self, x):
         for l in range(self.depth):
@@ -123,7 +185,7 @@ class MultKAN(nn.Module):
         for l in range(self.depth):
             self.act_fun[l].initialize_grid_from_parent(model.act_fun[l], model.acts[l])
 
-    def forward(self, x):
+    def forward(self, x, singularity_avoiding=False, y_th=10.):
         
         # cache data
         self.cache_data = x
@@ -144,12 +206,15 @@ class MultKAN(nn.Module):
             x_numerical, preacts, postacts_numerical, postspline = self.act_fun[l](x)
 
             if self.symbolic_enabled == True:
-                x_symbolic, postacts_symbolic = self.symbolic_fun[l](x)
+                x_symbolic, postacts_symbolic = self.symbolic_fun[l](x, singularity_avoiding=singularity_avoiding, y_th=y_th)
             else:
                 x_symbolic = 0.
                 postacts_symbolic = 0.
 
             x = x_numerical + x_symbolic
+            # subnode affine transform
+            x = self.subnode_scale[l][None,:] * x + self.subnode_bias[l][None,:]
+            
             postacts = postacts_numerical + postacts_symbolic
 
             # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
@@ -169,10 +234,33 @@ class MultKAN(nn.Module):
             dim_sum = self.width[l+1][0]
             dim_mult = self.width[l+1][1]
             
-            x_mult = x[:,dim_sum::2] * x[:,dim_sum+1::2]
-            x = torch.cat([x[:,:dim_sum], x_mult], dim=1)
+            if self.mult_homo == True:
+                for i in range(self.mult_arity-1):
+                    if i == 0:
+                        x_mult = x[:,dim_sum::self.mult_arity] * x[:,dim_sum+1::self.mult_arity]
+                    else:
+                        x_mult = x_mult * x[:,dim_sum+i+1::self.mult_arity]
+                        
+            else:
+                for j in range(dim_mult):
+                    acml_id = dim_sum + np.sum(self.mult_arity[l+1][:j])
+                    for i in range(self.mult_arity[l+1][j]-1):
+                        if i == 0:
+                            x_mult_j = x[:,[acml_id]] * x[:,[acml_id+1]]
+                        else:
+                            x_mult_j = x_mult_j * x[:,[acml_id+i+1]]
+                            
+                    if j == 0:
+                        x_mult = x_mult_j
+                    else:
+                        x_mult = torch.cat([x_mult, x_mult_j], dim=1)
+                
+            if self.width[l+1][1] > 0:
+                x = torch.cat([x[:,:dim_sum], x_mult], dim=1)
             
-            x = x + self.biases[l].weight
+            # x = x + self.biases[l].weight
+            # node affine transform
+            x = self.node_scale[l][None,:] * x + self.node_bias[l][None,:]
             
             self.acts.append(x.detach())
         
@@ -206,6 +294,7 @@ class MultKAN(nn.Module):
             x = self.acts[l][:, i]
             mask = self.act_fun[l].mask.reshape(self.width_out[l+1], self.width_in[l])
             y = self.spline_postacts[l][:, j, i]
+            #y = self.postacts[l][:, j, i]
             r2 = self.symbolic_fun[l].fix_symbolic(i, j, fun_name, x, y, a_range=a_range, b_range=b_range, verbose=verbose)
             if mask[j ,i] == 0:
                 r2 = - 1e8
@@ -235,6 +324,8 @@ class MultKAN(nn.Module):
         return x_min, x_max, y_min, y_max
 
     def plot(self, folder="./figures", beta=3, mask=False, mode="supervised", scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None):
+        
+        global Symbol
         
         # forward to obtain activations
         self.forward(self.cache_data)
@@ -266,6 +357,7 @@ class MultKAN(nn.Module):
                     if symbolic_mask == 0. and numeric_mask == 0.:
                         color = "white"
                         alpha_mask = 0
+                        
 
                     if tick == True:
                         ax.tick_params(axis="y", direction="in", pad=-22, labelsize=50)
@@ -307,6 +399,7 @@ class MultKAN(nn.Module):
         elif mode == "unsupervised":
             alpha = [score2alpha(score.cpu().detach().numpy()) for score in self.acts_scale_std]
 
+            
         # draw skeleton
         width = np.array(self.width)
         width_in = np.array(self.width_in)
@@ -320,7 +413,7 @@ class MultKAN(nn.Module):
 
         max_neuron = np.max(width_out)
         max_num_weights = np.max(width_in[:-1] * width_out[1:])
-        y1 = 0.4 / np.maximum(max_num_weights, 3) # size (height/width) of 1D function diagrams
+        y1 = 0.4 / np.maximum(max_num_weights, 5) # size (height/width) of 1D function diagrams
         y2 = 0.15 / np.maximum(max_neuron, 5) # size (height/width) of operations (sum and mult)
 
         fig, ax = plt.subplots(figsize=(10 * scale, 10 * scale * (neuron_depth - 1) * (y0+z0)))
@@ -351,7 +444,7 @@ class MultKAN(nn.Module):
 
                         symbol_mask = self.symbolic_fun[l].mask[j][i]
                         numerical_mask = self.act_fun[l].mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
-                        if symbol_mask == 1. and numerical_mask == 1.:
+                        if symbol_mask == 1. and numerical_mask > 0.:
                             color = 'purple'
                             alpha_mask = 1.
                         if symbol_mask == 1. and numerical_mask == 0.:
@@ -363,6 +456,8 @@ class MultKAN(nn.Module):
                         if symbol_mask == 0. and numerical_mask == 0.:
                             color = "white"
                             alpha_mask = 0.
+                            
+                            
                         if mask == True:
                             plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * self.mask[l][i].item() * self.mask[l + 1][j].item())
                             plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * self.mask[l][i].item() * self.mask[l + 1][j].item())
@@ -375,11 +470,27 @@ class MultKAN(nn.Module):
             if l < neuron_depth - 1:
                 n_in = width_out[l+1]
                 n_out = width_in[l+1]
+                mult_id = 0
                 for i in range(n_in):
                     if i < width[l+1][0]:
                         j = i
                     else:
-                        j = (i-width[l+1][0])//2 + width[l+1][0]
+                        if i == width[l+1][0]:
+                            if isinstance(self.mult_arity,int):
+                                ma = self.mult_arity
+                            else:
+                                ma = self.mult_arity[l+1][mult_id]
+                            current_mult_arity = ma
+                        if current_mult_arity == 0:
+                            mult_id += 1
+                            if isinstance(self.mult_arity,int):
+                                ma = self.mult_arity
+                            else:
+                                ma = self.mult_arity[l+1][mult_id]
+                            current_mult_arity = ma
+                        j = width[l+1][0] + mult_id
+                        current_mult_arity -= 1
+                        #j = (i-width[l+1][0])//self.mult_arity + width[l+1][0]
                     plt.plot([1 / (2 * n_in) + i / n_in, 1 / (2 * n_out) + j / n_out], [l * (y0+z0) + y0, (l+1) * (y0+z0)], color='black', lw=2 * scale)
 
                     
@@ -444,20 +555,28 @@ class MultKAN(nn.Module):
                 newax.axis('off')
 
         if in_vars != None:
-            n = self.width[0]
+            n = self.width_in[0]
             for i in range(n):
-                plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, in_vars[i], fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                if isinstance(in_vars[i], sympy.Expr):
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, f'${latex(in_vars[i])}$', fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                else:
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, in_vars[i], fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                
+                
 
         if out_vars != None:
-            n = self.width[-1]
+            n = self.width_in[-1]
             for i in range(n):
-                plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), y0 * (len(self.width) - 1) + 0.1, out_vars[i], fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                if isinstance(out_vars[i], sympy.Expr):
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, f'${latex(out_vars[i])}$', fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                else:
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, out_vars[i], fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
         if title != None:
-            plt.gcf().get_axes()[0].text(0.5, y0 * (len(self.width) - 1) + 0.2, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+            plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(self.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
     def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
-              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
+              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=10.):
 
         def reg(acts_scale):
 
@@ -494,6 +613,7 @@ class MultKAN(nn.Module):
             optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         elif opt == "LBFGS":
             optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, line_search_fn="strong_wolfe", tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+            #optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
             #optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, debug=True)
 
         results = {}
@@ -516,12 +636,8 @@ class MultKAN(nn.Module):
         def closure():
             global train_loss, reg_
             optimizer.zero_grad()
-            pred = self.forward(dataset['train_input'][train_id].to(device))
-            if sglr_avoid == True:
-                id_ = torch.where(torch.isnan(torch.sum(pred, dim=1)) == False)[0]
-                train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(device))
-            else:
-                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
+            pred = self.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
+            train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
             reg_ = reg(self.acts_scale_spline)
             objective = train_loss + lamb * reg_
             objective.backward()
@@ -629,7 +745,10 @@ class MultKAN(nn.Module):
             if i < len(self.acts_scale) - 1:
                 num_mult = len(active_neurons_down[i]) - len(active_neurons_up[i+1])
                 num_sum = len(active_neurons_down[i]) - 2 * num_mult
-                model2.biases[i].weight.data = model2.biases[i].weight.data[:, active_neurons_up[i+1]]
+                model2.node_bias[i].data = model2.node_bias[i].data[active_neurons_up[i+1]]
+                model2.node_scale[i].data = model2.node_scale[i].data[active_neurons_up[i+1]]
+                model2.subnode_bias[i].data = model2.subnode_bias[i].data[active_neurons_down[i]]
+                model2.subnode_scale[i].data = model2.subnode_scale[i].data[active_neurons_down[i]]
                 model2.width[i+1] = [num_sum, num_mult]
                 
                 model2.act_fun[i].out_dim_sum = num_sum
@@ -649,6 +768,10 @@ class MultKAN(nn.Module):
         for i in range(len(self.width)-1):
             self.act_fun[i].mask.data = ((self.acts_scale[i] > threshold).reshape(-1,)).float()
     
+    def prune(self, node_th=1e-2, edge_th=3e-2):
+        self = self.prune_node(node_th)
+        self.forward(self.cache_data)
+        self.prune_edge(edge_th)
     
     def remove_edge(self, l, i, j):
         self.act_fun[l].mask[j * self.width[l] + i] = 0.
@@ -739,7 +862,7 @@ class MultKAN(nn.Module):
         for l in range(len(self.width_in) - 1):
             for i in range(self.width_in[l]):
                 for j in range(self.width_out[l + 1]):
-                    if self.symbolic_fun[l].mask[j, i] > 0.:
+                    if self.symbolic_fun[l].mask[j, i] > 0. and self.act_fun[l].mask[j*self.width_in[l]+i] == 0.:
                         print(f'skipping ({l},{i},{j}) since already symbolic')
                     else:
                         name, fun, r2, c = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False)
@@ -791,6 +914,7 @@ class MultKAN(nn.Module):
                     except:
                         print('make sure all activations need to be converted to symbolic formulas first!')
                         return
+                yj = self.subnode_scale[l][j] * yj + self.subnode_bias[l][j]
                 if simplify == True:
                     y.append(sympy.simplify(yj))
                 else:
@@ -800,11 +924,17 @@ class MultKAN(nn.Module):
                   
             mult = []
             for k in range(num_mult):
-                mult.append(y[num_sum+2*k] * y[num_sum+2*k+1])
+                for i in range(self.mult_arity-1):
+                    if i == 0:
+                        mult_k = y[num_sum+2*k] * y[num_sum+2*k+1]
+                    else:
+                        mult_k = mult_k * y[num_sum+2*k+i+1]
+                mult.append(mult_k)
+                
             y = y[:num_sum] + mult
             
             for j in range(self.width_in[l+1]):
-                y[j] += self.biases[l].weight.data[0, j]
+                y[j] = self.node_scale[l][j] * y[j] + self.node_bias[l][j]
             
             x = y
             symbolic_acts.append(x)
@@ -830,3 +960,183 @@ class MultKAN(nn.Module):
             return [sympy.simplify(ex_round(ex_round(symbolic_acts[-1][i]))) for i in range(len(symbolic_acts[-1]))], x0
         else:
             return [ex_round(ex_round(symbolic_acts[-1][i])) for i in range(len(symbolic_acts[-1]))], x0
+        
+        
+    def expand_depth(self):
+        
+        self.depth += 1
+
+        # add kanlayer, set mask to zero
+        dim_out = self.width_in[-1]
+        layer = KANLayer(dim_out, dim_out, num=self.grid, k=self.k)
+        layer.mask *= 0.
+        self.act_fun.append(layer)
+
+        self.width.append([dim_out, 0])
+        self.mult_arity.append([])
+
+        # add symbolic_kanlayer set mask to one. fun = identity on diagonal and zero for off-diagonal
+        layer = Symbolic_KANLayer(dim_out, dim_out)
+        layer.mask += 1.
+
+        for j in range(dim_out):
+            for i in range(dim_out):
+                if i == j:
+                    layer.fix_symbolic(i,j,'x')
+                else:
+                    layer.fix_symbolic(i,j,'0')
+
+        self.symbolic_fun.append(layer)
+
+        self.node_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable).to(self.device))
+        self.node_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable).to(self.device))
+        self.subnode_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable).to(self.device))
+        self.subnode_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable).to(self.device))
+
+    def expand_width(self, layer_id, n_added_nodes, sum_bool=True, mult_arity=2):
+        
+        def _expand(layer_id, n_added_nodes, sum_bool=True, mult_arity=2, added_dim='out'):
+            l = layer_id
+            in_dim = self.symbolic_fun[l].in_dim
+            out_dim = self.symbolic_fun[l].out_dim
+            if sum_bool:
+
+                if added_dim == 'out':
+                    new = Symbolic_KANLayer(in_dim, out_dim + n_added_nodes)
+                    old = self.symbolic_fun[l]
+                    in_id = np.arange(in_dim)
+                    out_id = np.arange(out_dim + n_added_nodes) 
+
+                    for j in out_id:
+                        for i in in_id:
+                            new.fix_symbolic(i,j,'0')
+                    new.mask += 1.
+
+                    for j in out_id:
+                        for i in in_id:
+                            if j > n_added_nodes-1:
+                                new.funs[j][i] = old.funs[j-n_added_nodes][i]
+                                new.funs_avoid_singularity[j][i] = old.funs_avoid_singularity[j-n_added_nodes][i]
+                                new.funs_sympy[j][i] = old.funs_sympy[j-n_added_nodes][i]
+                                new.funs_name[j][i] = old.funs_name[j-n_added_nodes][i]
+                                new.affine.data[j][i] = old.affine.data[j-n_added_nodes][i]
+
+                    self.symbolic_fun[l] = new
+                    self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_nodes, num=self.grid, k=self.k)
+                    self.act_fun[l].mask *= 0.
+
+                    self.node_scale[l].data = torch.cat([torch.ones(n_added_nodes), self.node_scale[l].data])
+                    self.node_bias[l].data = torch.cat([torch.zeros(n_added_nodes), self.node_bias[l].data])
+                    self.subnode_scale[l].data = torch.cat([torch.ones(n_added_nodes), self.subnode_scale[l].data])
+                    self.subnode_bias[l].data = torch.cat([torch.zeros(n_added_nodes), self.subnode_bias[l].data])
+
+
+
+                if added_dim == 'in':
+                    new = Symbolic_KANLayer(in_dim + n_added_nodes, out_dim)
+                    old = self.symbolic_fun[l]
+                    in_id = np.arange(in_dim + n_added_nodes)
+                    out_id = np.arange(out_dim) 
+
+                    for j in out_id:
+                        for i in in_id:
+                            new.fix_symbolic(i,j,'0')
+                    new.mask += 1.
+
+                    for j in out_id:
+                        for i in in_id:
+                            if i > n_added_nodes-1:
+                                new.funs[j][i] = old.funs[j][i-n_added_nodes]
+                                new.funs_avoid_singularity[j][i] = old.funs_avoid_singularity[j][i-n_added_nodes]
+                                new.funs_sympy[j][i] = old.funs_sympy[j][i-n_added_nodes]
+                                new.funs_name[j][i] = old.funs_name[j][i-n_added_nodes]
+                                new.affine.data[j][i] = old.affine.data[j][i-n_added_nodes]
+
+                    self.symbolic_fun[l] = new
+                    self.act_fun[l] = KANLayer(in_dim + n_added_nodes, out_dim, num=self.grid, k=self.k)
+                    self.act_fun[l].mask *= 0.
+
+
+            else:
+
+                if isinstance(mult_arity, int):
+                    mult_arity = [mult_arity] * n_added_nodes
+
+                if added_dim == 'out':
+                    n_added_subnodes = np.sum(mult_arity)
+                    new = Symbolic_KANLayer(in_dim, out_dim + n_added_subnodes)
+                    old = self.symbolic_fun[l]
+                    in_id = np.arange(in_dim)
+                    out_id = np.arange(out_dim + n_added_nodes)
+
+                    for j in out_id:
+                        for i in in_id:
+                            new.fix_symbolic(i,j,'0')
+                    new.mask += 1.
+
+                    for j in out_id:
+                        for i in in_id:
+                            if j < out_dim:
+                                new.funs[j][i] = old.funs[j][i]
+                                new.funs_avoid_singularity[j][i] = old.funs_avoid_singularity[j][i]
+                                new.funs_sympy[j][i] = old.funs_sympy[j][i]
+                                new.funs_name[j][i] = old.funs_name[j][i]
+                                new.affine.data[j][i] = old.affine.data[j][i]
+
+                    self.symbolic_fun[l] = new
+                    self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_subnodes, num=self.grid, k=self.k)
+                    self.act_fun[l].mask *= 0.
+
+                    self.node_scale[l].data = torch.cat([self.node_scale[l].data, torch.ones(n_added_nodes)])
+                    self.node_bias[l].data = torch.cat([self.node_bias[l].data, torch.zeros(n_added_nodes)])
+                    self.subnode_scale[l].data = torch.cat([self.subnode_scale[l].data, torch.ones(n_added_subnodes)])
+                    self.subnode_bias[l].data = torch.cat([self.subnode_bias[l].data, torch.zeros(n_added_subnodes)])
+
+                if added_dim == 'in':
+                    new = Symbolic_KANLayer(in_dim + n_added_nodes, out_dim)
+                    old = self.symbolic_fun[l]
+                    in_id = np.arange(in_dim + n_added_nodes)
+                    out_id = np.arange(out_dim) 
+
+                    for j in out_id:
+                        for i in in_id:
+                            new.fix_symbolic(i,j,'0')
+                    new.mask += 1.
+
+                    for j in out_id:
+                        for i in in_id:
+                            if i < in_dim:
+                                new.funs[j][i] = old.funs[j][i]
+                                new.funs_avoid_singularity[j][i] = old.funs_avoid_singularity[j][i]
+                                new.funs_sympy[j][i] = old.funs_sympy[j][i]
+                                new.funs_name[j][i] = old.funs_name[j][i]
+                                new.affine.data[j][i] = old.affine.data[j][i]
+
+                    self.symbolic_fun[l] = new
+                    self.act_fun[l] = KANLayer(in_dim + n_added_nodes, out_dim, num=self.grid, k=self.k)
+                    self.act_fun[l].mask *= 0.
+
+        _expand(layer_id-1, n_added_nodes, sum_bool, mult_arity, added_dim='out')
+        _expand(layer_id, n_added_nodes, sum_bool, mult_arity, added_dim='in')
+        if sum_bool:
+            self.width[layer_id][0] += n_added_nodes
+        else:
+            if isinstance(mult_arity, int):
+                mult_arity = [mult_arity] * n_added_nodes
+
+            self.width[layer_id][1] += n_added_nodes
+            self.mult_arity[layer_id] += mult_arity
+            
+    def perturb(self, mag=0.02, mode='all'):
+        if mode == 'all':
+            for i in range(self.depth):
+                self.act_fun[i].mask += self.act_fun[i].mask*0. + mag
+                
+        if mode == 'minimal':
+            for l in range(self.depth):
+                funs_name = self.symbolic_fun[l].funs_name
+                for j in range(self.width_out[l+1]):
+                    for i in range(self.width_in[l]):
+                        if funs_name[j][i] != '0':
+                            self.act_fun[l].mask.data.reshape(self.width_out[l+1], self.width_in[l])[j][i] = mag
+                            

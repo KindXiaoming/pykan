@@ -301,6 +301,9 @@ class LBFGS(Optimizer):
             closure (Callable): A closure that reevaluates the model
                 and returns the loss.
         """
+        
+        torch.manual_seed(0)
+        
         assert len(self.param_groups) == 1
 
         # Make sure the closure is always called with grad enabled
@@ -436,7 +439,6 @@ class LBFGS(Optimizer):
 
                     def obj_func(x, t, d):
                         return self._directional_evaluate(closure, x, t, d)
-
                     loss, flat_grad, t, ls_func_evals = _strong_wolfe(
                         obj_func, x_init, t, d, loss, flat_grad, gtd)
                 self._add_grad(t, d)

@@ -2,34 +2,60 @@ import numpy as np
 import torch
 from sklearn.linear_model import LinearRegression
 import sympy
+import yaml
+
 
 # sigmoid = sympy.Function('sigmoid')
 # name: (torch implementation, sympy implementation)
-SYMBOLIC_LIB = {'x': (lambda x: x, lambda x: x, 1),
-                 'x^2': (lambda x: x**2, lambda x: x**2, 2),
-                 'x^3': (lambda x: x**3, lambda x: x**3, 3),
-                 'x^4': (lambda x: x**4, lambda x: x**4, 4),
-                 '1/x': (lambda x: 1/x, lambda x: 1/x, 2),
-                 '1/x^2': (lambda x: 1/x**2, lambda x: 1/x**2, 3),
-                 '1/x^3': (lambda x: 1/x**3, lambda x: 1/x**3, 4),
-                 '1/x^4': (lambda x: 1/x**4, lambda x: 1/x**4, 5),
-                 'sqrt': (lambda x: torch.sqrt(x), lambda x: sympy.sqrt(x), 2),
-                 '1/sqrt(x)': (lambda x: 1/torch.sqrt(x), lambda x: 1/sympy.sqrt(x), 2),
-                 'exp': (lambda x: torch.exp(x), lambda x: sympy.exp(x), 2),
-                 'log': (lambda x: torch.log(x), lambda x: sympy.log(x), 2),
-                 'abs': (lambda x: torch.abs(x), lambda x: sympy.Abs(x), 3),
-                 'sin': (lambda x: torch.sin(x), lambda x: sympy.sin(x), 3),
-                 'tan': (lambda x: torch.tan(x), lambda x: sympy.tan(x), 3),
-                 'tanh': (lambda x: torch.tanh(x), lambda x: sympy.tanh(x), 3),
+
+# singularity protection functions
+f_inv = lambda x, y_th: ((x_th := 1/y_th), y_th/x_th*x * (torch.abs(x) < x_th) + torch.nan_to_num(1/x) * (torch.abs(x) >= x_th))
+f_inv2 = lambda x, y_th: ((x_th := 1/y_th**(1/2)), y_th * (torch.abs(x) < x_th) + torch.nan_to_num(1/x**2) * (torch.abs(x) >= x_th))
+f_inv3 = lambda x, y_th: ((x_th := 1/y_th**(1/3)), y_th/x_th*x * (torch.abs(x) < x_th) + torch.nan_to_num(1/x**3) * (torch.abs(x) >= x_th))
+f_inv4 = lambda x, y_th: ((x_th := 1/y_th**(1/4)), y_th * (torch.abs(x) < x_th) + torch.nan_to_num(1/x**4) * (torch.abs(x) >= x_th))
+f_inv5 = lambda x, y_th: ((x_th := 1/y_th**(1/5)), y_th/x_th*x * (torch.abs(x) < x_th) + torch.nan_to_num(1/x**5) * (torch.abs(x) >= x_th))
+f_sqrt = lambda x, y_th: ((x_th := 1/y_th**2), y_th/x_th*x * (torch.abs(x) < x_th) + torch.nan_to_num(torch.sqrt(torch.abs(x))*torch.sign(x)) * (torch.abs(x) >= x_th))
+f_power1d5 = lambda x, y_th: torch.abs(x)**1.5
+f_invsqrt = lambda x, y_th: ((x_th := 1/y_th**2), y_th * (torch.abs(x) < x_th) + torch.nan_to_num(1/torch.sqrt(torch.abs(x))) * (torch.abs(x) >= x_th))
+f_log = lambda x, y_th: ((x_th := torch.e**(-y_th)), - y_th * (torch.abs(x) < x_th) + torch.nan_to_num(torch.log(torch.abs(x))) * (torch.abs(x) >= x_th))
+f_tan = lambda x, y_th: ((clip := x % torch.pi), (delta := torch.pi/2-torch.arctan(y_th)), - y_th/delta * (clip - torch.pi/2) * (torch.abs(clip - torch.pi/2) < delta) + torch.nan_to_num(torch.tan(clip)) * (torch.abs(clip - torch.pi/2) >= delta))
+f_arctanh = lambda x, y_th: ((delta := 1-torch.tanh(y_th) + 1e-4), y_th * torch.sign(x) * (torch.abs(x) > 1 - delta) + torch.nan_to_num(torch.arctanh(x)) * (torch.abs(x) <= 1 - delta))
+f_arcsin = lambda x, y_th: ((), torch.pi/2 * torch.sign(x) * (torch.abs(x) > 1) + torch.nan_to_num(torch.arcsin(x)) * (torch.abs(x) <= 1))
+f_arccos = lambda x, y_th: ((), torch.pi/2 * (1-torch.sign(x)) * (torch.abs(x) > 1) + torch.nan_to_num(torch.arccos(x)) * (torch.abs(x) <= 1))
+f_exp = lambda x, y_th: ((x_th := torch.log(y_th)), y_th * (x > x_th) + torch.exp(x) * (x <= x_th))
+
+SYMBOLIC_LIB = {'x': (lambda x: x, lambda x: x, 1, lambda x, y_th: ((), x)),
+                 'x^2': (lambda x: x**2, lambda x: x**2, 2, lambda x, y_th: ((), x**2)),
+                 'x^3': (lambda x: x**3, lambda x: x**3, 3, lambda x, y_th: ((), x**3)),
+                 'x^4': (lambda x: x**4, lambda x: x**4, 4, lambda x, y_th: ((), x**4)),
+                 'x^5': (lambda x: x**5, lambda x: x**5, 5, lambda x, y_th: ((), x**5)),
+                 '1/x': (lambda x: 1/x, lambda x: 1/x, 2, f_inv),
+                 '1/x^2': (lambda x: 1/x**2, lambda x: 1/x**2, 3, f_inv2),
+                 '1/x^3': (lambda x: 1/x**3, lambda x: 1/x**3, 4, f_inv3),
+                 '1/x^4': (lambda x: 1/x**4, lambda x: 1/x**4, 5, f_inv4),
+                 '1/x^5': (lambda x: 1/x**5, lambda x: 1/x**5, 6, f_inv5),
+                 'sqrt': (lambda x: torch.sqrt(x), lambda x: sympy.sqrt(x), 2, f_sqrt),
+                 'x^0.5': (lambda x: torch.sqrt(x), lambda x: sympy.sqrt(x), 2, f_sqrt),
+                 'x^1.5': (lambda x: torch.sqrt(x)**3, lambda x: sympy.sqrt(x)**3, 4, f_power1d5),
+                 '1/sqrt(x)': (lambda x: 1/torch.sqrt(x), lambda x: 1/sympy.sqrt(x), 2, f_invsqrt),
+                 '1/x^0.5': (lambda x: 1/torch.sqrt(x), lambda x: 1/sympy.sqrt(x), 2, f_invsqrt),
+                 'exp': (lambda x: torch.exp(x), lambda x: sympy.exp(x), 2, f_exp),
+                 'log': (lambda x: torch.log(x), lambda x: sympy.log(x), 2, f_log),
+                 'abs': (lambda x: torch.abs(x), lambda x: sympy.Abs(x), 3, lambda x, y_th: ((), torch.abs(x))),
+                 'sin': (lambda x: torch.sin(x), lambda x: sympy.sin(x), 3, lambda x, y_th: ((), torch.sin(x))),
+                 'cos': (lambda x: torch.cos(x), lambda x: sympy.cos(x), 3, lambda x, y_th: ((), torch.cos(x))),
+                 'tan': (lambda x: torch.tan(x), lambda x: sympy.tan(x), 3, f_tan),
+                 'tanh': (lambda x: torch.tanh(x), lambda x: sympy.tanh(x), 3, lambda x, y_th: ((), torch.tanh(x))),
+                 'sgn': (lambda x: torch.sign(x), lambda x: sympy.sign(x), 3, lambda x, y_th: ((), torch.sign(x))),
+                 'arcsin': (lambda x: torch.arcsin(x), lambda x: sympy.asin(x), 5, f_arcsin),
+                 'arccos': (lambda x: torch.arccos(x), lambda x: sympy.acos(x), 5, f_arccos),
+                 'arctan': (lambda x: torch.arctan(x), lambda x: sympy.atan(x), 5, lambda x, y_th: ((), torch.arctan(x))),
+                 'arctanh': (lambda x: torch.arctanh(x), lambda x: sympy.atanh(x), 5, f_arctanh),
+                 '0': (lambda x: x*0, lambda x: x*0, 0, lambda x, y_th: ((), x*0)),
+                 'gaussian': (lambda x: torch.exp(-x**2), lambda x: sympy.exp(-x**2), 5, lambda x, y_th: ((), torch.exp(-x**2))),
+                 #'cosh': (lambda x: torch.cosh(x), lambda x: sympy.cosh(x), 5),
                  #'sigmoid': (lambda x: torch.sigmoid(x), sympy.Function('sigmoid'), 4),
                  #'relu': (lambda x: torch.relu(x), relu),
-                 'sgn': (lambda x: torch.sign(x), lambda x: sympy.sign(x), 3),
-                 'arcsin': (lambda x: torch.arcsin(x), lambda x: sympy.arcsin(x), 5),
-                 'arctan': (lambda x: torch.arctan(x), lambda x: sympy.atan(x), 5),
-                 'arctanh': (lambda x: torch.arctanh(x), lambda x: sympy.atanh(x), 5),
-                 '0': (lambda x: x*0, lambda x: x*0, 0),
-                 'gaussian': (lambda x: torch.exp(-x**2), lambda x: sympy.exp(-x**2), 5),
-                 #'cosh': (lambda x: torch.cosh(x), lambda x: sympy.cosh(x), 5),
 }
 
 def create_dataset(f, 
@@ -253,4 +279,5 @@ def add_symbolic(name, fun):
     '''
     exec(f"globals()['{name}'] = sympy.Function('{name}')")
     SYMBOLIC_LIB[name] = (fun, globals()[name])
+    
     
