@@ -1,0 +1,18 @@
+Done: 
+high performance mode (set save_plot_data=False, symbolic_enabled=False)
+compiler
+pruning new featuers (prune node & prune edge)
+
+
+
+
+Todo:
+(Feature-oriented)
+make inputs learnable 
+prune inputs
+use KAN as a module
+polyfit symbolic
+support GPU
+
+(Task-oriented)
+Feynman dataset

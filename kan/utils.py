@@ -280,4 +280,4 @@ def add_symbolic(name, fun):
     exec(f"globals()['{name}'] = sympy.Function('{name}')")
     SYMBOLIC_LIB[name] = (fun, globals()[name])
     
-    
+   

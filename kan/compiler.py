@@ -2,6 +2,7 @@ from sympy import *
 import sympy
 import numpy as np
 from kan.MultKAN import MultKAN
+import torch
 
 def next_nontrivial_operation(expr, scale=1, bias=0):
     if expr.func == Add or expr.func == Mul:

@@ -15,12 +15,14 @@ import copy
 import pandas as pd
 from sympy.printing import latex
 from sympy import *
+import sympy
 import yaml
+from .spline import curve2coef
 
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0, save_plot_data=True):
         
         super(MultKAN, self).__init__()
 
@@ -64,7 +66,7 @@ class MultKAN(nn.Module):
         for l in range(self.depth):
             # splines
             scale_base = scale_base_mu * 1 / np.sqrt(width_in[l]) + \
-                         scale_base_sigma * (torch.randn(width_in[l] * width_out[l + 1], ) * 2 - 1) * 1/np.sqrt(width_in[l])
+                         scale_base_sigma * (torch.randn(width_in[l], width_out[l + 1]) * 2 - 1) * 1/np.sqrt(width_in[l])
             sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
 
@@ -93,8 +95,6 @@ class MultKAN(nn.Module):
             exec(f'self.subnode_bias.append(self.subnode_bias_{l})')
             exec(f'self.subnode_scale.append(self.subnode_scale_{l})')
             
-            
-        
         
         self.act_fun = nn.ModuleList(self.act_fun)
 
@@ -115,6 +115,7 @@ class MultKAN(nn.Module):
         self.sb_trainable = sb_trainable
         
         self.device = device
+        self.save_plot_data = save_plot_data
         
         self.cache_data = None
 
@@ -131,7 +132,7 @@ class MultKAN(nn.Module):
             # spb = spb_parent
             preacts = another_model.spline_preacts[l]
             postsplines = another_model.spline_postsplines[l]
-            self.act_fun[l].coef.data = curve2coef(preacts.reshape(batch, spb.size).permute(1, 0), postsplines.reshape(batch, spb.size).permute(1, 0), spb.grid, k=spb.k, device=self.device)
+            self.act_fun[l].coef.data = curve2coef(preacts[:,0,:], postsplines.permute(0,2,1), spb.grid, k=spb.k, device=self.device)
             spb.scale_base.data = spb_parent.scale_base.data
             spb.scale_sp.data = spb_parent.scale_sp.data
             spb.mask.data = spb_parent.mask.data
@@ -204,7 +205,8 @@ class MultKAN(nn.Module):
         for l in range(self.depth):
 
             x_numerical, preacts, postacts_numerical, postspline = self.act_fun[l](x)
-
+            #print(preacts, postacts_numerical, postspline)
+            
             if self.symbolic_enabled == True:
                 x_symbolic, postacts_symbolic = self.symbolic_fun[l](x, singularity_avoiding=singularity_avoiding, y_th=y_th)
             else:
@@ -215,20 +217,21 @@ class MultKAN(nn.Module):
             # subnode affine transform
             x = self.subnode_scale[l][None,:] * x + self.subnode_bias[l][None,:]
             
-            postacts = postacts_numerical + postacts_symbolic
+            if self.save_plot_data:
+                postacts = postacts_numerical + postacts_symbolic
 
-            # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
-            #grid_reshape = self.act_fun[l].grid.reshape(self.width_out[l + 1], self.width_in[l], -1)
-            input_range = torch.std(preacts, dim=0) + 0.1
-            output_range_spline = torch.std(postacts_numerical, dim=0) # for training, only penalize the spline part
-            output_range = torch.std(postacts, dim=0) # for visualization, include the contribution from both spline + symbolic
-            self.acts_scale.append((output_range / input_range).detach())
-            self.acts_scale_spline.append(output_range_spline / input_range)
-            self.spline_preacts.append(preacts.detach())
-            self.spline_postacts.append(postacts.detach())
-            self.spline_postsplines.append(postspline.detach())
-            
-            self.acts_premult.append(x.detach())
+                # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
+                #grid_reshape = self.act_fun[l].grid.reshape(self.width_out[l + 1], self.width_in[l], -1)
+                input_range = torch.std(preacts, dim=0) + 0.1
+                output_range_spline = torch.std(postacts_numerical, dim=0) # for training, only penalize the spline part
+                output_range = torch.std(postacts, dim=0) # for visualization, include the contribution from both spline + symbolic
+                self.acts_scale.append((output_range / input_range).detach())
+                self.acts_scale_spline.append(output_range_spline / input_range)
+                self.spline_preacts.append(preacts.detach())
+                self.spline_postacts.append(postacts.detach())
+                self.spline_postsplines.append(postspline.detach())
+
+                self.acts_premult.append(x.detach())
             
             # multiplication
             dim_sum = self.width[l+1][0]
@@ -283,8 +286,8 @@ class MultKAN(nn.Module):
             mask_n = 0.;
             mask_s = 0.
 
-        self.act_fun[l].mask.data[j * self.act_fun[l].in_dim + i] = mask_n
-        self.symbolic_fun[l].mask.data[j, i] = mask_s
+        self.act_fun[l].mask.data[i][j] = mask_n
+        self.symbolic_fun[l].mask.data[j,i] = mask_s
 
     def fix_symbolic(self, l, i, j, fun_name, fit_params_bool=True, a_range=(-10, 10), b_range=(-10, 10), verbose=True, random=False):
         if not fit_params_bool:
@@ -292,11 +295,11 @@ class MultKAN(nn.Module):
             r2 = None
         else:
             x = self.acts[l][:, i]
-            mask = self.act_fun[l].mask.reshape(self.width_out[l+1], self.width_in[l])
+            mask = self.act_fun[l].mask
             y = self.spline_postacts[l][:, j, i]
             #y = self.postacts[l][:, j, i]
             r2 = self.symbolic_fun[l].fix_symbolic(i, j, fun_name, x, y, a_range=a_range, b_range=b_range, verbose=verbose)
-            if mask[j ,i] == 0:
+            if mask[i,j] == 0:
                 r2 = - 1e8
         self.set_mode(l, i, j, mode="s")
         return r2
@@ -327,6 +330,9 @@ class MultKAN(nn.Module):
         
         global Symbol
         
+        if not self.save_plot_data:
+            print('cannot plot since data are not saved. Set save_plot_data=True first.')
+        
         # forward to obtain activations
         self.forward(self.cache_data)
         
@@ -337,14 +343,14 @@ class MultKAN(nn.Module):
         for l in range(depth):
             w_large = 2.0
             for i in range(self.width_in[l]):
-                for j in range(self.width_out[l + 1]):
+                for j in range(self.width_out[l+1]):
                     rank = torch.argsort(self.acts[l][:, i])
                     fig, ax = plt.subplots(figsize=(w_large, w_large))
 
                     num = rank.shape[0]
 
                     symbolic_mask = self.symbolic_fun[l].mask[j][i]
-                    numeric_mask = self.act_fun[l].mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
+                    numeric_mask = self.act_fun[l].mask[i][j]
                     if symbolic_mask > 0. and numeric_mask > 0.:
                         color = 'purple'
                         alpha_mask = 1
@@ -443,7 +449,7 @@ class MultKAN(nn.Module):
                         id_ = i * n_next + j
 
                         symbol_mask = self.symbolic_fun[l].mask[j][i]
-                        numerical_mask = self.act_fun[l].mask.reshape(self.width_out[l + 1], self.width_in[l])[j][i]
+                        numerical_mask = self.act_fun[l].mask[i][j]
                         if symbol_mask == 1. and numerical_mask > 0.:
                             color = 'purple'
                             alpha_mask = 1.
@@ -578,6 +584,9 @@ class MultKAN(nn.Module):
     def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
               small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=10.):
 
+        if lamb > 0. and not self.save_plot_data:
+            print('setting lamb=0. If you want to set lamb > 0, set self.save_plot_data=True')
+        
         def reg(acts_scale):
 
             def nonlinear(x, th=small_mag_threshold, factor=small_reg_factor):
@@ -638,7 +647,10 @@ class MultKAN(nn.Module):
             optimizer.zero_grad()
             pred = self.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
             train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
-            reg_ = reg(self.acts_scale_spline)
+            if self.save_plot_data:
+                reg_ = reg(self.acts_scale_spline)
+            else:
+                reg_ = torch.tensor(0.)
             objective = train_loss + lamb * reg_
             objective.backward()
             return objective
@@ -665,7 +677,10 @@ class MultKAN(nn.Module):
                     train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(device))
                 else:
                     train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
-                reg_ = reg(self.acts_scale_spline)
+                if self.save_plot_data:
+                    reg_ = reg(self.acts_scale_spline)
+                else:
+                    reg_ = torch.tensor(0.)
                 loss = train_loss + lamb * reg_
                 optimizer.zero_grad()
                 loss.backward()
@@ -739,8 +754,10 @@ class MultKAN(nn.Module):
 
         model2 = MultKAN(copy.deepcopy(self.width), self.grid, self.k, base_fun=self.base_fun, device=self.device)
         model2.load_state_dict(self.state_dict())
+        
+        width_new = [self.width[0]]
+        
         for i in range(len(self.acts_scale)):
-            
             
             if i < len(self.acts_scale) - 1:
                 num_mult = len(active_neurons_down[i]) - len(active_neurons_up[i+1])
@@ -756,33 +773,42 @@ class MultKAN(nn.Module):
                 
                 model2.symbolic_fun[i].out_dim_sum = num_sum
                 model2.symbolic_fun[i].out_dim_mult = num_mult
+                
+                width_new.append([num_sum, num_mult])
 
             model2.act_fun[i] = model2.act_fun[i].get_subset(active_neurons_up[i], active_neurons_down[i])
             model2.symbolic_fun[i] = self.symbolic_fun[i].get_subset(active_neurons_up[i], active_neurons_down[i])
             
+            
+           
         model2.cache_data = self.cache_data
+        
+        width_new.append(self.width[-1])
+        model2.width = width_new
+        
             
         return model2
     
     def prune_edge(self, threshold=3e-2):
         for i in range(len(self.width)-1):
-            self.act_fun[i].mask.data = ((self.acts_scale[i] > threshold).reshape(-1,)).float()
+            self.act_fun[i].mask.data = ((self.acts_scale[i] > threshold).permute(1,0)).float()
     
     def prune(self, node_th=1e-2, edge_th=3e-2):
         self = self.prune_node(node_th)
         self.forward(self.cache_data)
         self.prune_edge(edge_th)
+        return self
     
     def remove_edge(self, l, i, j):
-        self.act_fun[l].mask[j * self.width[l] + i] = 0.
+        self.act_fun[l].mask[i][j] = 0.
 
     def remove_node(self, l ,i, mode='down'):
         if mode == 'down':
-            self.act_fun[l - 1].mask[i * self.width_in[l - 1] + torch.arange(self.width_in[l - 1])] = 0.
+            self.act_fun[l - 1].mask[:, i] = 0.
             self.symbolic_fun[l - 1].mask[i, :] *= 0.
 
         elif mode == 'up':
-            self.act_fun[l].mask[torch.arange(self.width_out[l + 1]) * self.width_in[l] + i] = 0.
+            self.act_fun[l].mask[i, :] = 0.
             self.symbolic_fun[l].mask[:, i] *= 0.
 
     def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: 1 - x, c_loss_fun=lambda x: x, weight_simple = 0.02):
@@ -862,7 +888,7 @@ class MultKAN(nn.Module):
         for l in range(len(self.width_in) - 1):
             for i in range(self.width_in[l]):
                 for j in range(self.width_out[l + 1]):
-                    if self.symbolic_fun[l].mask[j, i] > 0. and self.act_fun[l].mask[j*self.width_in[l]+i] == 0.:
+                    if self.symbolic_fun[l].mask[j, i] > 0. and self.act_fun[l].mask[i][j] == 0.:
                         print(f'skipping ({l},{i},{j}) since already symbolic')
                     else:
                         name, fun, r2, c = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False)
@@ -1138,5 +1164,5 @@ class MultKAN(nn.Module):
                 for j in range(self.width_out[l+1]):
                     for i in range(self.width_in[l]):
                         if funs_name[j][i] != '0':
-                            self.act_fun[l].mask.data.reshape(self.width_out[l+1], self.width_in[l])[j][i] = mag
+                            self.act_fun[l].mask.data[i][j] = mag
                             
