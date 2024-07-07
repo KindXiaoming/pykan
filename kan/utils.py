@@ -36,7 +36,8 @@ SYMBOLIC_LIB = {'x': (lambda x: x, lambda x: x),
 
 def create_dataset(f, 
                    n_var=2, 
-                   ranges = [-1,1],
+                   ranges=[-1,1],
+                   int_only=False,
                    train_num=1000, 
                    test_num=1000,
                    normalize_input=False,
@@ -52,6 +53,8 @@ def create_dataset(f,
             the symbolic formula used to create the synthetic dataset
         ranges : list or np.array; shape (2,) or (n_var, 2)
             the range of input variables. Default: [-1,1].
+        int_only : bool
+            only allow integers within range (inclusive) as input. Should be used together with a custom range as default range is too small for integer-only inputs. Default: False.
         train_num : int
             the number of training samples. Default: 1000.
         test_num : int
@@ -90,8 +93,12 @@ def create_dataset(f,
     train_input = torch.zeros(train_num, n_var)
     test_input = torch.zeros(test_num, n_var)
     for i in range(n_var):
-        train_input[:,i] = torch.rand(train_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
-        test_input[:,i] = torch.rand(test_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
+        if int_only:
+            train_input[:,i] = torch.randint(ranges[i,0], ranges[i,1]+1, (train_num,))
+            test_input[:,i] = torch.randint(ranges[i,0], ranges[i,1]+1, (test_num,))
+        else:
+            train_input[:,i] = torch.rand(train_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
+            test_input[:,i] = torch.rand(test_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
         
         
     train_label = f(train_input)
