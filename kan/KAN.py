@@ -320,7 +320,7 @@ class KAN(nn.Module):
             postacts = postacts_numerical + postacts_symbolic
 
             # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
-            grid_reshape = self.act_fun[l].grid.reshape(self.width[l + 1], self.width[l], -1)
+            #grid_reshape = self.act_fun[l].grid.reshape(self.width[l + 1], self.width[l], -1)
             #input_range = grid_reshape[:, :, -1] - grid_reshape[:, :, 0] + 1e-4
             input_range = torch.std(preacts, dim=0) + 0.1
             output_range = torch.std(postacts, dim=0)

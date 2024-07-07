@@ -1,0 +1,22 @@
+Done: 
+high performance mode (set save_plot_data=False, symbolic_enabled=False)
+compiler
+pruning new featuers (prune node & prune edge)
+LBFGS deterministic behavior
+save checkpoint
+feature importance
+prune inputs
+(Announcement: borrow idea from efficientKAN)
+
+
+Todo:
+(Feature-oriented)
+make inputs learnable 
+prune inputs
+use KAN as a module
+polyfit symbolic
+support GPU
+[Github issues]
+
+(Task-oriented)
+Feynman dataset
