@@ -53,20 +53,25 @@ Python 3.9.7 or higher
 pip
 ```
 
+**For developers**
+
+```
+pip clone https://github.com/KindXiaoming/pykan.git
+cd pykan
+pip install -e .
+```
+
 **Installation via github**
 
 ```
-python -m venv pykan-env
-source pykan-env/bin/activate  # On Windows use `pykan-env\Scripts\activate`
 pip install git+https://github.com/KindXiaoming/pykan.git
 ```
 
 **Installation via PyPI:**
 ```
-python -m venv pykan-env
-source pykan-env/bin/activate  # On Windows use `pykan-env\Scripts\activate`
 pip install pykan
 ```
+
 Requirements
 
 ```python
