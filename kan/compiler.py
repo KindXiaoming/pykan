@@ -42,7 +42,7 @@ def next_nontrivial_operation(expr, scale=1, bias=0):
     
 
 #def sf2kan(input_variables, expr, grid=3, k=3, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0):
-def sf2kan(input_variables, expr, grid=5, k=3):
+def sf2kan(input_variables, expr, grid=5, k=3, auto_save=True):
     
     class Node:
         def __init__(self, expr, mult_bool, depth, scale, bias, parent=None, mult_arity=None):
@@ -344,7 +344,7 @@ def sf2kan(input_variables, expr, grid=5, k=3):
     width[0][0] = len(input_variables)
 
     # allow pass in other parameters (probably as a dictionary) in sf2kan, including grid k etc.
-    model = MultKAN(width=width, mult_arity=mult_arities, grid=grid, k=k)
+    model = MultKAN(width=width, mult_arity=mult_arities, grid=grid, k=k, auto_save=auto_save)
     
     # clean the graph
     for l in range(model.depth):

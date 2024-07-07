@@ -4,12 +4,13 @@ import torch
 from .utils import SYMBOLIC_LIB
 
 def saveckpt(model, path='model'):
+    
     dic = dict(
         width = model.width,
         grid = model.grid,
         k = model.k,
         mult_arity = model.mult_arity,
-        base_fun = model.base_fun_name,
+        base_fun_name = model.base_fun_name,
         symbolic_enabled = model.symbolic_enabled,
         affine_trainable = model.affine_trainable,
         grid_eps = model.grid_eps,
@@ -17,6 +18,9 @@ def saveckpt(model, path='model'):
         sp_trainable = model.sp_trainable,
         sb_trainable = model.sb_trainable,
         device = model.device,
+        state_id = model.state_id,
+        auto_save = model.auto_save,
+        ckpt_path = model.ckpt_path
     )
 
     for i in range (model.depth):
@@ -37,14 +41,18 @@ def loadckpt(path='model'):
                  grid=config['grid'], 
                  k=config['k'], 
                  mult_arity = config['mult_arity'], 
-                 base_fun=config['base_fun'], 
+                 base_fun=config['base_fun_name'], 
                  symbolic_enabled=config['symbolic_enabled'], 
                  affine_trainable=config['affine_trainable'], 
                  grid_eps=config['grid_eps'], 
                  grid_range=config['grid_range'], 
                  sp_trainable=config['sp_trainable'],
                  sb_trainable=config['sb_trainable'],
-                 device=config['device'])
+                 device=config['device'],
+                 state_id=config['state_id'],
+                 auto_save=config['auto_save'],
+                 first_init=False,
+                 ckpt_path=config['ckpt_path'])
 
     model_load.load_state_dict(state)
     depth = len(model_load.width) - 1

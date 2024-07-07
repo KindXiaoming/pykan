@@ -43,7 +43,7 @@ def get_feynman_dataset(name):
         symbol = G, m1, m2, x1, x2, y1, y2, z1, z2 = symbols('G m1 m2 x1 x2 y1 y2 z1 z2')
         expr = G*m1*m2/((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
         f = lambda x: x[:,[0]]*x[:,[1]]*x[:,[2]]/((x[:,[3]]-x[:,[4]])**2+(x[:,[5]]-x[:,[6]])**2+(x[:,[7]]-x[:,[8]])**2)
-        ranges = [-1, 1]
+        ranges = [[-1,1],[-1,1],[-1,1],[-1,-0.5],[0.5,1],[-1,-0.5],[0.5,1],[-1,-0.5],[0.5,1]]
         
     if name == 'I.10.7' or name == 6:
         symbol = m0, v, c = symbols('m0 v c')
@@ -88,10 +88,10 @@ def get_feynman_dataset(name):
         ranges = [[-1,1],[-1,1],[-1,1],[-1,1],[0,2*tpi]]
         
     if name == 'I.13.4' or name == 13:
-        symbol = m, v, u, w = symbols('m v u w')
+        symbol = m, v, u, w = symbols('m u v w')
         expr = 1/2*m*(v**2+u**2+w**2)
         f = lambda x: 1/2*x[:,[0]]*(x[:,[1]]**2+x[:,[2]]**2+x[:,[3]]**2)
-        ranges = [[0,1],[-1,1],[-1,1],[-1,1],[-1,1]]
+        ranges = [[-1,1],[-1,1],[-1,1],[-1,1]]
         
     if name == 'I.13.12' or name == 14:
         symbol = G, m1, m2, r1, r2 = symbols('G m1 m2 r1 r2')
@@ -127,19 +127,19 @@ def get_feynman_dataset(name):
         symbol = m0, v, c = symbols('m0 v c')
         expr = m0*v/sqrt(1-v**2/c**2)
         f = lambda x: x[:,[0]]*x[:,[1]]/torch.sqrt(1-x[:,[1]]**2/x[:,[2]]**2)
-        ranges = [[0,1],[-1,1],[1,2]]
+        ranges = [[-1,1],[-0.9,0.9],[1.1,2]]
         
     if name == 'I.16.6' or name == 20:
         symbol = u, v, c = symbols('u v c')
         expr = (u+v)/(1+u*v/c**2)
         f = lambda x: x[:,[0]]*x[:,[1]]/(1+x[:,[0]]*x[:,[1]]/x[:,[2]]**2)
-        ranges = [[-1,1],[-1,1],[1,2]]
+        ranges = [[-0.8,0.8],[-0.8,0.8],[1,2]]
         
     if name == 'I.18.4' or name == 21:
         symbol = m1, r1, m2, r2 = symbols('m1 r1 m2 r2')
         expr = (m1*r1+m2*r2)/(m1+m2)
         f = lambda x: (x[:,[0]]*x[:,[1]]+x[:,[2]]*x[:,[3]])/(x[:,[0]]+x[:,[2]])
-        ranges = [[0.5,2],[-1,1],[0.5,2],[-1,1]]
+        ranges = [[0.5,1],[-1,1],[0.5,1],[-1,1]]
         
     if name == 'I.18.4' or name == 22:
         symbol = r, F, theta = symbols('r F theta')
@@ -151,7 +151,7 @@ def get_feynman_dataset(name):
         symbol = m, r, v, theta = symbols('m r v theta')
         expr = m*r*v*sin(theta)
         f = lambda x: x[:,[0]]*x[:,[1]]*x[:,[2]]*torch.sin(x[:,[3]])
-        ranges = [[0,1],[0,1],[0,1],[0,2*tpi]]
+        ranges = [[-1,1],[-1,1],[-1,1],[0,2*tpi]]
         
     if name == 'I.24.6' or name == 24:
         symbol = m, omega, omega0, x = symbols('m omega omega_0 x')
@@ -169,7 +169,7 @@ def get_feynman_dataset(name):
         symbol = n, theta2 = symbols('n theta2')
         expr = asin(n*sin(theta2))
         f = lambda x: torch.arcsin(x[:,[0]]*torch.sin(x[:,[1]]))
-        ranges = [[0,1],[0,tpi/2]]
+        ranges = [[0,0.99],[0,2*tpi]]
         
     if name == 'I.27.6' or name == 27:
         symbol = d1, d2, n = symbols('d1 d2 n')
@@ -187,24 +187,24 @@ def get_feynman_dataset(name):
         symbol = x1, x2, theta1, theta2 = symbols('x1 x2 theta1 theta2')
         expr = sqrt(x1**2+x2**2-2*x1*x2*cos(theta1-theta2))
         f = lambda x: torch.sqrt(x[:,[0]]**2+x[:,[1]]**2-2*x[:,[0]]*x[:,[1]]*torch.cos(x[:,[2]]-x[:,[3]]))
-        ranges = [[0,1],[0,1],[0,2*tpi],[0,2*tpi]]
+        ranges = [[-1,1],[-1,1],[0,2*tpi],[0,2*tpi]]
         
     if name == 'I.30.3' or name == 30:
         symbol = I0, n, theta = symbols('I_0 n theta')
         expr = I0 * sin(n*theta/2)**2 / sin(theta/2) ** 2
         f = lambda x: x[:,[0]] * torch.sin(x[:,[1]]*x[:,[2]]/2)**2 / torch.sin(x[:,[2]]/2)**2
-        ranges = [[0,1],[0,4],[0.1*tpi,0.9*tpi]]
+        ranges = [[0,1],[0,4],[0.4*tpi,1.6*tpi]]
         
     if name == 'I.30.5' or name == 31:
         symbol = lamb, n, d = symbols('lambda n d')
         expr = asin(lamb/(n*d))
         f = lambda x: torch.arcsin(x[:,[0]]/(x[:,[1]]*x[:,[2]]))
-        ranges = [[0,1],[1,2],[1,2]]
+        ranges = [[-1,1],[1,1.5],[1,1.5]]
         
     if name == 'I.32.5' or name == 32:
         symbol = q, a, eps, c = symbols('q a epsilon c')
-        expr = q**2*a**2/(6*pi*eps*c**3)
-        f = lambda x: x[:,[0]]**2*x[:,[1]]**2/(6*tpi*x[:,[2]]*x[:,[3]]**3)
+        expr = q**2*a**2/(eps*c**3)
+        f = lambda x: x[:,[0]]**2*x[:,[1]]**2/(x[:,[2]]*x[:,[3]]**3)
         ranges = [[-1,1],[-1,1],[0.5,2],[0.5,2]]
         
     if name == 'I.32.17' or name == 33:
@@ -223,13 +223,13 @@ def get_feynman_dataset(name):
         symbol = omega0, v, c = symbols('omega_0 v c')
         expr = omega0/(1-v/c)
         f = lambda x: x[:,[0]]/(1-x[:,[1]]/x[:,[2]])
-        ranges = [[0,1],[0,1],[1,2]]
+        ranges = [[0,1],[0,0.9],[1.1,2]]
         
     if name == 'I.34.14' or name == 36:
         symbol = omega0, v, c = symbols('omega_0 v c')
         expr = omega0 * (1+v/c)/sqrt(1-v**2/c**2)
         f = lambda x: x[:,[0]]*(1+x[:,[1]]/x[:,[2]])/torch.sqrt(1-x[:,[1]]**2/x[:,[2]]**2)
-        ranges = [[0,1],[0,1],[1,2]]
+        ranges = [[0,1],[-0.9,0.9],[1.1,2]]
         
     if name == 'I.34.27' or name == 37:
         symbol = hbar, omega = symbols('hbar omega')
@@ -241,13 +241,13 @@ def get_feynman_dataset(name):
         symbol = I1, I2, delta = symbols('I_1 I_2 delta')
         expr = I1 + I2 + 2*sqrt(I1*I2)*cos(delta)
         f = lambda x: x[:,[0]] + x[:,[1]] + 2*torch.sqrt(x[:,[0]]*x[:,[1]])*torch.cos(x[:,[2]])
-        ranges = [[0,1],[0,1],[0,2*tpi]]
+        ranges = [[0.1,1],[0.1,1],[0,2*tpi]]
         
     if name == 'I.38.12' or name == 39:
         symbol = eps, hbar, m, q = symbols('epsilon hbar m q')
         expr = 4*pi*eps*hbar**2/(m*q**2)
         f = lambda x: 4*tpi*x[:,[0]]*x[:,[1]]**2/(x[:,[2]]*x[:,[3]]**2)
-        ranges = [[-1,1],[-1,1],[0.5,2],[0.5,2]]
+        ranges = [[0,1],[0,1],[0.5,2],[0.5,2]]
         
     if name == 'I.39.10' or name == 40:
         symbol = pF, V = symbols('p_F V')
@@ -271,7 +271,7 @@ def get_feynman_dataset(name):
         symbol = n0, m, g, x, kb, T = symbols('n_0 m g x k_b T')
         expr = n0 * exp(-m*g*x/(kb*T))
         f = lambda x: x[:,[0]] * torch.exp(-x[:,[1]]*x[:,[2]]*x[:,[3]]/(x[:,[4]]*x[:,[5]]))
-        ranges = [[0,1],[0,1],[0,1],[0,1],[0.5,2],[0.5,2]]
+        ranges = [[0,1],[-1,1],[-1,1],[-1,1],[1,2],[1,2]]
         
     if name == 'I.41.16' or name == 44:
         symbol = hbar, omega, c, kb, T = symbols('hbar omega c k_b T')
@@ -307,13 +307,13 @@ def get_feynman_dataset(name):
         symbol = gamma, p, rho = symbols('gamma p rho')
         expr = sqrt(gamma*p/rho)
         f = lambda x: torch.sqrt(x[:,[0]]*x[:,[1]]/x[:,[2]])
-        ranges = [[0,1],[0,1],[0.5,2]]
+        ranges = [[0.1,1],[0.1,1],[0.5,2]]
         
     if name == 'I.48.20' or name == 50:
         symbol = m, v, c = symbols('m v c')
         expr = m*c**2/sqrt(1-v**2/c**2)
         f = lambda x: x[:,[0]]*x[:,[2]]**2/torch.sqrt(1-x[:,[1]]**2/x[:,[2]]**2)
-        ranges = [[0,1],[0,1],[1,2]]
+        ranges = [[0,1],[-0.9,0.9],[1.1,2]]
         
     if name == 'I.50.26' or name == 51:
         symbol = x1, alpha, omega, t = symbols('x_1 alpha omega t')
@@ -446,7 +446,7 @@ def get_feynman_dataset(name):
         symbol = omega, c, d = symbols('omega c d')
         expr = sqrt(omega**2/c**2-pi**2/d**2)
         f = lambda x: torch.sqrt(x[:,[0]]**2/x[:,[1]]**2-tpi**2/x[:,[2]]**2)
-        ranges = [[1,2],[0.5,1],[1*tpi,2*tpi]]
+        ranges = [[1,1.5],[0.75,1],[1*tpi,1.5*tpi]]
         
     if name == 'II.27.16' or name == 73:
         symbol = eps, c, Ef = symbols('epsilon c E_f')

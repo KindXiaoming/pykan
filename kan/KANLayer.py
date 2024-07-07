@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from .spline import *
+from .utils import sparse_mask
 
 
 class KANLayer(nn.Module):
@@ -62,7 +63,7 @@ class KANLayer(nn.Module):
             unlock already locked activation functions
     """
 
-    def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.1, scale_base=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu'):
+    def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.1, scale_base=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu', sparse_init=False):
         ''''
         initialize a KANLayer
         
@@ -122,11 +123,15 @@ class KANLayer(nn.Module):
         noises = noises.to(device)
         # shape: (size, coef)
         self.coef = torch.nn.Parameter(curve2coef(self.grid[:,k:-k].permute(1,0), noises, self.grid, k, device))
-        if isinstance(scale_base, float):
-            self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_base).requires_grad_(sb_trainable)  # make scale trainable
+        #if isinstance(scale_base, float):
+        if sparse_init:
+            mask = sparse_mask(in_dim, out_dim)
         else:
-            self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
-        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_sp).requires_grad_(sp_trainable)  # make scale trainable
+            mask = 1.
+        self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
+        #else:
+        #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
+        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_sp * mask).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
         self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device)).requires_grad_(False)
