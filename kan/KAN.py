@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import random
 import copy
-
+RESOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")
 
 class KAN(nn.Module):
     '''
@@ -25,7 +25,7 @@ class KAN(nn.Module):
         depth: int
             depth of KAN
         width: list
-            number of neurons in each layer. e.g., [2,5,5,3] means 2D inputs, 5D outputs, with 2 layers of 5 hidden neurons.
+            number of neurons in each layer. e.g., [2,5,5,3] means 2D inputs, 3D outputs, with 2 layers of 5 hidden neurons.
         grid: int
             the number of grid intervals
         k: int
@@ -644,7 +644,8 @@ class KAN(nn.Module):
 
                     lock_id = self.act_fun[l].lock_id[j * self.width[l] + i].long().item()
                     if lock_id > 0:
-                        im = plt.imread(f'{folder}/lock.png')
+                        # im = plt.imread(f'{folder}/lock.png')
+                        im = plt.imread(f'{RESOURCE_DIR}/lock.png')
                         newax = fig.add_axes([0.15, 0.7, 0.15, 0.15])
                         plt.text(500, 400, lock_id, fontsize=15)
                         newax.imshow(im)

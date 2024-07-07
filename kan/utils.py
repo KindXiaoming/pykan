@@ -224,13 +224,13 @@ def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, i
             if _ == 0 and verbose==True:
                 print('Best value at boundary.')
             if a_id == 0:
-                a_arange = [a_[0], a_[1]]
+                a_range = [a_[0], a_[1]]
             if a_id == grid_number - 1:
-                a_arange = [a_[-2], a_[-1]]
+                a_range = [a_[-2], a_[-1]]
             if b_id == 0:
-                b_arange = [b_[0], b_[1]]
+                b_range = [b_[0], b_[1]]
             if b_id == grid_number - 1:
-                b_arange = [b_[-2], b_[-1]]
+                b_range = [b_[-2], b_[-1]]
             
         else:
             a_range = [a_[a_id-1], a_[a_id+1]]
