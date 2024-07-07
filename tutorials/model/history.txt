@@ -1,0 +1,5 @@
+init => 0
+1 => refine => 2
+1 => train => 2
+2 => refine => 3
+3 => train => 4
