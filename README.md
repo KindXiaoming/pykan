@@ -1,6 +1,6 @@
 <img width="600" alt="kan_plot" src="https://github.com/KindXiaoming/pykan/assets/23551623/a2d2d225-b4d2-4c1e-823e-bc45c7ea96f9">
 
-## Notice: The current version uses MultKAN instead of KAN. The use of parameteres are almost the same except the class name. More documents soon, a quick tutorial on MultKAN [here](https://github.com/KindXiaoming/pykan/blob/master/tutorials/MultKAN_tutorial.ipynb).
+## Notice: The current version uses MultKAN instead of KAN. The use of argument and methods are almost the same except for the class name. More documents soon, a quick tutorial on MultKAN [here](https://github.com/KindXiaoming/pykan/blob/master/tutorials/MultKAN_tutorial.ipynb).
 
 # Kolmogorov-Arnold Networks (KANs)
 
