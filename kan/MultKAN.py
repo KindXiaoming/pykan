@@ -1455,3 +1455,6 @@ class MultKAN(nn.Module):
             self.symbolic_fun[cl].mask.data[np.ix_(id_out_other,id_in)] = 0.
             
         self.log_history('module')
+        
+        
+KAN = MultKAN
