@@ -448,7 +448,7 @@ class MultKAN(nn.Module):
             print('y range: [' + '%.2f' % y_min, ',', '%.2f' % y_max, ']')
         return x_min, x_max, y_min, y_max
 
-    def plot(self, folder="./figures", beta=3, mask=False, metric='fa', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None):
+    def plot(self, folder="./figures", beta=3, mask=False, metric='fa', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, varscale=1.0):
         
         global Symbol
         
@@ -694,7 +694,7 @@ class MultKAN(nn.Module):
             n = self.width_in[0]
             for i in range(n):
                 if isinstance(in_vars[i], sympy.Expr):
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, f'${latex(in_vars[i])}$', fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, f'${latex(in_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
                 else:
                     plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, in_vars[i], fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
                 
@@ -706,7 +706,7 @@ class MultKAN(nn.Module):
                 if isinstance(out_vars[i], sympy.Expr):
                     plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, f'${latex(out_vars[i])}$', fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
                 else:
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, out_vars[i], fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, out_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
 
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(self.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')

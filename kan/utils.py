@@ -3,7 +3,7 @@ import torch
 from sklearn.linear_model import LinearRegression
 import sympy
 import yaml
-
+from sympy.utilities.lambdify import lambdify
 
 # sigmoid = sympy.Function('sigmoid')
 # name: (torch implementation, sympy implementation)
@@ -303,3 +303,21 @@ def ex_round(ex1, n_digit):
         if isinstance(a, sympy.Float):
             ex2 = ex2.subs(a, round(a, n_digit))
     return ex2
+
+
+def augment_input(orig_vars, aux_vars, x):
+
+    # if x is a tensor
+    if isinstance(x, torch.Tensor):
+
+        for aux_var in aux_vars:
+            func = lambdify(orig_vars, aux_var,'numpy') # returns a numpy-ready function
+            aux_value = torch.from_numpy(func(*[x[:,[i]].numpy() for i in range(len(orig_vars))]))
+            x = torch.cat([x, aux_value], dim=1)
+
+    # if x is a dataset
+    elif isinstance(x, dict):
+        x['train_input'] = augment_input(orig_vars, aux_vars, x['train_input'])
+        x['test_input'] = augment_input(orig_vars, aux_vars, x['test_input'])
+        
+    return x
