@@ -53,20 +53,25 @@ Python 3.9.7 or higher
 pip
 ```
 
+**For developers**
+
+```
+pip clone https://github.com/KindXiaoming/pykan.git
+cd pykan
+pip install -e .
+```
+
 **Installation via github**
 
 ```
-python -m venv pykan-env
-source pykan-env/bin/activate  # On Windows use `pykan-env\Scripts\activate`
 pip install git+https://github.com/KindXiaoming/pykan.git
 ```
 
 **Installation via PyPI:**
 ```
-python -m venv pykan-env
-source pykan-env/bin/activate  # On Windows use `pykan-env\Scripts\activate`
 pip install pykan
 ```
+
 Requirements
 
 ```python
@@ -149,9 +154,8 @@ I would like to thank everyone who's interested in KANs. When I designed KANs an
 
 For users who are interested in scientific discoveries and scientific computing (the orginal users intended for), I'm happy to hear your applications and collaborate. This repo will continue remaining mostly for this purpose, probably without signifiant updates for efficiency. In fact, there are already implmentations like [efficientkan](https://github.com/Blealtan/efficient-kan) or [fouierkan](https://github.com/GistNoesis/FourierKAN/) that look promising for improving efficiency.
 
-For users who are machine learning focus, I have to be honest that KANs are likely not a simple plug-in that can be used out-of-the box (yet). Hyperparameters need tuning, and more tricks special to your applications should be introduced. For example, [GraphKAN](https://github.com/WillHua127/GraphKAN-Graph-Kolmogorov-Arnold-Networks) suggests that KANs should better be used in latent space (need embedding and unembedding linear layers after inputs and before outputs). [KANRL](https://github.com/riiswa/kanrl) suggests that some trainable parameters should better be fixed in reinforcement learning to increase training stability. The extra tricks required by KAN (e.g., grid updates and grid extension) beyond MLPs make it sometimes confusing on how to use them so we should be extra careful, e.g., [Prof. George Karniadakis' post on LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7196684191479070721/) and [my response](https://www.linkedin.com/feed/update/urn:li:activity:7197097659017379840/) is an example.
+For users who are machine learning focus, I have to be honest that KANs are likely not a simple plug-in that can be used out-of-the box (yet). Hyperparameters need tuning, and more tricks special to your applications should be introduced. For example, [GraphKAN](https://github.com/WillHua127/GraphKAN-Graph-Kolmogorov-Arnold-Networks) suggests that KANs should better be used in latent space (need embedding and unembedding linear layers after inputs and before outputs). [KANRL](https://github.com/riiswa/kanrl) suggests that some trainable parameters should better be fixed in reinforcement learning to increase training stability.
 
 The most common question I've been asked lately is whether KANs will be next-gen LLMs. I don't have good intuition about this. KANs are designed for applications where one cares about high accuracy and/or interpretability. We do care about LLM interpretability for sure, but interpretability can mean wildly different things for LLM and for science. Do we care about high accuracy for LLMs? I don't know, scaling laws seem to imply so, but probably not too high precision. Also, accuracy can also mean different things for LLM and for science. This subtlety makes it hard to directly transfer conclusions in our paper to LLMs, or machine learning tasks in general. However, I would be very happy if you have enjoyed the high-level idea (learnable activation functions on edges, or interacting with AI for scientific discoveries), which is not necessariy *the future*, but can hopefully inspire and impact *many possible futures*. As a physicist, the message I want to convey is less of "KANs are great", but more of "try thinking of current architectures critically and seeking fundamentally different alternatives that can do fun and/or useful stuff".
 
 I would like to welcome people to be critical of KANs, but also to be critical of critiques as well. Practice is the only criterion for testing understanding (实践是检验真理的唯一标准). We don't know many things beforehand until they are really tried and shown to be succeeding or failing. As much as I'm willing to see success mode of KANs, I'm equally curious about failure modes of KANs, to better understand the boundaries. KANs and MLPs cannot replace each other (as far as I can tell); they each have advantages in some settings and limitations in others. I would be intrigued by a theoretical framework that encompasses both and could even suggest new alternatives (physicists love unified theories, sorry :).
-

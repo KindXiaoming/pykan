@@ -64,18 +64,20 @@ class Symbolic_KANLayer(nn.Module):
         self.in_dim = in_dim
         self.mask = torch.nn.Parameter(torch.zeros(out_dim, in_dim, device=device)).requires_grad_(False)
         # torch
-        self.funs = [[lambda x: x for i in range(self.in_dim)] for j in range(self.out_dim)]
+        self.funs = [[lambda x: x*0. for i in range(self.in_dim)] for j in range(self.out_dim)]
+        self.funs_avoid_singularity = [[lambda x, y_th: ((), x*0.) for i in range(self.in_dim)] for j in range(self.out_dim)]
         # name
-        self.funs_name = [['' for i in range(self.in_dim)] for j in range(self.out_dim)]
+        self.funs_name = [['0' for i in range(self.in_dim)] for j in range(self.out_dim)]
         # sympy
-        self.funs_sympy = [['' for i in range(self.in_dim)] for j in range(self.out_dim)]
+        self.funs_sympy = [[lambda x: x*0. for i in range(self.in_dim)] for j in range(self.out_dim)]
+        ### make funs_name the only parameter, and make others as the properties of funs_name?
         
         self.affine = torch.nn.Parameter(torch.zeros(out_dim, in_dim, 4, device=device))
         # c*f(a*x+b)+d
         
         self.device = device
     
-    def forward(self, x):
+    def forward(self, x, singularity_avoiding=False, y_th=10.):
         '''
         forward
         
@@ -106,7 +108,10 @@ class Symbolic_KANLayer(nn.Module):
         for i in range(self.in_dim):
             postacts_ = []
             for j in range(self.out_dim):
-                xij = self.affine[j,i,2]*self.funs[j][i](self.affine[j,i,0]*x[:,[i]]+self.affine[j,i,1])+self.affine[j,i,3]
+                if singularity_avoiding:
+                    xij = self.affine[j,i,2]*self.funs_avoid_singularity[j][i](self.affine[j,i,0]*x[:,[i]]+self.affine[j,i,1], torch.tensor(y_th))[1]+self.affine[j,i,3]
+                else:
+                    xij = self.affine[j,i,2]*self.funs[j][i](self.affine[j,i,0]*x[:,[i]]+self.affine[j,i,1])+self.affine[j,i,3]
                 postacts_.append(self.mask[j][i]*xij)
             postacts.append(torch.stack(postacts_))
 
@@ -144,6 +149,7 @@ class Symbolic_KANLayer(nn.Module):
         sbb.out_dim = len(out_id)
         sbb.mask.data = self.mask.data[out_id][:,in_id]
         sbb.funs = [[self.funs[j][i] for i in in_id] for j in out_id]
+        sbb.funs_avoid_singularity = [[self.funs_avoid_singularity[j][i] for i in in_id] for j in out_id]
         sbb.funs_sympy = [[self.funs_sympy[j][i] for i in in_id] for j in out_id]
         sbb.funs_name = [[self.funs_name[j][i] for i in in_id] for j in out_id]
         sbb.affine.data = self.affine.data[out_id][:,in_id]
@@ -207,11 +213,14 @@ class Symbolic_KANLayer(nn.Module):
         if isinstance(fun_name,str):
             fun = SYMBOLIC_LIB[fun_name][0]
             fun_sympy = SYMBOLIC_LIB[fun_name][1]
+            fun_avoid_singularity = SYMBOLIC_LIB[fun_name][3]
             self.funs_sympy[j][i] = fun_sympy
             self.funs_name[j][i] = fun_name
+            
             if x == None or y == None:
                 #initialzie from just fun
                 self.funs[j][i] = fun
+                self.funs_avoid_singularity[j][i] = fun_avoid_singularity
                 if random == False:
                     self.affine.data[j][i] = torch.tensor([1.,0.,1.,0.])
                 else:
@@ -221,6 +230,7 @@ class Symbolic_KANLayer(nn.Module):
                 #initialize from x & y and fun
                 params, r2 = fit_params(x,y,fun, a_range=a_range, b_range=b_range, verbose=verbose, device=self.device)
                 self.funs[j][i] = fun
+                self.funs_avoid_singularity[j][i] = fun_avoid_singularity
                 self.affine.data[j][i] = params
                 return r2
         else:
@@ -231,6 +241,7 @@ class Symbolic_KANLayer(nn.Module):
             self.funs_name[j][i] = "anonymous"
 
             self.funs[j][i] = fun
+            self.funs_avoid_singularity[j][i] = fun
             if random == False:
                 self.affine.data[j][i] = torch.tensor([1.,0.,1.,0.])
             else:

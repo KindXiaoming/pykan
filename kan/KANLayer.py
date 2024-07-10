@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from .spline import *
+from .utils import sparse_mask
 
 
 class KANLayer(nn.Module):
@@ -62,7 +63,7 @@ class KANLayer(nn.Module):
             unlock already locked activation functions
     """
 
-    def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.1, scale_base=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu'):
+    def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.1, scale_base=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu', sparse_init=False):
         ''''
         initialize a KANLayer
         
@@ -107,31 +108,41 @@ class KANLayer(nn.Module):
         '''
         super(KANLayer, self).__init__()
         # size 
-        self.size = size = out_dim * in_dim
         self.out_dim = out_dim
         self.in_dim = in_dim
         self.num = num
         self.k = k
 
         # shape: (size, num)
-        self.grid = torch.einsum('i,j->ij', torch.ones(size, device=device), torch.linspace(grid_range[0], grid_range[1], steps=num + 1, device=device))
-        self.grid = torch.nn.Parameter(self.grid).requires_grad_(False)
-        noises = (torch.rand(size, self.grid.shape[1]) - 1 / 2) * noise_scale / num
+        ### grid size: (batch, in_dim, out_dim, G + 1) => (batch, in_dim, G + 2*k + 1)
+        
+        grid = torch.linspace(grid_range[0], grid_range[1], steps=num + 1)[None,:].expand(self.in_dim, num+1)
+        grid = extend_grid(grid, k_extend=k)
+        self.grid = torch.nn.Parameter(grid).requires_grad_(False)
+        noises = (torch.rand(self.num+1, self.in_dim, self.out_dim) - 1 / 2) * noise_scale / num
         noises = noises.to(device)
         # shape: (size, coef)
-        self.coef = torch.nn.Parameter(curve2coef(self.grid, noises, self.grid, k, device))
-        if isinstance(scale_base, float):
-            self.scale_base = torch.nn.Parameter(torch.ones(size, device=device) * scale_base).requires_grad_(sb_trainable)  # make scale trainable
+        self.coef = torch.nn.Parameter(curve2coef(self.grid[:,k:-k].permute(1,0), noises, self.grid, k, device))
+        #if isinstance(scale_base, float):
+        if sparse_init:
+            mask = sparse_mask(in_dim, out_dim)
         else:
-            self.scale_base = torch.nn.Parameter(torch.FloatTensor(scale_base).to(device)).requires_grad_(sb_trainable)
-        self.scale_sp = torch.nn.Parameter(torch.ones(size, device=device) * scale_sp).requires_grad_(sp_trainable)  # make scale trainable
+            mask = 1.
+        
+        scale_base = scale_base.to(device)
+        self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
+        #else:
+        #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
+        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_sp * mask).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
-        self.mask = torch.nn.Parameter(torch.ones(size, device=device)).requires_grad_(False)
+        self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device)).requires_grad_(False)
         self.grid_eps = grid_eps
-        self.weight_sharing = torch.arange(size)
-        self.lock_counter = 0
-        self.lock_id = torch.zeros(size)
+        
+        ### remove weight_sharing & lock parts
+        #self.weight_sharing = torch.arange(out_dim*in_dim).reshape(out_dim, in_dim)
+        #self.lock_counter = 0
+        #self.lock_id = torch.zeros(out_dim*in_dim).reshape(out_dim, in_dim)
         self.device = device
 
     def forward(self, x):
@@ -167,19 +178,20 @@ class KANLayer(nn.Module):
         '''
         batch = x.shape[0]
         # x: shape (batch, in_dim) => shape (size, batch) (size = out_dim * in_dim)
-        x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, device=self.device)).reshape(batch, self.size).permute(1, 0)
-        preacts = x.permute(1, 0).clone().reshape(batch, self.out_dim, self.in_dim)
-        base = self.base_fun(x).permute(1, 0)  # shape (batch, size)
-        y = coef2curve(x_eval=x, grid=self.grid[self.weight_sharing], coef=self.coef[self.weight_sharing], k=self.k, device=self.device)  # shape (size, batch)
-        y = y.permute(1, 0)  # shape (batch, size)
-        postspline = y.clone().reshape(batch, self.out_dim, self.in_dim)
-        y = self.scale_base.unsqueeze(dim=0) * base + self.scale_sp.unsqueeze(dim=0) * y
-        y = self.mask[None, :] * y
-        postacts = y.clone().reshape(batch, self.out_dim, self.in_dim)
-        y = torch.sum(y.reshape(batch, self.out_dim, self.in_dim), dim=2)  # shape (batch, out_dim)
-        # y shape: (batch, out_dim); preacts shape: (batch, in_dim, out_dim)
-        # postspline shape: (batch, in_dim, out_dim); postacts: (batch, in_dim, out_dim)
-        # postspline is for extension; postacts is for visualization
+        #x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, device=self.device)).reshape(batch, self.size).permute(1, 0)
+        preacts = x[:,None,:].clone().expand(batch, self.out_dim, self.in_dim)
+            
+        base = self.base_fun(x) # (batch, in_dim)
+        y = coef2curve(x_eval=x, grid=self.grid, coef=self.coef, k=self.k, device=self.device)  # y shape: (batch, in_dim, out_dim)
+        
+        postspline = y.clone().permute(0,2,1) # postspline shape: (batch, out_dim, in_dim)
+            
+        y = self.scale_base[None,:,:] * base[:,:,None] + self.scale_sp[None,:,:] * y
+        y = self.mask[None,:,:] * y
+        
+        postacts = y.clone().permute(0,2,1)
+            
+        y = torch.sum(y, dim=1)  # shape (batch, out_dim)
         return y, preacts, postacts, postspline
 
     def update_grid_from_samples(self, x):
@@ -206,15 +218,17 @@ class KANLayer(nn.Module):
         tensor([[-3.0002, -1.7882, -0.5763,  0.6357,  1.8476,  3.0002]])
         '''
         batch = x.shape[0]
-        x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
-        x_pos = torch.sort(x, dim=1)[0]
+        #x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
+        x_pos = torch.sort(x, dim=0)[0]
         y_eval = coef2curve(x_pos, self.grid, self.coef, self.k, device=self.device)
-        num_interval = self.grid.shape[1] - 1
+        num_interval = self.grid.shape[1] - 1 - 2*self.k
         ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
-        grid_adaptive = x_pos[:, ids]
+        grid_adaptive = x_pos[ids, :].permute(1,0)
         margin = 0.01
-        grid_uniform = torch.cat([grid_adaptive[:, [0]] - margin + (grid_adaptive[:, [-1]] - grid_adaptive[:, [0]] + 2 * margin) * a for a in np.linspace(0, 1, num=self.grid.shape[1])], dim=1)
-        self.grid.data = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
+        h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
+        grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,).to(self.device)[None, :]
+        grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
+        self.grid.data = extend_grid(grid, k_extend=self.k)
         self.coef.data = curve2coef(x_pos, y_eval, self.grid, self.k, device=self.device)
 
     def initialize_grid_from_parent(self, parent, x):
@@ -247,13 +261,23 @@ class KANLayer(nn.Module):
         '''
         batch = x.shape[0]
         # preacts: shape (batch, in_dim) => shape (size, batch) (size = out_dim * in_dim)
-        x_eval = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
-        x_pos = parent.grid
-        sp2 = KANLayer(in_dim=1, out_dim=self.size, k=1, num=x_pos.shape[1] - 1, scale_base=0., device=self.device)
-        sp2.coef.data = curve2coef(sp2.grid, x_pos, sp2.grid, k=1, device=self.device)
+        #x_eval = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
+        x_eval = x
+        pgrid = parent.grid # (in_dim, G+2*k+1)
+        pk = parent.k
+        y_eval = coef2curve(x_eval, pgrid, parent.coef, pk, device=self.device)
+        '''print(x_pos.shape)
+        sp2 = KANLayer(in_dim=1, out_dim=self.in_dim, k=1, num=x_pos.shape[1] - 2*self.k - 1, scale_base=0., device=self.device)
+        
+        print(sp2.grid[:,sp2.k:-sp2.k].shape, x_pos[:,self.k:-self.k].shape, sp2.grid.shape)
+        sp2.coef.data = curve2coef(sp2.grid[:,sp2.k:-sp2.k], x_pos[:,self.k:-self.k], sp2.grid, k=1, device=self.device)
         y_eval = coef2curve(x_eval, parent.grid, parent.coef, parent.k, device=self.device)
         percentile = torch.linspace(-1, 1, self.num + 1).to(self.device)
-        self.grid.data = sp2(percentile.unsqueeze(dim=1))[0].permute(1, 0)
+        self.grid.data = sp2(percentile.unsqueeze(dim=1))[0].permute(1, 0)'''
+        h = (pgrid[:,[-pk]] - pgrid[:,[pk]])/self.num
+        grid = pgrid[:,[pk]] + torch.arange(self.num+1,) * h
+        grid = extend_grid(grid, k_extend=self.k)
+        self.grid.data = grid
         self.coef.data = curve2coef(x_eval, y_eval, self.grid, self.k, self.device)
 
     def get_subset(self, in_id, out_id):
@@ -279,86 +303,12 @@ class KANLayer(nn.Module):
         (2, 3)
         '''
         spb = KANLayer(len(in_id), len(out_id), self.num, self.k, base_fun=self.base_fun, device=self.device)
-        spb.grid.data = self.grid.reshape(self.out_dim, self.in_dim, spb.num + 1)[out_id][:, in_id].reshape(-1, spb.num + 1)
-        spb.coef.data = self.coef.reshape(self.out_dim, self.in_dim, spb.coef.shape[1])[out_id][:, in_id].reshape(-1, spb.coef.shape[1])
-        spb.scale_base.data = self.scale_base.reshape(self.out_dim, self.in_dim)[out_id][:, in_id].reshape(-1, )
-        spb.scale_sp.data = self.scale_sp.reshape(self.out_dim, self.in_dim)[out_id][:, in_id].reshape(-1, )
-        spb.mask.data = self.mask.reshape(self.out_dim, self.in_dim)[out_id][:, in_id].reshape(-1, )
+        spb.grid.data = self.grid[in_id]
+        spb.coef.data = self.coef[in_id][:,out_id]
+        spb.scale_base.data = self.scale_base[in_id][:,out_id]
+        spb.scale_sp.data = self.scale_sp[in_id][:,out_id]
+        spb.mask.data = self.mask[in_id][:,out_id]
 
         spb.in_dim = len(in_id)
         spb.out_dim = len(out_id)
-        spb.size = spb.in_dim * spb.out_dim
         return spb
-
-    def lock(self, ids):
-        '''
-        lock activation functions to share parameters based on ids
-        
-        Args:
-        -----
-            ids : list
-                list of ids of activation functions
-            
-        Returns:
-        --------
-            None
-          
-        Example
-        -------
-        >>> model = KANLayer(in_dim=3, out_dim=3, num=5, k=3)
-        >>> print(model.weight_sharing.reshape(3,3))
-        >>> model.lock([[0,0],[1,2],[2,1]]) # set (0,0),(1,2),(2,1) functions to be the same
-        >>> print(model.weight_sharing.reshape(3,3))
-        tensor([[0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8]])
-        tensor([[0, 1, 2],
-                [3, 4, 0],
-                [6, 0, 8]])
-        '''
-        self.lock_counter += 1
-        # ids: [[i1,j1],[i2,j2],[i3,j3],...]
-        for i in range(len(ids)):
-            if i != 0:
-                self.weight_sharing[ids[i][1] * self.in_dim + ids[i][0]] = ids[0][1] * self.in_dim + ids[0][0]
-            self.lock_id[ids[i][1] * self.in_dim + ids[i][0]] = self.lock_counter
-
-    def unlock(self, ids):
-        '''
-        unlock activation functions
-        
-        Args:
-        -----
-            ids : list
-                list of ids of activation functions
-            
-        Returns:
-        --------
-            None
-            
-        Example
-        -------
-        >>> model = KANLayer(in_dim=3, out_dim=3, num=5, k=3)
-        >>> model.lock([[0,0],[1,2],[2,1]]) # set (0,0),(1,2),(2,1) functions to be the same
-        >>> print(model.weight_sharing.reshape(3,3))
-        >>> model.unlock([[0,0],[1,2],[2,1]]) # unlock the locked functions
-        >>> print(model.weight_sharing.reshape(3,3))
-        tensor([[0, 1, 2],
-                [3, 4, 0],
-                [6, 0, 8]])
-        tensor([[0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8]])
-        '''
-        # check ids are locked
-        num = len(ids)
-        locked = True
-        for i in range(num):
-            locked *= (self.weight_sharing[ids[i][1] * self.in_dim + ids[i][0]] == self.weight_sharing[ids[0][1] * self.in_dim + ids[0][0]])
-        if locked == False:
-            print("they are not locked. unlock failed.")
-            return 0
-        for i in range(len(ids)):
-            self.weight_sharing[ids[i][1] * self.in_dim + ids[i][0]] = ids[i][1] * self.in_dim + ids[i][0]
-            self.lock_id[ids[i][1] * self.in_dim + ids[i][0]] = 0
-        self.lock_counter -= 1
