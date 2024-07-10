@@ -128,6 +128,8 @@ class KANLayer(nn.Module):
             mask = sparse_mask(in_dim, out_dim)
         else:
             mask = 1.
+        
+        scale_base = scale_base.to(device)
         self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
         #else:
         #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
@@ -224,7 +226,7 @@ class KANLayer(nn.Module):
         grid_adaptive = x_pos[ids, :].permute(1,0)
         margin = 0.01
         h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
-        grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :]
+        grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,).to(self.device)[None, :]
         grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
         self.grid.data = extend_grid(grid, k_extend=self.k)
         self.coef.data = curve2coef(x_pos, y_eval, self.grid, self.k, device=self.device)
