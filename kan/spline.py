@@ -60,8 +60,9 @@ def B_batch(x, grid, k=0, extend=True, device='cpu'):
         value = (x - grid[:, :-(k + 1)]) / (grid[:, k:-1] - grid[:, :-(k + 1)]) * B_km1[:, :-1] + (
                     grid[:, k + 1:] - x) / (grid[:, k + 1:] - grid[:, 1:(-k)]) * B_km1[:, 1:]'''
     
-    x = x.unsqueeze(dim=2)
-    grid = grid.unsqueeze(dim=0)
+    x = x.unsqueeze(dim=2).to(device)
+    grid = grid.unsqueeze(dim=0).to(device)
+    
     if k == 0:
         value = (x >= grid[:, :, :-1]) * (x < grid[:, :, 1:])
     else:
@@ -113,7 +114,7 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
         coef = coef.to(x_eval.dtype)
     y_eval = torch.einsum('ij,ijk->ik', coef, B_batch(x_eval, grid, k, device=device))'''
     
-    b_splines = B_batch(x_eval, grid, k=k) # (batch, in_dim, n_coef)
+    b_splines = B_batch(x_eval, grid, k=k).to(device) # (batch, in_dim, n_coef)
     # coef (in_dim, out_dim, n_coef)
     #print(b_splines.shape, coef.shape)
     y_eval = torch.einsum('ijk,jlk->ijl', b_splines, coef)
