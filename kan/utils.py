@@ -66,7 +66,7 @@ def create_dataset(f,
                    normalize_input=False,
                    normalize_label=False,
                    device='cpu',
-                   seed=0):
+                   seed=None):
     '''
     create dataset
     
@@ -102,6 +102,9 @@ def create_dataset(f,
     >>> dataset['train_input'].shape
     torch.Size([100, 2])
     '''
+
+    if seed is None:
+        seed = np.random.randint(0, 1e3)
 
     np.random.seed(seed)
     torch.manual_seed(seed)
