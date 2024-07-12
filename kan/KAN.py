@@ -138,7 +138,7 @@ class KAN(nn.Module):
             # splines
             #scale_base = 1 / np.sqrt(width[l]) + (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * noise_scale_base
             scale_base = scale_base_mu * 1 / np.sqrt(width[l]) + \
-                         scale_base_sigma * (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * 1/np.sqrt(width[l])
+                         scale_base_sigma * (torch.randn(width[l] , width[l + 1], ) * 2 - 1) * 1/np.sqrt(width[l])
             sp_batch = KANLayer(in_dim=width[l], out_dim=width[l + 1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable,
                                 sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
