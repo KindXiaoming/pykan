@@ -3,7 +3,7 @@
 # !! Major Updates on July 13, 2024
 
 * model.train() has been changed to model.fit()
-* Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable, so please refer to those for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
+* Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable on CPUs, so please refer to those for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
 
 For pypi users, this is the most recent version 0.2.0.
 
