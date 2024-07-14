@@ -19,11 +19,12 @@ import sympy
 import yaml
 from .spline import curve2coef
 from .utils import SYMBOLIC_LIB
+from .hypothesis import plot_tree
 
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0, save_plot_data=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0, save_plot_data=True, sparse_init=False, auto_save=False, first_init=True, ckpt_path='./model', state_id=0):
         
         super(MultKAN, self).__init__()
 
@@ -276,6 +277,7 @@ class MultKAN(nn.Module):
     
     @property
     def feature_score(self):
+        self.attribute()
         if self.node_scores == None:
             return None
         else:
@@ -711,8 +713,8 @@ class MultKAN(nn.Module):
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(self.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
-    def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=0, stop_grid_update_step=50, batch=-1,
-              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=10.):
+    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
+              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=1000., reg_metric='fa'):
 
         if lamb > 0. and not self.save_plot_data:
             print('setting lamb=0. If you want to set lamb > 0, set self.save_plot_data=True')
@@ -724,11 +726,15 @@ class MultKAN(nn.Module):
                 vec = acts_scale[i]#.reshape(-1, )
 
                 l1 = torch.sum(vec)
-                p_row = vec / (torch.sum(vec, dim=1, keepdim=True) + 1e-4)
-                p_col = vec / (torch.sum(vec, dim=0, keepdim=True) + 1e-4)
+                p_row = vec / (torch.sum(vec, dim=1, keepdim=True) + 1)
+                p_col = vec / (torch.sum(vec, dim=0, keepdim=True) + 1)
                 entropy_row = - torch.mean(torch.sum(p_row * torch.log2(p_row + 1e-4), dim=1))
                 entropy_col = - torch.mean(torch.sum(p_col * torch.log2(p_col + 1e-4), dim=0))
                 reg_ += lamb_l1 * l1 + lamb_entropy * (entropy_row + entropy_col)  # both l1 and entropy
+                '''vec = vec.reshape(-1,)
+                p = vec / (torch.sum(vec) + 1e-4)
+                entropy = - torch.sum(p * torch.log2(p + 1e-4))
+                reg_ += lamb_l1 * l1 + lamb_entropy * entropy  # both l1 and entropy'''
 
             # regularize coefficient to encourage spline to be zero
             for i in range(len(self.act_fun)):
@@ -777,7 +783,11 @@ class MultKAN(nn.Module):
             pred = self.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
             train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
             if self.save_plot_data:
-                reg_ = reg(self.acts_scale_spline)
+                if reg_metric == 'act':
+                    reg_ = reg(self.acts_scale_spline)
+                if reg_metric == 'fa':
+                    self.attribute()
+                    reg_ = reg(self.edge_actscale)
             else:
                 reg_ = torch.tensor(0.)
             objective = train_loss + lamb * reg_
@@ -793,7 +803,7 @@ class MultKAN(nn.Module):
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
 
-            if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid and _ > start_grid_update_step:
+            if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid and _ >= start_grid_update_step:
                 self.update_grid_from_samples(dataset['train_input'][train_id].to(device))
 
             if opt == "LBFGS":
@@ -803,7 +813,11 @@ class MultKAN(nn.Module):
                 pred = self.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
                 train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
                 if self.save_plot_data:
-                    reg_ = reg(self.acts_scale_spline)
+                    if reg_metric == 'act':
+                        reg_ = reg(self.acts_scale_spline)
+                    if reg_metric == 'fa':
+                        self.attribute()
+                        reg_ = reg(self.edge_actscale)
                 else:
                     reg_ = torch.tensor(0.)
                 loss = train_loss + lamb * reg_
@@ -961,12 +975,17 @@ class MultKAN(nn.Module):
         self.log_history('prune')
         return self
     
-    def prune_input(self, threshold=1e-2, log_history=True):
-        self.attribute()
-        input_score = self.node_scores[0]
-        input_mask = input_score > threshold
-        print('keep:', input_mask.tolist())
-        input_id = torch.where(input_mask==True)[0]
+    def prune_input(self, threshold=1e-2, active_inputs=None, log_history=True):
+        
+        if active_inputs == None:
+            self.attribute()
+            input_score = self.node_scores[0]
+            input_mask = input_score > threshold
+            print('keep:', input_mask.tolist())
+            input_id = torch.where(input_mask==True)[0]
+            
+        else:
+            input_id = torch.tensor(active_inputs, dtype=torch.long)
         
         model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun, device=self.device, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id)
         model2.load_state_dict(self.state_dict())
@@ -991,7 +1010,7 @@ class MultKAN(nn.Module):
         if log_history:
             self.log_history('remove_edge')
 
-    def remove_node(self, l ,i, mode='down', log_history=True):
+    def remove_node(self, l ,i, mode='all', log_history=True):
         if mode == 'down':
             self.act_fun[l - 1].mask[:, i] = 0.
             self.symbolic_fun[l - 1].mask[i, :] *= 0.
@@ -999,6 +1018,10 @@ class MultKAN(nn.Module):
         elif mode == 'up':
             self.act_fun[l].mask[i, :] = 0.
             self.symbolic_fun[l].mask[:, i] *= 0.
+            
+        else:
+            self.remove_node(l, i, mode='up')
+            self.remove_node(l, i, mode='down')
             
         if log_history:
             self.log_history('remove_node')
@@ -1011,17 +1034,14 @@ class MultKAN(nn.Module):
 
         def score_node2subnode(node_score, width, mult_arity):
 
-            #node_score = torch.tensor([1., 0.25, 0.1])
-            #width = [1,2]
-            #mult_arity = 2 #[2,3]
-
             assert np.sum(width) == node_score.shape
             if isinstance(mult_arity, int):
                 n_subnode = width[0] + mult_arity * width[1]
             else:
                 n_subnode = width[0] + int(np.sum(mult_arity))
 
-            subnode_score = torch.zeros(n_subnode,)
+            subnode_score_leaf = torch.zeros(n_subnode,).requires_grad_(True)
+            subnode_score = subnode_score_leaf.clone()
             subnode_score[:width[0]] = node_score[:width[0]]
             if isinstance(mult_arity, int):
                 subnode_score[width[0]:] = node_score[width[0]:][:,None].expand(node_score[width[0]:].shape[0], mult_arity).reshape(-1,)
@@ -1038,7 +1058,7 @@ class MultKAN(nn.Module):
         edge_scores = []
 
         # back propagate from the last layer
-        node_score = torch.ones(self.width_in[-1])
+        node_score = torch.ones(self.width_in[-1]).requires_grad_(True)
         node_scores.append(node_score)
 
         for l in range(self.depth,0,-1):
@@ -1063,7 +1083,7 @@ class MultKAN(nn.Module):
         self.edge_scores = list(reversed(edge_scores))
         self.subnode_scores = list(reversed(subnode_scores))
 
-    def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: np.log2(1-x), c_loss_fun=lambda x: x, weight_simple = 0.8):
+    def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: np.log2(1+1e-5-x), c_loss_fun=lambda x: x, weight_simple = 0.8):
         
         r2s = []
         cs = []
@@ -1456,5 +1476,35 @@ class MultKAN(nn.Module):
             
         self.log_history('module')
         
+    def tree(self, x=None, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1):
+        if x == None:
+            x = self.cache_data
+        plot_tree(self, x, in_var=in_var, style=style, sym_th=sym_th, sep_th=sep_th)
+        
+        
+    def speed(self, compile=False):
+        self.symbolic_enabled=False
+        self.save_plot_data=False
+        self.auto_save=False
+        if compile == True:
+            return torch.compile(self)
+        else:
+            return self
+        
+    def get_act(self, x):
+        if isinstance(x, dict):
+            x = x['train_input']
+        self.forward(x)
+        
+    def get_fun(self, l, i, j):
+        inputs = self.spline_preacts[l][:,j,i]
+        outputs = self.spline_postacts[l][:,j,i]
+        # they are not ordered yet
+        rank = np.argsort(inputs)
+        inputs = inputs[rank]
+        outputs = outputs[rank]
+        plt.figure(figsize=(3,3))
+        plt.plot(inputs, outputs, marker="o")
+        return inputs, outputs
         
 KAN = MultKAN

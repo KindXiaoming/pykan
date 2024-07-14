@@ -6,7 +6,6 @@ LBFGS deterministic behavior
 save checkpoint
 feature importance
 prune inputs
-(Announcement: borrow idea from efficientKAN)
 
 
 Todo:
@@ -14,9 +13,6 @@ Todo:
 make inputs learnable 
 prune inputs
 use KAN as a module
-polyfit symbolic
 support GPU
 [Github issues]
-
-(Task-oriented)
-Feynman dataset
+Feynman : hypothesis, module, augment_input

@@ -60,6 +60,7 @@ SYMBOLIC_LIB = {'x': (lambda x: x, lambda x: x, 1, lambda x, y_th: ((), x)),
 
 def create_dataset(f, 
                    n_var=2, 
+                   f_mode = 'col',
                    ranges = [-1,1],
                    train_num=1000, 
                    test_num=1000,
@@ -111,16 +112,26 @@ def create_dataset(f,
     else:
         ranges = np.array(ranges)
         
+    
     train_input = torch.zeros(train_num, n_var)
     test_input = torch.zeros(test_num, n_var)
     for i in range(n_var):
         train_input[:,i] = torch.rand(train_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
         test_input[:,i] = torch.rand(test_num,)*(ranges[i,1]-ranges[i,0])+ranges[i,0]
+                
+    if f_mode == 'col':
+        train_label = f(train_input)
+        test_label = f(test_input)
+    elif f_mode == 'row':
+        train_label = f(train_input.T)
+        test_label = f(test_input.T)
+    else:
+        print(f'f_mode {f_mode} not recognized')
         
-        
-    train_label = f(train_input)
-    test_label = f(test_input)
-        
+    # if has only 1 dimension
+    if len(train_label.shape) == 1:
+        train_label = train_label.unsqueeze(dim=1)
+        test_label = test_label.unsqueeze(dim=1)
         
     def normalize(data, mean, std):
             return (data-mean)/std
@@ -270,7 +281,7 @@ def sparse_mask(in_dim, out_dim):
     return mask
 
 
-def add_symbolic(name, fun):
+def add_symbolic(name, fun, c=1, fun_singularity=None):
     '''
     add a symbolic function to library
     
@@ -294,7 +305,9 @@ def add_symbolic(name, fun):
     (<built-in function special_bessel_j0>, Bessel)
     '''
     exec(f"globals()['{name}'] = sympy.Function('{name}')")
-    SYMBOLIC_LIB[name] = (fun, globals()[name])
+    if fun_singularity==None:
+        fun_singularity = fun
+    SYMBOLIC_LIB[name] = (fun, globals()[name], c, fun_singularity)
     
   
 def ex_round(ex1, n_digit):
@@ -321,3 +334,17 @@ def augment_input(orig_vars, aux_vars, x):
         x['test_input'] = augment_input(orig_vars, aux_vars, x['test_input'])
         
     return x
+
+
+def batch_jacobian(func, x, create_graph=False):
+    # x in shape (Batch, Length)
+    def _func_sum(x):
+        return func(x).sum(dim=0)
+    return torch.autograd.functional.jacobian(_func_sum, x, create_graph=create_graph)[0]
+
+def batch_hessian(model, x, create_graph=False):
+    # x in shape (Batch, Length)
+    jac = lambda x: batch_jacobian(model, x, create_graph=True)
+    def _jac_sum(x):
+        return jac(x).sum(dim=0)
+    return torch.autograd.functional.jacobian(_jac_sum, x, create_graph=create_graph).permute(1,0,2)
