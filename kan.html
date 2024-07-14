@@ -54,7 +54,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#kan-kanlayer-module">kan.KANLayer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#kan-lbfgs-module">kan.LBFGS module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#kan-symbolic-kanlayer-module">kan.Symbolic_KANLayer module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#kan-spline-module">kan.spline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-kan.spline">kan.spline module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#kan.spline.B_batch"><code class="docutils literal notranslate"><span class="pre">B_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kan.spline.coef2curve"><code class="docutils literal notranslate"><span class="pre">coef2curve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kan.spline.curve2coef"><code class="docutils literal notranslate"><span class="pre">curve2coef()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kan.spline.extend_grid"><code class="docutils literal notranslate"><span class="pre">extend_grid()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#kan-utils-module">kan.utils module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
@@ -107,8 +113,140 @@
 <section id="kan-symbolic-kanlayer-module">
 <h2>kan.Symbolic_KANLayer module<a class="headerlink" href="#kan-symbolic-kanlayer-module" title="Link to this heading"></a></h2>
 </section>
-<section id="kan-spline-module">
-<h2>kan.spline module<a class="headerlink" href="#kan-spline-module" title="Link to this heading"></a></h2>
+<section id="module-kan.spline">
+<span id="kan-spline-module"></span><h2>kan.spline module<a class="headerlink" href="#module-kan.spline" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.spline.B_batch">
+<span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">B_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.B_batch" title="Link to this definition"></a></dt>
+<dd><p>evaludate x on B-spline bases</p>
+<section id="args">
+<h3>Args:<a class="headerlink" href="#args" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>x<span class="classifier">2D torch.tensor</span></dt><dd><p>inputs, shape (number of splines, number of samples)</p>
+</dd>
+<dt>grid<span class="classifier">2D torch.tensor</span></dt><dd><p>grids, shape (number of splines, number of grid points)</p>
+</dd>
+<dt>k<span class="classifier">int</span></dt><dd><p>the piecewise polynomial order of splines.</p>
+</dd>
+<dt>extend<span class="classifier">bool</span></dt><dd><p>If True, k points are extended on both ends. If False, no extension (zero boundary condition). Default: True</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>devicde</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>spline values<span class="classifier">3D torch.tensor</span></dt><dd><p>shape (number of splines, number of B-spline bases (coeffcients), number of samples). The numbef of B-spline bases = number of grid points + k - 1.</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,</span> <span class="n">num_sample</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;i,j-&gt;ij&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,),</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="n">num_grid_interval</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B_batch</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">grids</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">torch.Size([5, 13, 100])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.spline.coef2curve">
+<span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">coef2curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.coef2curve" title="Link to this definition"></a></dt>
+<dd><p>converting B-spline coefficients to B-spline curves. Evaluate x on B-spline curves (summing up B_batch results over B-spline basis).</p>
+<section id="id1">
+<h3>Args:<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>x_eval<span class="classifier">2D torch.tensor)</span></dt><dd><p>shape (number of splines, number of samples)</p>
+</dd>
+<dt>grid<span class="classifier">2D torch.tensor)</span></dt><dd><p>shape (number of splines, number of grid points)</p>
+</dd>
+<dt>coef<span class="classifier">2D torch.tensor)</span></dt><dd><p>shape (number of splines, number of coef params). number of coef params = number of grid intervals + k</p>
+</dd>
+<dt>k<span class="classifier">int</span></dt><dd><p>the piecewise polynomial order of splines.</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>devicde</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id2">
+<h3>Returns:<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>y_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id3">
+<h3>Example<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_eval</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,</span> <span class="n">num_sample</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;i,j-&gt;ij&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,),</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="n">num_grid_interval</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coef</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,</span> <span class="n">num_grid_interval</span><span class="o">+</span><span class="n">k</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coef2curve</span><span class="p">(</span><span class="n">x_eval</span><span class="p">,</span> <span class="n">grids</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">torch.Size([5, 100])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.spline.curve2coef">
+<span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">curve2coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_eval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.curve2coef" title="Link to this definition"></a></dt>
+<dd><p>converting B-spline curves to B-spline coefficients using least squares.</p>
+<section id="id4">
+<h3>Args:<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>x_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
+</dd>
+<dt>y_eval<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of samples)</p>
+</dd>
+<dt>grid<span class="classifier">2D torch.tensor</span></dt><dd><p>shape (number of splines, number of grid points)</p>
+</dd>
+<dt>k<span class="classifier">int</span></dt><dd><p>the piecewise polynomial order of splines.</p>
+</dd>
+<dt>device<span class="classifier">str</span></dt><dd><p>devicde</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id5">
+<h3>Example<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">num_spline</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_sample</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_grid_interval</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x_eval</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,</span> <span class="n">num_sample</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_eval</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,</span> <span class="n">num_sample</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;i,j-&gt;ij&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_spline</span><span class="p">,),</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">steps</span><span class="o">=</span><span class="n">num_grid_interval</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">torch.Size([5, 13])</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.spline.extend_grid">
+<span class="sig-prename descclassname"><span class="pre">kan.spline.</span></span><span class="sig-name descname"><span class="pre">extend_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_extend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.spline.extend_grid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="kan-utils-module">
 <h2>kan.utils module<a class="headerlink" href="#kan-utils-module" title="Link to this heading"></a></h2>
