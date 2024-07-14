@@ -5,7 +5,7 @@
 * `model.train()` has been changed to `model.fit()`
 * Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable on CPUs, so please refer to those tutorials for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
 
-For pypi users, this is the most recent version 0.2.0.
+For pypi users, this is the most recent version 0.2.1.
 
 New functionalities include (documentation later):
 * including multiplications in KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_1_Hello%2C%20MultKAN.ipynb)
