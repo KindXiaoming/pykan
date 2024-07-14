@@ -780,8 +780,8 @@ class MultKAN(nn.Module):
         def closure():
             global train_loss, reg_
             optimizer.zero_grad()
-            pred = self.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
-            train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
+            pred = self.forward(dataset['train_input'][train_id].to(self.device), singularity_avoiding=singularity_avoiding, y_th=y_th)
+            train_loss = loss_fn(pred, dataset['train_label'][train_id].to(self.device))
             if self.save_plot_data:
                 if reg_metric == 'act':
                     reg_ = reg(self.acts_scale_spline)
@@ -803,15 +803,20 @@ class MultKAN(nn.Module):
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
 
+<<<<<<< HEAD
             if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid and _ >= start_grid_update_step:
                 self.update_grid_from_samples(dataset['train_input'][train_id].to(device))
+=======
+            if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid and _ > start_grid_update_step:
+                self.update_grid_from_samples(dataset['train_input'][train_id].to(self.device))
+>>>>>>> e5abcb74c6cdc6af70d9665ec5a7b4ccb94ee564
 
             if opt == "LBFGS":
                 optimizer.step(closure)
 
             if opt == "Adam":
-                pred = self.forward(dataset['train_input'][train_id].to(device), singularity_avoiding=singularity_avoiding, y_th=y_th)
-                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
+                pred = self.forward(dataset['train_input'][train_id].to(self.device), singularity_avoiding=singularity_avoiding, y_th=y_th)
+                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(self.device))
                 if self.save_plot_data:
                     if reg_metric == 'act':
                         reg_ = reg(self.acts_scale_spline)
@@ -825,7 +830,7 @@ class MultKAN(nn.Module):
                 loss.backward()
                 optimizer.step()
 
-            test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
+            test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(self.device)), dataset['test_label'][test_id].to(self.device))
 
             if _ % log == 0:
                 pbar.set_description("train loss: %.2e | test loss: %.2e | reg: %.2e " % (torch.sqrt(train_loss).cpu().detach().numpy(), torch.sqrt(test_loss).cpu().detach().numpy(), reg_.cpu().detach().numpy()))

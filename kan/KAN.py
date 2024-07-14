@@ -138,7 +138,7 @@ class KAN(nn.Module):
             # splines
             #scale_base = 1 / np.sqrt(width[l]) + (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * noise_scale_base
             scale_base = scale_base_mu * 1 / np.sqrt(width[l]) + \
-                         scale_base_sigma * (torch.randn(width[l] * width[l + 1], ) * 2 - 1) * 1/np.sqrt(width[l])
+                         scale_base_sigma * (torch.randn(width[l] , width[l + 1], ) * 2 - 1) * 1/np.sqrt(width[l])
             sp_batch = KANLayer(in_dim=width[l], out_dim=width[l + 1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable,
                                 sb_trainable=sb_trainable, device=device)
             self.act_fun.append(sp_batch)
@@ -757,7 +757,7 @@ class KAN(nn.Module):
             plt.gcf().get_axes()[0].text(0.5, y0 * (len(self.width) - 1) + 0.2, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
     def train(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=0., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1., stop_grid_update_step=50, batch=-1,
-              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu'):
+              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, sglr_avoid=False, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video'):
         '''
         training
 
@@ -793,8 +793,6 @@ class KAN(nn.Module):
                 threshold to determine large or small numbers (may want to apply larger penalty to smaller numbers)
             small_reg_factor : float
                 penalty strength applied to small factors relative to large factos
-            device : str
-                device   
             save_fig_freq : int
                 save figure every (save_fig_freq) step
 
@@ -865,19 +863,18 @@ class KAN(nn.Module):
             batch_size_test = dataset['test_input'].shape[0]
         else:
             batch_size = batch
-            batch_size_test = batch
 
         global train_loss, reg_
 
         def closure():
             global train_loss, reg_
             optimizer.zero_grad()
-            pred = self.forward(dataset['train_input'][train_id].to(device))
+            pred = self.forward(dataset['train_input'][train_id].to(self.device))
             if sglr_avoid == True:
                 id_ = torch.where(torch.isnan(torch.sum(pred, dim=1)) == False)[0]
-                train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(device))
+                train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(self.device))
             else:
-                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
+                train_loss = loss_fn(pred, dataset['train_label'][train_id].to(self.device))
             reg_ = reg(self.acts_scale)
             objective = train_loss + lamb * reg_
             objective.backward()
@@ -890,28 +887,27 @@ class KAN(nn.Module):
         for _ in pbar:
 
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
-            test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
 
             if _ % grid_update_freq == 0 and _ < stop_grid_update_step and update_grid:
-                self.update_grid_from_samples(dataset['train_input'][train_id].to(device))
+                self.update_grid_from_samples(dataset['train_input'][train_id].to(self.device))
 
             if opt == "LBFGS":
                 optimizer.step(closure)
 
             if opt == "Adam":
-                pred = self.forward(dataset['train_input'][train_id].to(device))
+                pred = self.forward(dataset['train_input'][train_id].to(self.device))
                 if sglr_avoid == True:
                     id_ = torch.where(torch.isnan(torch.sum(pred, dim=1)) == False)[0]
-                    train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(device))
+                    train_loss = loss_fn(pred[id_], dataset['train_label'][train_id][id_].to(self.device))
                 else:
-                    train_loss = loss_fn(pred, dataset['train_label'][train_id].to(device))
+                    train_loss = loss_fn(pred, dataset['train_label'][train_id].to(self.device))
                 reg_ = reg(self.acts_scale)
                 loss = train_loss + lamb * reg_
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
-            test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(device)), dataset['test_label'][test_id].to(device))
+            test_loss = loss_fn_eval(self.forward(dataset['test_input'].to(self.device)), dataset['test_label'].to(self.device))
 
             if _ % log == 0:
                 pbar.set_description("train loss: %.2e | test loss: %.2e | reg: %.2e " % (torch.sqrt(train_loss).cpu().detach().numpy(), torch.sqrt(test_loss).cpu().detach().numpy(), reg_.cpu().detach().numpy()))
