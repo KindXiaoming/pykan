@@ -3,9 +3,15 @@
 # !! Major Updates on July 13, 2024
 
 * `model.train()` has been changed to `model.fit()`
-* Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable on CPUs, so please refer to those for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
+* Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable on CPUs, so please refer to those tutorials for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
 
 For pypi users, this is the most recent version 0.2.0.
+
+New functionalities include (documentation later):
+* including multiplications in KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_1_Hello%2C%20MultKAN.ipynb)
+* the speed mode. Speed up your KAN using `model = model.speed()` if you never use the symbolic functionalities. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Example_2_speed_up.ipynb)
+* Compiling symbolic formulas into KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_3_KAN_Compiler.ipynb)
+* Feature attribution and pruning inputs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_4_feature_attribution.ipynb)
 
 # Kolmogorov-Arnold Networks (KANs)
 
