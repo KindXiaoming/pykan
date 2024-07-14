@@ -1,5 +1,10 @@
 <img width="600" alt="kan_plot" src="https://github.com/KindXiaoming/pykan/assets/23551623/a2d2d225-b4d2-4c1e-823e-bc45c7ea96f9">
 
+# !! Major Updates on July 13, 2024
+
+* model.train() has been changed to model.fit()
+* Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable, so please refer to those for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
+
 # Kolmogorov-Arnold Networks (KANs)
 
 This is the github repo for the paper ["KAN: Kolmogorov-Arnold Networks"](https://arxiv.org/abs/2404.19756). Find the documentation [here](https://kindxiaoming.github.io/pykan/). Here's [author's note](https://github.com/KindXiaoming/pykan?tab=readme-ov-file#authors-note) responding to current hype of KANs.
