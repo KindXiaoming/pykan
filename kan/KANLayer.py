@@ -129,7 +129,7 @@ class KANLayer(nn.Module):
         else:
             mask = 1.
         
-        scale_base = scale_base.to(device)
+        #scale_base = scale_base.to(device)
         self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim, device=device) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
         #else:
         #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
