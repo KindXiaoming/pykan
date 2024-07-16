@@ -66,3 +66,4 @@ init => 0
 3 => train => 4
 4 => auto_symbolic => 5
 5 => train => 6
+0 => prune => 1
