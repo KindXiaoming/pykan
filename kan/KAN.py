@@ -78,7 +78,7 @@ class KAN(nn.Module):
     '''
 
     def __init__(self, width=None, grid=3, k=3, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, bias_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True,
-                 device='cpu', seed=0):
+                 device='cpu', seed=None):
         '''
         initalize a KAN model
         
@@ -122,6 +122,9 @@ class KAN(nn.Module):
         ((2, 5), (5, 1))
         '''
         super(KAN, self).__init__()
+
+        if seed is None:
+            seed = np.random.randint(0, 1e3)
 
         torch.manual_seed(seed)
         np.random.seed(seed)

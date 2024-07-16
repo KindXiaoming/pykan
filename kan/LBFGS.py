@@ -302,8 +302,6 @@ class LBFGS(Optimizer):
                 and returns the loss.
         """
         
-        torch.manual_seed(0)
-        
         assert len(self.param_groups) == 1
 
         # Make sure the closure is always called with grad enabled
