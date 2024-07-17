@@ -70,6 +70,9 @@ def B_batch(x, grid, k=0, extend=True, device='cpu'):
         
         value = (x - grid[:, :, :-(k + 1)]) / (grid[:, :, k:-1] - grid[:, :, :-(k + 1)]) * B_km1[:, :, :-1] + (
                     grid[:, :, k + 1:] - x) / (grid[:, :, k + 1:] - grid[:, :, 1:(-k)]) * B_km1[:, :, 1:]
+    
+    # in case grid is degenerate
+    value = torch.nan_to_num(value)
     return value
 
 
@@ -164,6 +167,7 @@ def curve2coef(x_eval, y_eval, grid, k, device="cpu"):
     mat = mat.permute(1,0,2)[:,None,:,:].expand(in_dim, out_dim, batch, n_coef) # (in_dim, out_dim, batch, n_coef)
     # coef shape: (in_dim, outdim, G+k) 
     y_eval = y_eval.permute(1,2,0).unsqueeze(dim=3) # y_eval: (in_dim, out_dim, batch, 1)
+    #print(mat)
     coef = torch.linalg.lstsq(mat.to(device), y_eval.to(device),
                               driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
     return coef.to(device)

@@ -24,7 +24,7 @@ from .hypothesis import plot_tree
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0, save_plot_data=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0):
         
         super(MultKAN, self).__init__()
 
@@ -111,7 +111,7 @@ class MultKAN(nn.Module):
         self.sb_trainable = sb_trainable
         
         self.device = device
-        self.save_plot_data = save_plot_data
+        self.save_act = save_act
             
         self.node_scores = None
         self.edge_scores = None
@@ -123,20 +123,22 @@ class MultKAN(nn.Module):
         self.auto_save = auto_save
         self.state_id = 0
         self.ckpt_path = ckpt_path
+        self.round = round
+        
         
         if auto_save:
             if first_init:
                 if not os.path.exists(ckpt_path):
                     # Create the directory
                     os.makedirs(ckpt_path)
-                    print(f"Directory created: {ckpt_path}")
-                else:
-                    print(f"Directory already exists: {ckpt_path}")
+                print(f"checkpoint directory created: {ckpt_path}")
+                print('saving model version 0.0')
 
                 history_path = self.ckpt_path+'/history.txt'
                 with open(history_path, 'w') as file:
-                    file.write('init => 0' + '\n')
-                self.saveckpt(path=self.ckpt_path+'/'+'0')
+                    file.write(f'### Round {self.round} ###' + '\n')
+                    file.write('init => 0.0' + '\n')
+                self.saveckpt(path=self.ckpt_path+'/'+'0.0')
             else:
                 self.state_id = state_id
             
@@ -181,13 +183,14 @@ class MultKAN(nn.Module):
             # save to log file
             #print(func.__name__)
             with open(self.ckpt_path+'/history.txt', 'a') as file:
-                file.write(str(self.state_id)+' => '+ method_name + ' => ' + str(self.state_id+1) + '\n')
+                file.write(str(self.round)+'.'+str(self.state_id)+' => '+ method_name + ' => ' + str(self.round)+'.'+str(self.state_id+1) + '\n')
 
             # update state_id
             self.state_id += 1
 
             # save to ckpt
-            self.saveckpt(path=self.ckpt_path+'/'+str(self.state_id))
+            self.saveckpt(path=self.ckpt_path+'/'+str(self.round)+'.'+str(self.state_id))
+            print('saving model version '+str(self.round)+'.'+str(self.state_id))
 
     
     def refine(self, new_grid):
@@ -207,10 +210,12 @@ class MultKAN(nn.Module):
                      ckpt_path=self.ckpt_path,
                      auto_save=True,
                      first_init=False,
-                     state_id=self.state_id)
+                     state_id=self.state_id,
+                     round=self.round)
             
         model_new.initialize_from_another_model(self, self.cache_data)
         model_new.cache_data = self.cache_data
+        model_new.grid = new_grid
         
         self.log_history('refine')
         model_new.state_id += 1
@@ -237,7 +242,8 @@ class MultKAN(nn.Module):
             device = model.device,
             state_id = model.state_id,
             auto_save = model.auto_save,
-            ckpt_path = model.ckpt_path
+            ckpt_path = model.ckpt_path,
+            round = model.round
         )
 
         for i in range (model.depth):
@@ -247,6 +253,68 @@ class MultKAN(nn.Module):
             yaml.dump(dic, outfile, default_flow_style=False)
 
         torch.save(model.state_dict(), f'{path}_state')
+        torch.save(model.cache_data, f'{path}_cache_data')
+    
+    @staticmethod
+    def loadckpt(path='model'):
+        with open(f'{path}_config.yml', 'r') as stream:
+            config = yaml.safe_load(stream)
+
+        state = torch.load(f'{path}_state')
+
+        model_load = MultKAN(width=config['width'], 
+                     grid=config['grid'], 
+                     k=config['k'], 
+                     mult_arity = config['mult_arity'], 
+                     base_fun=config['base_fun_name'], 
+                     symbolic_enabled=config['symbolic_enabled'], 
+                     affine_trainable=config['affine_trainable'], 
+                     grid_eps=config['grid_eps'], 
+                     grid_range=config['grid_range'], 
+                     sp_trainable=config['sp_trainable'],
+                     sb_trainable=config['sb_trainable'],
+                     device=config['device'],
+                     state_id=config['state_id'],
+                     auto_save=config['auto_save'],
+                     first_init=False,
+                     ckpt_path=config['ckpt_path'],
+                     round = config['round']+1)
+
+        model_load.load_state_dict(state)
+        model_load.cache_data = torch.load(f'{path}_cache_data')
+        
+        depth = len(model_load.width) - 1
+        for l in range(depth):
+            out_dim = model_load.symbolic_fun[l].out_dim
+            in_dim = model_load.symbolic_fun[l].in_dim
+            funs_name = config[f'symbolic.funs_name.{l}']
+            for j in range(out_dim):
+                for i in range(in_dim):
+                    fun_name = funs_name[j][i]
+                    model_load.symbolic_fun[l].funs_name[j][i] = fun_name
+                    model_load.symbolic_fun[l].funs[j][i] = SYMBOLIC_LIB[fun_name][0]
+                    model_load.symbolic_fun[l].funs_sympy[j][i] = SYMBOLIC_LIB[fun_name][1]
+                    model_load.symbolic_fun[l].funs_avoid_singularity[j][i] = SYMBOLIC_LIB[fun_name][3]
+        return model_load
+    
+    def rewind(self, model_id):
+        
+        self.round += 1
+        self.state_id = model_id.split('.')[-1]
+        
+        history_path = self.ckpt_path+'/history.txt'
+        with open(history_path, 'a') as file:
+            file.write(f'### Round {self.round} ###' + '\n')
+
+        self.saveckpt(path=self.ckpt_path+'/'+f'{self.round}.{self.state_id}')
+        
+        print('rewind to model version '+f'{self.round-1}.{self.state_id}'+', renamed as '+f'{self.round}.{self.state_id}')
+
+        return MultKAN.loadckpt(path=self.ckpt_path+'/'+str(model_id))
+    
+    
+    def checkout(self, model_id):
+        return MultKAN.loadckpt(path=self.ckpt_path+'/'+str(model_id))
 
     @property
     def width_in(self):
@@ -285,6 +353,7 @@ class MultKAN(nn.Module):
     
     def update_grid_from_samples(self, x):
         for l in range(self.depth):
+            #print(l)
             self.forward(x)
             self.act_fun[l].update_grid_from_samples(self.acts[l])
 
@@ -326,14 +395,14 @@ class MultKAN(nn.Module):
 
             x = x_numerical + x_symbolic
             
-            if self.save_plot_data:
+            if self.save_act:
                 # save subnode_scale
                 self.subnode_actscale.append(torch.std(x, dim=0).detach())
             
             # subnode affine transform
             x = self.subnode_scale[l][None,:] * x + self.subnode_bias[l][None,:]
             
-            if self.save_plot_data:
+            if self.save_act:
                 postacts = postacts_numerical + postacts_symbolic
 
                 # self.neurons_scale.append(torch.mean(torch.abs(x), dim=0))
@@ -454,11 +523,13 @@ class MultKAN(nn.Module):
         
         global Symbol
         
-        if not self.save_plot_data:
-            print('cannot plot since data are not saved. Set save_plot_data=True first.')
+        if not self.save_act:
+            print('cannot plot since data are not saved. Set save_act=True first.')
         
         # forward to obtain activations
         if self.acts == None:
+            if self.cache_data == None:
+                raise Exception('model hasn\'t seen any data yet.')
             self.forward(self.cache_data)
             
         if metric == 'fa':
@@ -713,11 +784,32 @@ class MultKAN(nn.Module):
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(self.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
+            
+            
+            
+            
     def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
-              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=1000., reg_metric='fa'):
+              small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=1000., reg_metric='fa', display_metrics=None):
 
-        if lamb > 0. and not self.save_plot_data:
-            print('setting lamb=0. If you want to set lamb > 0, set self.save_plot_data=True')
+        if lamb > 0. and not self.save_act:
+            print('setting lamb=0. If you want to set lamb > 0, set self.save_act=True')
+            
+        old_save_act = self.save_act
+        if lamb == 0.:
+            self.save_act = False
+            
+            
+        # skip symbolic if no symbolic is turned on
+        depth = len(self.symbolic_fun)
+        no_symbolic = True
+        for l in range(depth):
+            no_symbolic *= torch.sum(torch.abs(self.symbolic_fun[l].mask)) == 0
+
+        old_symbolic_enabled = self.symbolic_enabled
+
+        if no_symbolic:
+            self.symbolic_enabled = False
+
         
         def reg(acts_scale):
 
@@ -782,7 +874,7 @@ class MultKAN(nn.Module):
             optimizer.zero_grad()
             pred = self.forward(dataset['train_input'][train_id].to(self.device), singularity_avoiding=singularity_avoiding, y_th=y_th)
             train_loss = loss_fn(pred, dataset['train_label'][train_id].to(self.device))
-            if self.save_plot_data:
+            if self.save_act:
                 if reg_metric == 'act':
                     reg_ = reg(self.acts_scale_spline)
                 if reg_metric == 'fa':
@@ -798,8 +890,13 @@ class MultKAN(nn.Module):
             if not os.path.exists(img_folder):
                 os.makedirs(img_folder)
 
+        
+        
         for _ in pbar:
-
+            
+            if _ == steps-1 and old_save_act:
+                self.save_act = True
+            
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
 
@@ -812,7 +909,7 @@ class MultKAN(nn.Module):
             if opt == "Adam":
                 pred = self.forward(dataset['train_input'][train_id].to(self.device), singularity_avoiding=singularity_avoiding, y_th=y_th)
                 train_loss = loss_fn(pred, dataset['train_label'][train_id].to(self.device))
-                if self.save_plot_data:
+                if self.save_act:
                     if reg_metric == 'act':
                         reg_ = reg(self.acts_scale_spline)
                     if reg_metric == 'fa':
@@ -826,10 +923,8 @@ class MultKAN(nn.Module):
                 optimizer.step()
 
             test_loss = loss_fn_eval(self.forward(dataset['test_input'][test_id].to(self.device)), dataset['test_label'][test_id].to(self.device))
-
-            if _ % log == 0:
-                pbar.set_description("train loss: %.2e | test loss: %.2e | reg: %.2e " % (torch.sqrt(train_loss).cpu().detach().numpy(), torch.sqrt(test_loss).cpu().detach().numpy(), reg_.cpu().detach().numpy()))
-
+            
+            
             if metrics != None:
                 for i in range(len(metrics)):
                     results[metrics[i].__name__].append(metrics[i]().item())
@@ -838,16 +933,38 @@ class MultKAN(nn.Module):
             results['test_loss'].append(torch.sqrt(test_loss).cpu().detach().numpy())
             results['reg'].append(reg_.cpu().detach().numpy())
 
+            if _ % log == 0:
+                if display_metrics == None:
+                    pbar.set_description("| train_loss: %.2e | test_loss: %.2e | reg: %.2e | " % (torch.sqrt(train_loss).cpu().detach().numpy(), torch.sqrt(test_loss).cpu().detach().numpy(), reg_.cpu().detach().numpy()))
+                else:
+                    string = ''
+                    data = ()
+                    for metric in display_metrics:
+                        string += f' {metric}: %.2e |'
+                        try:
+                            results[metric]
+                        except:
+                            raise Exception(f'{metric} not recognized')
+                        data += (results[metric][-1],)
+                    pbar.set_description(string % data)
+                    
+                
+            
             if save_fig and _ % save_fig_freq == 0:
                 self.plot(folder=img_folder, in_vars=in_vars, out_vars=out_vars, title="Step {}".format(_), beta=beta)
                 plt.savefig(img_folder + '/' + str(_) + '.jpg', bbox_inches='tight', dpi=200)
                 plt.close()
 
-        self.log_history('train')
+        self.log_history('fit')
+        # revert back to original state
+        self.symbolic_enabled = old_symbolic_enabled
         return results
 
     def prune_node(self, threshold=1e-2, mode="auto", active_neurons_id=None, log_history=True):
 
+        if self.acts == None:
+            self.get_act()
+        
         mask_up = [torch.ones(self.width_in[0], )]
         mask_down = []
         active_neurons_up = [list(range(self.width_in[0]))]
@@ -915,7 +1032,7 @@ class MultKAN(nn.Module):
                 if i not in active_neurons_down[l]:
                     self.remove_node(l + 1, i, mode='down',log_history=False)
 
-        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun_name, device=self.device, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id)
+        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun_name, device=self.device, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id, round=self.round)
         model2.load_state_dict(self.state_dict())
         
         width_new = [self.width[0]]
@@ -958,6 +1075,10 @@ class MultKAN(nn.Module):
         return model2
     
     def prune_edge(self, threshold=3e-2, log_history=True):
+        
+        if self.acts == None:
+            self.get_act()
+        
         for i in range(len(self.width)-1):
             #self.act_fun[i].mask.data = ((self.acts_scale[i] > threshold).permute(1,0)).float()
             old_mask = self.act_fun[i].mask.data
@@ -967,6 +1088,10 @@ class MultKAN(nn.Module):
             self.log_history('fix_symbolic')
     
     def prune(self, node_th=1e-2, edge_th=3e-2):
+        
+        if self.acts == None:
+            self.get_act()
+        
         self = self.prune_node(node_th, log_history=False)
         #self.prune_node(node_th, log_history=False)
         self.forward(self.cache_data)
@@ -987,7 +1112,7 @@ class MultKAN(nn.Module):
         else:
             input_id = torch.tensor(active_inputs, dtype=torch.long)
         
-        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun, device=self.device, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id)
+        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun, device=self.device, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id, round=self.round)
         model2.load_state_dict(self.state_dict())
 
         model2.act_fun[0] = model2.act_fun[0].get_subset(input_id, torch.arange(self.width_out[1]))
@@ -1030,7 +1155,7 @@ class MultKAN(nn.Module):
     def attribute(self):
         
         if self.acts == None:
-            print('the model has not seen any data yet :). Do you forward pass first with model(data).')
+            self.get_act()
 
         def score_node2subnode(node_score, width, mult_arity):
 
@@ -1484,17 +1609,25 @@ class MultKAN(nn.Module):
         
     def speed(self, compile=False):
         self.symbolic_enabled=False
-        self.save_plot_data=False
+        self.save_act=False
         self.auto_save=False
         if compile == True:
             return torch.compile(self)
         else:
             return self
         
-    def get_act(self, x):
+    def get_act(self, x=None):
         if isinstance(x, dict):
             x = x['train_input']
+        if x == None:
+            if self.cache_data != None:
+                x = self.cache_data
+            else:
+                raise Exception("missing input data x")
+        save_act = self.save_act
+        self.save_act = True
         self.forward(x)
+        self.save_act = save_act
         
     def get_fun(self, l, i, j):
         inputs = self.spline_preacts[l][:,j,i]
@@ -1507,4 +1640,32 @@ class MultKAN(nn.Module):
         plt.plot(inputs, outputs, marker="o")
         return inputs, outputs
         
+        
+    def history(self, k='all'):
+        
+        with open(self.ckpt_path+'/history.txt', 'r') as f:
+            data = f.readlines()
+            n_line = len(data)
+            if k == 'all':
+                k = n_line
+
+            data = data[-k:]
+            for line in data:
+                print(line[:-1])
+    @property
+    def n_edge(self):
+        depth = len(self.act_fun)
+        complexity = 0
+        for l in range(depth):
+            complexity += torch.sum(self.act_fun[l].mask > 0.)
+        return complexity.item()
+    
+    def evaluate(self, dataset):
+        evaluation = {}
+        evaluation['test_loss'] = torch.sqrt(torch.mean((self.forward(dataset['test_input']) - dataset['test_label'])**2)).item()
+        evaluation['n_edge'] = self.n_edge
+        evaluation['n_grid'] = self.grid
+        # add other metrics (maybe accuracy)
+        return evaluation
+
 KAN = MultKAN
