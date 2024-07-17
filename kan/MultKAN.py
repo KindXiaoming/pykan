@@ -713,7 +713,7 @@ class MultKAN(nn.Module):
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(self.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
-    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
+    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=None,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
               small_mag_threshold=1e-16, small_reg_factor=1., metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', device='cpu', singularity_avoiding=False, y_th=1000., reg_metric='fa'):
 
         if lamb > 0. and not self.save_plot_data:
@@ -754,11 +754,18 @@ class MultKAN(nn.Module):
         grid_update_freq = int(stop_grid_update_step / grid_update_num)
 
         if opt == "Adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(self.parameters())
+
+            if lr is not None:
+                optimizer.param_groups[0]['lr'] = lr
+
         elif opt == "LBFGS":
-            optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, line_search_fn="strong_wolfe", tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+            optimizer = LBFGS(self.parameters(), history_size=10, line_search_fn="strong_wolfe", tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
             #optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
             #optimizer = LBFGS(self.parameters(), lr=lr, history_size=10, debug=True)
+
+            if lr is not None:
+                optimizer.param_groups[0]['lr'] = lr
 
         results = {}
         results['train_loss'] = []
