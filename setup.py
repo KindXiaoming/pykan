@@ -18,6 +18,8 @@ setuptools.setup(
     package_data={  
         'pykan': [
             'figures/lock.png',
+            'assets/img/sum_symbol.png',
+            'assets/img/mult_symbol.png',
         ],
     },
     classifiers=[
