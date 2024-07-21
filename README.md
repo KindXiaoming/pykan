@@ -69,7 +69,7 @@ pip
 **For developers**
 
 ```
-pip clone https://github.com/KindXiaoming/pykan.git
+git clone https://github.com/KindXiaoming/pykan.git
 cd pykan
 pip install -e .
 ```
