@@ -1,0 +1,4 @@
+### Round 0 ###
+init => 0.0
+0.0 => fit => 0.1
+0.1 => prune_input => 0.2

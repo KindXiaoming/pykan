@@ -79,7 +79,7 @@ def batch_grad_normgrad(model, x, group, create_graph=False):
     def jac(x):
         input_grad = batch_jacobian(model, x, create_graph=True)
         input_grad_A = input_grad[:,group_A]
-        norm = torch.norm(input_grad_A, dim=1, keepdim=True)
+        norm = torch.norm(input_grad_A, dim=1, keepdim=True) + 1e-6
         input_grad_A_normalized = input_grad_A/norm
         return input_grad_A_normalized
     
@@ -131,8 +131,9 @@ def test_separability(model, x, groups, mode='add', threshold=1e-2, bias=0):
     # external test
     group_id = [x for xs in groups for x in xs]
     nongroup_id = list(set(range(x.shape[1])) - set(group_id))
-    if len(nongroup_id) > 0:
-        sep_bool = torch.max(score_mat[group_id][:,nongroup_id]) < threshold 
+    if len(nongroup_id) > 0 and len(group_id) > 0:
+        print(score_mat, group_id, nongroup_id)
+        sep_bool *= torch.max(score_mat[group_id][:,nongroup_id]) < threshold 
 
     return sep_bool
 
@@ -157,7 +158,7 @@ def test_general_separability(model, x, groups, threshold=1e-2):
     return gensep_bool
 
 
-def get_molecule(model, x, sym_th=1e-3):
+def get_molecule(model, x, sym_th=1e-3, verbose=True):
 
     n = x.shape[1]
     atoms = [[i] for i in range(n)]
@@ -168,6 +169,7 @@ def get_molecule(model, x, sym_th=1e-3):
     last_n_molecule = n
     
     while True:
+        
 
         pointer = 0
         current_molecule = []
@@ -175,9 +177,12 @@ def get_molecule(model, x, sym_th=1e-3):
         n_atom = 0
 
         while len(atoms) > 0:
-
+            
             # assemble molecule
             atom = atoms[pointer]
+            if verbose:
+                print(current_molecule)
+                print(atom)
 
             if len(current_molecule) == 0:
                 full = False
@@ -212,7 +217,9 @@ def get_molecule(model, x, sym_th=1e-3):
                 
         # if not making progress, terminate
         if len(molecules) == last_n_molecule:
-            moleculess.append([list(range(n))])
+            def flatten(xss):
+                return [x for xs in xss for x in xs]
+            moleculess.append([flatten(molecules)])
             break
         else:
             moleculess.append(copy.deepcopy(molecules))
@@ -226,6 +233,8 @@ def get_molecule(model, x, sym_th=1e-3):
         molecules = []
         
         n_layer += 1
+        
+        #print(n_layer, atoms)
         
         
     # sort
@@ -251,7 +260,7 @@ def get_molecule(model, x, sym_th=1e-3):
     return moleculess
 
 
-def get_tree_node(model, x, moleculess, sep_th=1e-2):
+def get_tree_node(model, x, moleculess, sep_th=1e-2, skip_test=True):
 
     arities = []
     properties = []
@@ -280,13 +289,20 @@ def get_tree_node(model, x, moleculess, sep_th=1e-2):
             else:
                 property = ''
                 # test property
-                gensep_bool = test_general_separability(model, x, groups, threshold=sep_th)
+                if skip_test:
+                    gensep_bool = False
+                else:
+                    gensep_bool = test_general_separability(model, x, groups, threshold=sep_th)
+                    
                 if gensep_bool:
                     property = 'GS'
                 if l == depth - 1:
-                    add_bool = test_separability(model, x, groups, mode='add', threshold=sep_th)
-
-                    mul_bool = test_separability(model, x, groups, mode='mul', threshold=sep_th)
+                    if skip_test:
+                        add_bool = False
+                        mul_bool = False
+                    else:
+                        add_bool = test_separability(model, x, groups, mode='add', threshold=sep_th)
+                        mul_bool = test_separability(model, x, groups, mode='mul', threshold=sep_th)
                     if add_bool:
                         property = 'Add'
                     if mul_bool:
@@ -302,10 +318,10 @@ def get_tree_node(model, x, moleculess, sep_th=1e-2):
     return arities, properties
 
 
-def plot_tree(model, x, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1):
+def plot_tree(model, x, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=True):
     
-    moleculess = get_molecule(model, x, sym_th=sym_th)
-    arities, properties = get_tree_node(model, x, moleculess, sep_th=sep_th)
+    moleculess = get_molecule(model, x, sym_th=sym_th, verbose=verbose)
+    arities, properties = get_tree_node(model, x, moleculess, sep_th=sep_th, skip_test=skip_sep_test)
 
     n = x.shape[1]
     var = None

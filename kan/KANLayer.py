@@ -311,3 +311,21 @@ class KANLayer(nn.Module):
         spb.in_dim = len(in_id)
         spb.out_dim = len(out_id)
         return spb
+    
+    
+    def swap(self, i1, i2, mode='in'):
+        
+        with torch.no_grad():
+            def swap_(data, i1, i2, mode='in'):
+                if mode == 'in':
+                    data[i1], data[i2] = data[i2].clone(), data[i1].clone()
+                elif mode == 'out':
+                    data[:,i1], data[:,i2] = data[:,i2].clone(), data[:,i1].clone()
+
+            if mode == 'in':
+                swap_(self.grid.data, i1, i2, mode='in')
+            swap_(self.coef.data, i1, i2, mode=mode)
+            swap_(self.scale_base.data, i1, i2, mode=mode)
+            swap_(self.scale_sp.data, i1, i2, mode=mode)
+            swap_(self.mask.data, i1, i2, mode=mode)
+

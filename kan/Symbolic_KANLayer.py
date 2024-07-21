@@ -247,3 +247,28 @@ class Symbolic_KANLayer(nn.Module):
             else:
                 self.affine.data[j][i] = torch.rand(4,) * 2 - 1
             return None
+        
+    def swap(self, i1, i2, mode='in'):
+
+        with torch.no_grad():
+            def swap_list_(data, i1, i2, mode='in'):
+
+                if mode == 'in':
+                    for j in range(self.out_dim):
+                        data[j][i1], data[j][i2] = data[j][i2], data[j][i1]
+
+                elif mode == 'out':
+                    data[i1], data[i2] = data[i2], data[i1] 
+
+            def swap_(data, i1, i2, mode='in'):
+                if mode == 'in':
+                    data[:,i1], data[:,i2] = data[:,i2].clone(), data[:,i1].clone()
+
+                elif mode == 'out':
+                    data[i1], data[i2] = data[i2].clone(), data[i1].clone()
+
+            swap_list_(self.funs_name,i1,i2,mode)
+            swap_list_(self.funs_sympy,i1,i2,mode)
+            swap_list_(self.funs_avoid_singularity,i1,i2,mode)
+            swap_(self.affine.data,i1,i2,mode)
+            swap_(self.mask.data,i1,i2,mode)
