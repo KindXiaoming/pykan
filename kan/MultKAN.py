@@ -155,7 +155,7 @@ class MultKAN(nn.Module):
             # spb = spb_parent
             preacts = another_model.spline_preacts[l]
             postsplines = another_model.spline_postsplines[l]
-            self.act_fun[l].coef.data = curve2coef(preacts[:,0,:], postsplines.permute(0,2,1), spb.grid, k=spb.k)
+            #self.act_fun[l].coef.data = curve2coef(preacts[:,0,:], postsplines.permute(0,2,1), spb.grid, k=spb.k)
             self.act_fun[l].scale_base.data = another_model.act_fun[l].scale_base.data
             self.act_fun[l].scale_sp.data = another_model.act_fun[l].scale_sp.data
             self.act_fun[l].mask.data = another_model.act_fun[l].mask.data
@@ -170,7 +170,7 @@ class MultKAN(nn.Module):
         for l in range(self.depth):
             self.symbolic_fun[l] = another_model.symbolic_fun[l]
 
-        return self.to(device)
+        return self
     
     def log_history(self, method_name): 
 

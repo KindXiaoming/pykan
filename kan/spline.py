@@ -120,7 +120,7 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
     return y_eval
 
 
-def curve2coef(x_eval, y_eval, grid, k):
+def curve2coef(x_eval, y_eval, grid, k, lamb=1e-4):
     '''
     converting B-spline curves to B-spline coefficients using least squares.
     
@@ -163,10 +163,20 @@ def curve2coef(x_eval, y_eval, grid, k):
     mat = mat.permute(1,0,2)[:,None,:,:].expand(in_dim, out_dim, batch, n_coef) # (in_dim, out_dim, batch, n_coef)
     # coef shape: (in_dim, outdim, G+k) 
     y_eval = y_eval.permute(1,2,0).unsqueeze(dim=3) # y_eval: (in_dim, out_dim, batch, 1)
-    #print(mat)
     device = mat.device
-    coef = torch.linalg.lstsq(mat, y_eval,
-                              driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
+    
+    
+    #coef = torch.linalg.lstsq(mat, y_eval,
+                             # driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
+        
+    XtX = torch.einsum('ijmn,ijnp->ijmp', mat.permute(0,1,3,2), mat)
+    Xty = torch.einsum('ijmn,ijnp->ijmp', mat.permute(0,1,3,2), y_eval)
+    n1, n2, n = XtX.shape[0], XtX.shape[1], XtX.shape[2]
+    identity = torch.eye(n,n)[None, None, :, :].expand(n1, n2, n, n)
+    A = XtX + lamb * identity
+    B = Xty
+    coef = (A.pinverse() @ B)[:,:,:,0]
+
     return coef
 
 

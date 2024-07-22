@@ -192,7 +192,7 @@ class KANLayer(nn.Module):
         y = torch.sum(y, dim=1)  # shape (batch, out_dim)
         return y, preacts, postacts, postspline
 
-    def update_grid_from_samples(self, x):
+    def update_grid_from_samples(self, x, mode='sample'):
         '''
         update grid from samples
         
@@ -215,21 +215,32 @@ class KANLayer(nn.Module):
         tensor([[-1.0000, -0.6000, -0.2000,  0.2000,  0.6000,  1.0000]])
         tensor([[-3.0002, -1.7882, -0.5763,  0.6357,  1.8476,  3.0002]])
         '''
+        
         batch = x.shape[0]
         #x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
         x_pos = torch.sort(x, dim=0)[0]
         y_eval = coef2curve(x_pos, self.grid, self.coef, self.k)
         num_interval = self.grid.shape[1] - 1 - 2*self.k
-        ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
-        grid_adaptive = x_pos[ids, :].permute(1,0)
-        margin = 0.01
-        h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
-        grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :].to(x.device)
-        grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
+        
+        def get_grid(num_interval):
+            ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
+            grid_adaptive = x_pos[ids, :].permute(1,0)
+            h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
+            grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :].to(x.device)
+            grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
+            return grid
+        
+        grid = get_grid(num_interval)
+        
+        if mode == 'grid':
+            sample_grid = get_grid(2*num_interval)
+            x_pos = sample_grid.permute(1,0)
+            y_eval = coef2curve(x_pos, self.grid, self.coef, self.k)
+        
         self.grid.data = extend_grid(grid, k_extend=self.k)
         self.coef.data = curve2coef(x_pos, y_eval, self.grid, self.k)
 
-    def initialize_grid_from_parent(self, parent, x):
+    def initialize_grid_from_parent(self, parent, x, mode='sample'):
         '''
         update grid from a parent KANLayer & samples
         
@@ -257,19 +268,31 @@ class KANLayer(nn.Module):
         tensor([[-1.0000, -0.8000, -0.6000, -0.4000, -0.2000,  0.0000,  0.2000,  0.4000,
           0.6000,  0.8000,  1.0000]])
         '''
-        batch = x.shape[0]
-        # preacts: shape (batch, in_dim) => shape (size, batch) (size = out_dim * in_dim)
-        #x_eval = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
-        x_eval = x
-        pgrid = parent.grid # (in_dim, G+2*k+1)
-        pk = parent.k
-        y_eval = coef2curve(x_eval, pgrid, parent.coef, pk)
         
-        h = (pgrid[:,[-pk]] - pgrid[:,[pk]])/self.num
-        grid = pgrid[:,[pk]] + torch.arange(self.num+1,) * h
+        batch = x.shape[0]
+        
+        x_pos = torch.sort(x, dim=0)[0]
+        y_eval = coef2curve(x_pos, parent.grid, parent.coef, parent.k)
+        num_interval = self.grid.shape[1] - 1 - 2*self.k
+        
+        def get_grid(num_interval):
+            ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
+            grid_adaptive = x_pos[ids, :].permute(1,0)
+            h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
+            grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :].to(x.device)
+            grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
+            return grid
+        
+        grid = get_grid(num_interval)
+        
+        if mode == 'grid':
+            sample_grid = get_grid(2*num_interval)
+            x_pos = sample_grid.permute(1,0)
+            y_eval = coef2curve(x_pos, parent.grid, parent.coef, parent.k)
+        
         grid = extend_grid(grid, k_extend=self.k)
         self.grid.data = grid
-        self.coef.data = curve2coef(x_eval, y_eval, self.grid, self.k)
+        self.coef.data = curve2coef(x_pos, y_eval, self.grid, self.k)
 
     def get_subset(self, in_id, out_id):
         '''
