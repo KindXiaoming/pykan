@@ -15,5 +15,5 @@ This is the github repository for the paper ["DropKAN: Regularizing KANs by mask
 ```
 
 ## Contact
-If you have any questions, please contact  mohammed_ghaith.altarabichi@hh.se
+For any questions, please contact:  mohammed_ghaith.altarabichi@hh.se
 
