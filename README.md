@@ -15,5 +15,9 @@ This is the github repo for the paper ["DropKAN: Regularizing KANs by masking po
 ```
 
 ## Contact
-If you have any questions, please contact  mohammed\_ghaith.altarabichi@hh.se
+If you have any questions, please contact:
+Mohammed Ghaith Altarabichi \\
+Center for Applied Intelligent Systems Research
+Halmstad University, Sweden
+mohammed_ghaith.altarabichi@hh.se
 
