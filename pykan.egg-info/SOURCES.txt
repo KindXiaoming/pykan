@@ -4,8 +4,15 @@ setup.py
 kan/KAN.py
 kan/KANLayer.py
 kan/LBFGS.py
+kan/MLP.py
+kan/MultKAN.py
 kan/Symbolic_KANLayer.py
 kan/__init__.py
+kan/ckpt.py
+kan/compiler.py
+kan/experiment.py
+kan/feynman.py
+kan/hypothesis.py
 kan/spline.py
 kan/utils.py
 kan/assets/img/mult_symbol.png
