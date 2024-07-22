@@ -9,9 +9,9 @@ For pypi users, this is the most recent version 0.2.1.
 
 New functionalities include (documentation later):
 * including multiplications in KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_1_Hello%2C%20MultKAN.ipynb)
-* the speed mode. Speed up your KAN using `model = model.speed()` if you never use the symbolic functionalities. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Example_2_speed_up.ipynb)
 * Compiling symbolic formulas into KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_3_KAN_Compiler.ipynb)
 * Feature attribution and pruning inputs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_4_feature_attribution.ipynb)
+* Using GPUs. It works on my end: please try the [tuotorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/API_10_device.ipynb) and let me know if it works on your end.
 
 # Kolmogorov-Arnold Networks (KANs)
 
