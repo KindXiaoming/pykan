@@ -120,7 +120,7 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
     return y_eval
 
 
-def curve2coef(x_eval, y_eval, grid, k, lamb=1e-4):
+def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
     '''
     converting B-spline curves to B-spline coefficients using least squares.
     

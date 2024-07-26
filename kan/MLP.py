@@ -10,7 +10,7 @@ torch.manual_seed(seed)
 
 class MLP(nn.Module):
     
-    def __init__(self, width, act='silu', save_act=True, seed=0, device='cpu'):
+    def __init__(self, width, act='identity', save_act=True, seed=0, device='cpu'):
         super(MLP, self).__init__()
         
         torch.manual_seed(seed)
@@ -22,8 +22,12 @@ class MLP(nn.Module):
             linears.append(nn.Linear(width[i], width[i+1]))
         self.linears = nn.ModuleList(linears)
         
-        #if activation == 'silu':
-        self.act_fun = torch.nn.SiLU()
+        if act == 'silu':
+            self.act_fun = torch.nn.SiLU()
+        elif act == 'relu':
+            self.act_fun = torch.nn.ReLU()
+        elif act == 'identity':
+            self.act_fun = torch.nn.Identity()
         self.save_act = save_act
         self.acts = None
         self.device = device

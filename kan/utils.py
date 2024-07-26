@@ -4,6 +4,8 @@ from sklearn.linear_model import LinearRegression
 import sympy
 import yaml
 from sympy.utilities.lambdify import lambdify
+import copy
+import re
 
 # sigmoid = sympy.Function('sigmoid')
 # name: (torch implementation, sympy implementation)
@@ -348,3 +350,104 @@ def batch_hessian(model, x, create_graph=False):
     def _jac_sum(x):
         return jac(x).sum(dim=0)
     return torch.autograd.functional.jacobian(_jac_sum, x, create_graph=create_graph).permute(1,0,2)
+
+
+def model2param(model):
+    p = torch.tensor([])
+    for params in model.parameters():
+        p = torch.cat([p, params.reshape(-1,)], dim=0)
+    return p
+
+
+def get_derivative(model, inputs, labels, derivative='hessian', loss_mode='pred', reg_metric='w', lamb=0., lamb_l1=1., lamb_entropy=0.):
+    
+    def get_mapping(model):
+
+        mapping = {}
+        name = 'model1'
+
+        keys = list(model.state_dict().keys())
+        for key in keys:
+
+            y = re.findall(".[0-9]+", key)
+            if len(y) > 0:
+                y = y[0][1:]
+                x = re.split(".[0-9]+", key)
+                mapping[key] = name + '.' + x[0] + '[' + y + ']' + x[1]
+
+
+            y = re.findall("_[0-9]+", key)
+            if len(y) > 0:
+                y = y[0][1:]
+                x = re.split(".[0-9]+", key)
+                mapping[key] = name + '.' + x[0] + '[' + y + ']'
+
+        return mapping
+
+    
+    #model1 = copy.deepcopy(model)
+    model1 = model.copy()
+    mapping = get_mapping(model)
+   
+    # collect keys and shapes
+    keys = list(model.state_dict().keys())
+    shapes = []
+
+    for params in model.parameters():
+        shapes.append(params.shape)
+
+
+    # turn a flattened vector to model params
+    def param2statedict(p, keys, shapes):
+
+        new_state_dict = {}
+
+        start = 0
+        n_group = len(keys)
+        for i in range(n_group):
+            shape = shapes[i]
+            n_params = torch.prod(torch.tensor(shape))
+            new_state_dict[keys[i]] = p[start:start+n_params].reshape(shape)
+            start += n_params
+
+        return new_state_dict
+    
+    def differentiable_load_state_dict(mapping, state_dict, model1):
+
+        for key in keys:
+            if mapping[key][-1] != ']':
+                exec(f"del {mapping[key]}")
+            exec(f"{mapping[key]} = state_dict[key]")
+            
+
+    # input: p, output: output
+    def get_param2loss_fun(inputs, labels):
+
+        def param2loss_fun(p):
+
+            p = p[0]
+            state_dict = param2statedict(p, keys, shapes)
+            # this step is non-differentiable
+            #model.load_state_dict(state_dict)
+            differentiable_load_state_dict(mapping, state_dict, model1)
+            if loss_mode == 'pred':
+                pred_loss = torch.mean((model1(inputs) - labels)**2, dim=(0,1), keepdim=True)
+                loss = pred_loss
+            elif loss_mode == 'reg':
+                reg_loss = model1.get_reg(reg_metric=reg_metric, lamb_l1=lamb_l1, lamb_entropy=lamb_entropy) * torch.ones(1,1)
+                loss = reg_loss
+            elif loss_mode == 'all':
+                pred_loss = torch.mean((model1(inputs) - labels)**2, dim=(0,1), keepdim=True)
+                reg_loss = model1.get_reg(reg_metric=reg_metric, lamb_l1=lamb_l1, lamb_entropy=lamb_entropy) * torch.ones(1,1)
+                loss = pred_loss + lamb * reg_loss
+            return loss
+
+        return param2loss_fun
+    
+    fun = get_param2loss_fun(inputs, labels)    
+    p = model2param(model)[None,:]
+    if derivative == 'hessian':
+        result = batch_hessian(fun, p)
+    elif derivative == 'jacobian':
+        result = batch_jacobian(fun, p)
+    return result

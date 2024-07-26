@@ -290,6 +290,11 @@ class MultKAN(nn.Module):
                     model_load.symbolic_fun[l].funs_avoid_singularity[j][i] = SYMBOLIC_LIB[fun_name][3]
         return model_load
     
+    def copy(self):
+        path='copy_temp'
+        self.saveckpt(path)
+        return KAN.loadckpt(path)
+    
     def rewind(self, model_id):
         
         self.round += 1
@@ -793,14 +798,17 @@ class MultKAN(nn.Module):
         if reg_metric == 'edge_forward_n':
             acts_scale = self.acts_scale_spline
             
-        if reg_metric == 'edge_forward_u':
+        elif reg_metric == 'edge_forward_u':
             acts_scale = self.edge_actscale
             
-        if reg_metric == 'edge_backward':
+        elif reg_metric == 'edge_backward':
             acts_scale = self.edge_scores
             
-        if reg_metric == 'node_backward':
+        elif reg_metric == 'node_backward':
             acts_scale = self.node_attribute_scores
+            
+        else:
+            raise Exception(f'reg_metric = {reg_metric} not recognized!')
         
         reg_ = 0.
         for i in range(len(acts_scale)):
@@ -830,12 +838,8 @@ class MultKAN(nn.Module):
     def get_reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff):
         return self.reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff)
     
-    def disable_symbolic_in_fit(self, lamb):
-        
-        old_save_act = self.save_act
-        if lamb == 0.:
-            self.save_act = False
-            
+    def disable_symbolic_in_fit(self):
+                    
         # skip symbolic if no symbolic is turned on
         depth = len(self.symbolic_fun)
         no_symbolic = True
@@ -847,7 +851,22 @@ class MultKAN(nn.Module):
         if no_symbolic:
             self.symbolic_enabled = False
             
-        return old_save_act, old_symbolic_enabled
+        return old_symbolic_enabled
+    
+    def disable_save_act_in_fit(self, lamb):
+        
+        old_save_act = self.save_act
+        if lamb == 0.:
+            self.save_act = False
+                      
+        return old_save_act
+    
+    def recover_symbolic_in_fit(self, old_symbolic_enabled):
+        self.symbolic_enabled = old_symbolic_enabled
+        
+    def recover_save_act_in_fit(self, old_save_act):
+        if old_save_act == True:
+            self.save_act = True
     
     def get_params(self):
         return self.parameters()
@@ -859,7 +878,8 @@ class MultKAN(nn.Module):
         if lamb > 0. and not self.save_act:
             print('setting lamb=0. If you want to set lamb > 0, set self.save_act=True')
             
-        old_save_act, old_symbolic_enabled = self.disable_symbolic_in_fit(lamb)
+        old_save_act = self.disable_save_act_in_fit(lamb)
+        old_symbolic_enabled = self.disable_symbolic_in_fit()
 
         pbar = tqdm(range(steps), desc='description', ncols=100)
 
@@ -916,7 +936,8 @@ class MultKAN(nn.Module):
         for _ in pbar:
             
             if _ == steps-1 and old_save_act:
-                self.save_act = True
+                #self.save_act = True
+                self.recover_save_act_in_fit()
             
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
@@ -977,7 +998,7 @@ class MultKAN(nn.Module):
 
         self.log_history('fit')
         # revert back to original state
-        self.symbolic_enabled = old_symbolic_enabled
+        self.recover_symbolic_in_fit(old_symbolic_enabled)
         return results
 
     def prune_node(self, threshold=1e-2, mode="auto", active_neurons_id=None, log_history=True):
@@ -1197,12 +1218,13 @@ class MultKAN(nn.Module):
             subnode_score = node_score[:,:width[0]]
             if isinstance(mult_arity, int):
                 #subnode_score[:,width[0]:] = node_score[:,width[0]:][:,:,None].expand(out_dim, node_score[width[0]:].shape[0], mult_arity).reshape(out_dim,-1)
-                subnode_score = torch.cat([subnode_score, node_score[:,width[0]:][:,:,None].expand(out_dim, node_score[width[0]:].shape[0], mult_arity).reshape(out_dim,-1)], dim=1)
+                subnode_score = torch.cat([subnode_score, node_score[:,width[0]:][:,:,None].expand(out_dim, node_score[:,width[0]:].shape[1], mult_arity).reshape(out_dim,-1)], dim=1)
             else:
                 acml = width[0]
                 for i in range(len(mult_arity)):
                     #subnode_score[:, acml:acml+mult_arity[i]] = node_score[:, width[0]+i]
-                    subnode_score = torch.cat([subnode_score, node_score[:, width[0]+i]].expand(out_dim, mult_arity[i]), dim=1)
+                    
+                    subnode_score = torch.cat([subnode_score, node_score[:, width[0]+i].expand(out_dim, mult_arity[i])], dim=1)
                     acml += mult_arity[i]
             return subnode_score
 
@@ -1234,7 +1256,7 @@ class MultKAN(nn.Module):
                 subnode_score = score_node2subnode(node_score, self.width[l], self.mult_arity, out_dim=out_dim)
             else:
                 mult_arity = self.mult_arity[l]
-                subnode_score = score_node2subnode(node_score, self.width[l], mult_arity)
+                subnode_score = score_node2subnode(node_score, self.width[l], mult_arity, out_dim=out_dim)
 
             subnode_scores.append(subnode_score)
             # subnode to edge
@@ -1512,6 +1534,8 @@ class MultKAN(nn.Module):
         self.node_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable))
         self.subnode_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable))
         self.subnode_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable))
+        
+        self.log_history('expand_depth')
 
     def expand_width(self, layer_id, n_added_nodes, sum_bool=True, mult_arity=2):
         
@@ -1646,6 +1670,8 @@ class MultKAN(nn.Module):
 
             self.width[layer_id][1] += n_added_nodes
             self.mult_arity[layer_id] += mult_arity
+            
+        self.log_history('expand_width')
             
     def perturb(self, mag=0.02, mode='all'):
         if mode == 'all':
