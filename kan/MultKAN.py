@@ -935,9 +935,8 @@ class MultKAN(nn.Module):
 
         for _ in pbar:
             
-            if _ == steps-1 and old_save_act:
-                #self.save_act = True
-                self.recover_save_act_in_fit()
+            if _ == steps-1:
+                self.recover_save_act_in_fit(old_save_act)
             
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
