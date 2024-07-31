@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setuptools.setup(
     name="pykan",
-    version="0.2.2",
+    version="0.2.3",
     author="Ziming Liu",
     author_email="zmliu@mit.edu",
     description="Kolmogorov Arnold Networks",
