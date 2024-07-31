@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: "KAN: Kolmogorov-Arnold Networks"
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+preferred-citation:
+  type: article
+  authors:
+    - given-names: Ziming
+      family-names: Liu
+    - given-names: Yixuan
+      family-names: Wang
+    - given-names: Sachin
+      family-names: Vaidya
+    - given-names: Fabian
+      family-names: Ruehle
+    - given-names: James
+      family-names: Halverson
+    - given-names: Marin
+      family-names: 'Solja{\v{c}}i{\''c}'
+    - given-names: Thomas Y
+      family-names: Hou
+    - given-names: Max
+      family-names: Tegmark
+  doi: "10.48550/arXiv.2404.19756"
+  journal: "arXiv preprint arXiv:2404.19756"
+  title: "KAN: Kolmogorov-Arnold Networks"
+  year: 2024
+  repository-code: 'https://github.com/KindXiaoming/pykan'
+  url: 'https://kindxiaoming.github.io/pykan/'
+  license: MIT
