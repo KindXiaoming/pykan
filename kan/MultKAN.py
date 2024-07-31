@@ -364,9 +364,9 @@ class MultKAN(nn.Module):
 
     def forward(self, x, singularity_avoiding=False, y_th=10.):
         
-        assert x.shape[1] == self.width_in[0]
-        
         x = x[:,self.input_id.long()]
+        
+        assert x.shape[1] == self.width_in[0]
         
         # cache data
         self.cache_data = x
@@ -775,9 +775,9 @@ class MultKAN(nn.Module):
             n = self.width_in[0]
             for i in range(n):
                 if isinstance(in_vars[i], sympy.Expr):
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, f'${latex(in_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, f'${latex(in_vars[self.input_id[i]])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
                 else:
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, in_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), -0.1, in_vars[self.input_id[i]], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
                 
                 
 
@@ -873,7 +873,7 @@ class MultKAN(nn.Module):
         
             
     def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
-              metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_backward', display_metrics=None):
+              metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_forward_n', display_metrics=None):
 
         if lamb > 0. and not self.save_act:
             print('setting lamb=0. If you want to set lamb > 0, set self.save_act=True')
@@ -937,7 +937,7 @@ class MultKAN(nn.Module):
             
             if _ == steps-1 and old_save_act:
                 #self.save_act = True
-                self.recover_save_act_in_fit()
+                self.recover_save_act_in_fit(old_save_act)
             
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
