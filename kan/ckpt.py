@@ -48,7 +48,6 @@ def loadckpt(path='model'):
                  grid_range=config['grid_range'], 
                  sp_trainable=config['sp_trainable'],
                  sb_trainable=config['sb_trainable'],
-                 device=config['device'],
                  state_id=config['state_id'],
                  auto_save=config['auto_save'],
                  first_init=False,
