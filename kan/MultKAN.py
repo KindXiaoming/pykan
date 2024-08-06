@@ -24,7 +24,7 @@ from .hypothesis import plot_tree
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0):
         
         super(MultKAN, self).__init__()
 
@@ -55,11 +55,14 @@ class MultKAN(nn.Module):
         width_in = self.width_in
         width_out = self.width_out
         
-        self.base_fun_name = base_fun
-        if base_fun == 'silu':
-            base_fun = torch.nn.SiLU()
-        elif base_fun == 'identity':
-            base_fun = torch.nn.Identity()
+        if type(base_fun) != str: 
+            self.base_fun_name = f"{base_fun}".split("(")[0]
+        elif type(base_fun) == str:
+            try:
+                self.base_fun_name = base_fun    
+                base_fun = getattr(torch.nn, base_fun)()
+            except:
+                raise ValueError(f"You passed function which is not implemented in PyTorch\nVisit https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity")
             
         self.grid_eps = grid_eps
         self.grid_range = grid_range
