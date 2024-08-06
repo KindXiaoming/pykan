@@ -146,6 +146,7 @@ def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
     >>> x_eval = torch.normal(0,1,size=(num_spline, num_sample))
     >>> y_eval = torch.normal(0,1,size=(num_spline, num_sample))
     >>> grids = torch.einsum('i,j->ij', torch.ones(num_spline,), torch.linspace(-1,1,steps=num_grid_interval+1))
+    >>> curve2coef(x_eval, y_eval, grid, k, device="cpu").shape 
     torch.Size([5, 13])
     '''
     '''
