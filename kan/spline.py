@@ -113,7 +113,6 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
     '''
     # x_eval: (size, batch), grid: (size, grid), coef: (size, coef)
     # coef: (size, coef), B_batch: (size, coef, batch), summer over coef
-    
     b_splines = B_batch(x_eval, grid, k=k) # (batch, in_dim, n_coef)
     y_eval = torch.einsum('ijk,jlk->ijl', b_splines, coef.to(b_splines.device))
     
@@ -167,12 +166,12 @@ def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
     
     
     #coef = torch.linalg.lstsq(mat, y_eval,
-                             # driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
+                             #driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
         
     XtX = torch.einsum('ijmn,ijnp->ijmp', mat.permute(0,1,3,2), mat)
     Xty = torch.einsum('ijmn,ijnp->ijmp', mat.permute(0,1,3,2), y_eval)
     n1, n2, n = XtX.shape[0], XtX.shape[1], XtX.shape[2]
-    identity = torch.eye(n,n)[None, None, :, :].expand(n1, n2, n, n)
+    identity = torch.eye(n,n)[None, None, :, :].expand(n1, n2, n, n).to(device)
     A = XtX + lamb * identity
     B = Xty
     coef = (A.pinverse() @ B)[:,:,:,0]

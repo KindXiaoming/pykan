@@ -1,0 +1,28 @@
+affine_trainable: false
+auto_save: true
+base_fun_name: silu
+ckpt_path: ./model
+grid: 20
+grid_eps: 1.0
+grid_range:
+- -1
+- 1
+k: 3
+mult_arity: 2
+round: 1
+sb_trainable: true
+sp_trainable: true
+state_id: 7
+symbolic.funs_name.0:
+- - J0
+  - x^2
+symbolic.funs_name.1:
+- - exp
+symbolic_enabled: false
+width:
+- - 2
+  - 0
+- - 1
+  - 0
+- - 1
+  - 0

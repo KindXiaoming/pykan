@@ -160,6 +160,20 @@ def create_dataset(f,
     return dataset
 
 
+def create_dataset_from_data(inputs, labels, train_ratio=0.8):
+
+    num = inputs.shape[0]
+    train_id = np.random.choice(num, int(num*train_ratio), replace=False)
+    test_id = list(set(np.arange(num)) - set(train_id))
+    dataset = {}
+    dataset['train_input'] = inputs[train_id].detach()
+    dataset['test_input'] = inputs[test_id].detach()
+    dataset['train_label'] = labels[train_id].detach()
+    dataset['test_label'] = labels[test_id].detach()
+    
+    return dataset
+
+
 
 def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, iteration=3, verbose=True, device='cpu'):
     '''
@@ -225,7 +239,7 @@ def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, i
         y_mean = torch.mean(y, dim=[0], keepdim=True)
         numerator = torch.sum((post_fun - x_mean)*(y-y_mean)[:,None,None], dim=0)**2
         denominator = torch.sum((post_fun - x_mean)**2, dim=0)*torch.sum((y - y_mean)[:,None,None]**2, dim=0)
-        r2 = numerator/(denominator+1e-4)
+        r2 = numerator/(denominator+1e-16)
         r2 = torch.nan_to_num(r2)
         
         
@@ -328,7 +342,7 @@ def augment_input(orig_vars, aux_vars, x):
         for aux_var in aux_vars:
             func = lambdify(orig_vars, aux_var,'numpy') # returns a numpy-ready function
             aux_value = torch.from_numpy(func(*[x[:,[i]].numpy() for i in range(len(orig_vars))]))
-            x = torch.cat([x, aux_value], dim=1)
+            x = torch.cat([aux_value, x], dim=1)
 
     # if x is a dataset
     elif isinstance(x, dict):
@@ -338,11 +352,14 @@ def augment_input(orig_vars, aux_vars, x):
     return x
 
 
-def batch_jacobian(func, x, create_graph=False):
+def batch_jacobian(func, x, create_graph=False, mode='scalar'):
     # x in shape (Batch, Length)
     def _func_sum(x):
         return func(x).sum(dim=0)
-    return torch.autograd.functional.jacobian(_func_sum, x, create_graph=create_graph)[0]
+    if mode == 'scalar':
+        return torch.autograd.functional.jacobian(_func_sum, x, create_graph=create_graph)[0]
+    elif mode == 'vector':
+        return torch.autograd.functional.jacobian(_func_sum, x, create_graph=create_graph).permute(1,0,2)
 
 def batch_hessian(model, x, create_graph=False):
     # x in shape (Batch, Length)
@@ -353,10 +370,39 @@ def batch_hessian(model, x, create_graph=False):
 
 
 def model2param(model):
+    # turn a model weights to a flattened vector    
     p = torch.tensor([])
     for params in model.parameters():
         p = torch.cat([p, params.reshape(-1,)], dim=0)
     return p
+
+def model2param(model):
+    p = torch.tensor([])
+    for params in model.parameters():
+        p = torch.cat([p, params.reshape(-1,)], dim=0)
+    return p
+
+
+def param2statedict(p, model):
+    
+    keys = list(model.state_dict().keys())
+    shapes = []
+
+    for params in model.parameters():
+        shapes.append(params.shape)
+
+    new_state_dict = {}
+
+    start = 0
+    n_group = len(keys)
+    for i in range(n_group):
+        shape = shapes[i]
+        n_params = torch.prod(torch.tensor(shape))
+        new_state_dict[keys[i]] = p[start:start+n_params].reshape(shape)
+        start += n_params
+
+    return new_state_dict
+
 
 
 def get_derivative(model, inputs, labels, derivative='hessian', loss_mode='pred', reg_metric='w', lamb=0., lamb_l1=1., lamb_entropy=0.):

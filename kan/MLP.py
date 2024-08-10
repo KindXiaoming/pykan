@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from .LBFGS import LBFGS
+from .hypothesis import plot_tree
+from .utils import model2param, param2statedict
 
 seed = 0
 torch.manual_seed(seed)
 
 class MLP(nn.Module):
     
-    def __init__(self, width, act='identity', save_act=True, seed=0, device='cpu'):
+    def __init__(self, width, act='silu', save_act=True, seed=0, device='cpu'):
         super(MLP, self).__init__()
         
         torch.manual_seed(seed)
@@ -32,8 +34,10 @@ class MLP(nn.Module):
         self.acts = None
         self.device = device
         
+        self.cache_data = None
         
-    def get_act(self, x):
+        
+    def get_act(self, x=None):
         if isinstance(x, dict):
             x = x['train_input']
         if x == None:
@@ -51,6 +55,9 @@ class MLP(nn.Module):
         return [self.linears[l].weight for l in range(self.depth)]
         
     def forward(self, x):
+        
+        # cache data
+        self.cache_data = x
         
         self.acts = []
         self.acts_scale = []
@@ -188,7 +195,8 @@ class MLP(nn.Module):
         return self.reg(reg_metric, lamb_l1, lamb_entropy)
         
     def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., loss_fn=None, lr=1., batch=-1,
-              metrics=None, in_vars=None, out_vars=None, beta=3, device='cpu', reg_metric='w', display_metrics=None):
+              metrics=None, in_vars=None, out_vars=None, beta=3, device='cpu', reg_metric='w', display_metrics=None, save_ckpt=False, save_freq=1, save_folder='ckpt'):
+        
 
         if lamb > 0. and not self.save_act:
             print('setting lamb=0. If you want to set lamb > 0, set =True')
@@ -243,6 +251,9 @@ class MLP(nn.Module):
 
         for _ in pbar:
             
+            if save_ckpt and _ % save_freq == 0:
+                torch.save(self.state_dict(), f'./{save_folder}/{_}')
+            
             if _ == steps-1 and old_save_act:
                 self.save_act = True
             
@@ -291,3 +302,61 @@ class MLP(nn.Module):
                     pbar.set_description(string % data)
            
         return results
+    
+    @property
+    def connection_cost(self):
+
+        with torch.no_grad():
+            cc = 0.
+            for linear in self.linears:
+                t = torch.abs(linear.weight)
+                def get_coordinate(n):
+                    return torch.linspace(0,1,steps=n+1)[:n] + 1/(2*n)
+
+                in_dim = t.shape[0]
+                x_in = get_coordinate(in_dim)
+
+                out_dim = t.shape[1]
+                x_out = get_coordinate(out_dim)
+
+                dist = torch.abs(x_in[:,None] - x_out[None,:])
+                cc += torch.sum(dist * t)
+
+        return cc
+    
+    def swap(self, l, i1, i2):
+
+        def swap_row(data, i1, i2):
+            data[i1], data[i2] = data[i2].clone(), data[i1].clone()
+
+        def swap_col(data, i1, i2):
+            data[:,i1], data[:,i2] = data[:,i2].clone(), data[:,i1].clone()
+
+        swap_row(self.linears[l-1].weight.data, i1, i2)
+        swap_row(self.linears[l-1].bias.data, i1, i2)
+        swap_col(self.linears[l].weight.data, i1, i2)
+    
+    def auto_swap_l(self, l):
+
+        num = self.width[l]
+        for i in range(num):
+            ccs = []
+            for j in range(num):
+                self.swap(l,i,j)
+                self.get_act()
+                self.attribute()
+                cc = self.connection_cost.detach().clone()
+                ccs.append(cc)
+                self.swap(l,i,j)
+            j = torch.argmin(torch.tensor(ccs))
+            self.swap(l,i,j)
+
+    def auto_swap(self):
+        depth = self.depth
+        for l in range(1, depth):
+            self.auto_swap_l(l)
+            
+    def tree(self, x=None, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=False):
+        if x == None:
+            x = self.cache_data
+        plot_tree(self, x, in_var=in_var, style=style, sym_th=sym_th, sep_th=sep_th, skip_sep_test=skip_sep_test, verbose=verbose)

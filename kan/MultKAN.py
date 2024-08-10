@@ -24,7 +24,7 @@ from .hypothesis import plot_tree
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=0.3, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0):
         
         super(MultKAN, self).__init__()
 
@@ -60,6 +60,8 @@ class MultKAN(nn.Module):
             base_fun = torch.nn.SiLU()
         elif base_fun == 'identity':
             base_fun = torch.nn.Identity()
+        elif base_fun == 'zero':
+            base_fun = lambda x: x*0.
             
         self.grid_eps = grid_eps
         self.grid_range = grid_range
@@ -67,9 +69,7 @@ class MultKAN(nn.Module):
         
         for l in range(self.depth):
             # splines
-            scale_base = scale_base_mu * 1 / np.sqrt(width_in[l]) + \
-                         scale_base_sigma * (torch.randn(width_in[l], width_out[l + 1]) * 2 - 1) * 1/np.sqrt(width_in[l])
-            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
+            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base_mu=scale_base_mu, scale_base_sigma=scale_base_sigma, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
             self.act_fun.append(sp_batch)
 
         self.node_bias = []
@@ -522,11 +522,11 @@ class MultKAN(nn.Module):
             print('y range: [' + '%.2f' % y_min, ',', '%.2f' % y_max, ']')
         return x_min, x_max, y_min, y_max
 
-    def plot(self, folder="./figures", beta=3, mask=False, metric='backward', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, varscale=1.0):
+    def plot(self, folder="./figures", beta=3, mask=False, metric='backward', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, varscale=1.0, out_vars_offset=0.15):
         
         global Symbol
         
-        if not self.save_act:
+        if not self.save_act and self.cache_data == None:
             print('cannot plot since data are not saved. Set save_act=True first.')
         
         # forward to obtain activations
@@ -613,7 +613,7 @@ class MultKAN(nn.Module):
         elif metric == 'backward':
             scores = self.edge_scores
         else:
-            raise Exception(f'metric = \'{metric}\' not recognized')
+            raise Exception(f'metric = \'{metric}\' not recognized. choose \'forward_n\', \'forward_u\' or \'backward\'')
         
         alpha = [score2alpha(score.cpu().detach().numpy()) for score in scores]
             
@@ -785,20 +785,23 @@ class MultKAN(nn.Module):
             n = self.width_in[-1]
             for i in range(n):
                 if isinstance(out_vars[i], sympy.Expr):
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, f'${latex(out_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + out_vars_offset, f'${latex(out_vars[i])}$', fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
                 else:
-                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + 0.15, out_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
+                    plt.gcf().get_axes()[0].text(1 / (2 * (n)) + i / (n), (y0+z0) * (len(self.width) - 1) + out_vars_offset, out_vars[i], fontsize=40 * scale * varscale, horizontalalignment='center', verticalalignment='center')
 
         if title != None:
             plt.gcf().get_axes()[0].text(0.5, (y0+z0) * (len(self.width) - 1) + 0.3, title, fontsize=40 * scale, horizontalalignment='center', verticalalignment='center')
 
             
-    def reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff):
+    def reg(self, reg_metric='edge_forward_spline_n', lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., entropy_offset=1):
 
-        if reg_metric == 'edge_forward_n':
+        if reg_metric == 'edge_forward_spline_n':
             acts_scale = self.acts_scale_spline
             
-        elif reg_metric == 'edge_forward_u':
+        elif reg_metric == 'edge_forward_sum':
+            acts_scale = self.acts_scale
+            
+        elif reg_metric == 'edge_forward_spline_u':
             acts_scale = self.edge_actscale
             
         elif reg_metric == 'edge_backward':
@@ -813,10 +816,12 @@ class MultKAN(nn.Module):
         reg_ = 0.
         for i in range(len(acts_scale)):
             vec = acts_scale[i]
+            
+            #print(vec)
 
             l1 = torch.sum(vec)
-            p_row = vec / (torch.sum(vec, dim=1, keepdim=True) + 1)
-            p_col = vec / (torch.sum(vec, dim=0, keepdim=True) + 1)
+            p_row = vec / (torch.sum(vec, dim=1, keepdim=True) + entropy_offset)
+            p_col = vec / (torch.sum(vec, dim=0, keepdim=True) + entropy_offset)
             entropy_row = - torch.mean(torch.sum(p_row * torch.log2(p_row + 1e-4), dim=1))
             entropy_col = - torch.mean(torch.sum(p_col * torch.log2(p_col + 1e-4), dim=0))
             #entropy_row = torch.max(-torch.sum(p_row * torch.log2(p_row + 1e-4), dim=1))
@@ -835,8 +840,8 @@ class MultKAN(nn.Module):
 
         return reg_
     
-    def get_reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff):
-        return self.reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff)
+    def get_reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff, entropy_offset=1.):
+        return self.reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff, entropy_offset)
     
     def disable_symbolic_in_fit(self):
                     
@@ -872,8 +877,8 @@ class MultKAN(nn.Module):
         return self.parameters()
         
             
-    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
-              metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_forward_n', display_metrics=None):
+    def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, entropy_offset=1., lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
+              metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_forward_spline_n', display_metrics=None):
 
         if lamb > 0. and not self.save_act:
             print('setting lamb=0. If you want to set lamb > 0, set self.save_act=True')
@@ -887,6 +892,7 @@ class MultKAN(nn.Module):
             loss_fn = loss_fn_eval = lambda x, y: torch.mean((x - y) ** 2)
         else:
             loss_fn = loss_fn_eval = loss_fn
+            
 
         grid_update_freq = int(stop_grid_update_step / grid_update_num)
 
@@ -915,14 +921,16 @@ class MultKAN(nn.Module):
         def closure():
             global train_loss, reg_
             optimizer.zero_grad()
-            pred = self.forward(dataset['train_input'][train_id], singularity_avoiding=singularity_avoiding, y_th=y_th)
+            
+            pred = self.forward(dataset['train_input'][train_id])
             train_loss = loss_fn(pred, dataset['train_label'][train_id])
+            
             if self.save_act:
                 if reg_metric == 'edge_backward':
                     self.attribute()
                 if reg_metric == 'node_backward':
                     self.node_attribute()
-                reg_ = self.get_reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff)
+                reg_ = self.get_reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff, entropy_offset)
             else:
                 reg_ = torch.tensor(0.)
             objective = train_loss + lamb * reg_
@@ -956,7 +964,7 @@ class MultKAN(nn.Module):
                         self.attribute()
                     if reg_metric == 'node_backward':
                         self.node_attribute()
-                    reg_ = self.get_reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff)
+                    reg_ = self.get_reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff, entropy_offset)
                 else:
                     reg_ = torch.tensor(0.)
                 loss = train_loss + lamb * reg_
@@ -1117,13 +1125,18 @@ class MultKAN(nn.Module):
     
     def prune_edge(self, threshold=3e-2, log_history=True):
         
-        if self.acts == None:
+        if self.edge_scores == None:
             self.get_act()
+            self.attribute()
+            
         
         for i in range(len(self.width)-1):
             #self.act_fun[i].mask.data = ((self.acts_scale[i] > threshold).permute(1,0)).float()
             old_mask = self.act_fun[i].mask.data
             self.act_fun[i].mask.data = ((self.edge_scores[i] > threshold).permute(1,0)*old_mask).float()
+            
+            old_mask = self.symbolic_fun[i].mask.data
+            self.symbolic_fun[i].mask.data = ((self.edge_scores[i] > threshold)*old_mask).float()
             
         if log_history:
             self.log_history('fix_symbolic')
@@ -1186,8 +1199,8 @@ class MultKAN(nn.Module):
             self.symbolic_fun[l].mask[:, i] *= 0.
             
         else:
-            self.remove_node(l, i, mode='up')
-            self.remove_node(l, i, mode='down')
+            self.remove_node(l, i, mode='up', log_history=False)
+            self.remove_node(l, i, mode='down', log_history=False)
             
         if log_history:
             self.log_history('remove_node')
@@ -1530,14 +1543,21 @@ class MultKAN(nn.Module):
 
         self.symbolic_fun.append(layer)
 
-        self.node_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable))
-        self.node_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable))
-        self.subnode_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable))
-        self.subnode_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable))
+        l = self.depth - 1
+        exec(f'self.node_bias_{l} = torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable)')
+        exec(f'self.node_scale_{l} = torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable)')
+        exec(f'self.subnode_bias_{l} = torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable)')
+        exec(f'self.subnode_scale_{l} = torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable)')
+        exec(f'self.node_bias.append(self.node_bias_{l})')
+        exec(f'self.node_scale.append(self.node_scale_{l})')
+        exec(f'self.subnode_bias.append(self.subnode_bias_{l})')
+        exec(f'self.subnode_scale.append(self.subnode_scale_{l})')
+        
+        self.get_act(self.cache_data)
         
         self.log_history('expand_depth')
 
-    def expand_width(self, layer_id, n_added_nodes, sum_bool=True, mult_arity=2):
+    def expand_width(self, layer_id, n_added_nodes, sum_bool=True, mult_arity=2, perturb=False):
         
         def _expand(layer_id, n_added_nodes, sum_bool=True, mult_arity=2, added_dim='out'):
             l = layer_id
@@ -1566,8 +1586,12 @@ class MultKAN(nn.Module):
                                 new.affine.data[j][i] = old.affine.data[j-n_added_nodes][i]
 
                     self.symbolic_fun[l] = new
-                    self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_nodes, num=self.grid, k=self.k)
-                    self.act_fun[l].mask *= 0.
+                    
+                    #self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_nodes, num=self.grid, k=self.k)
+                    #self.act_fun[l].mask *= 0.
+                    self.act_fun[l].expand(n_added_nodes, v_mode='out', h_mode='left')
+                    if perturb == False:
+                        self.act_fun[l].mask *= 0.
 
                     self.node_scale[l].data = torch.cat([torch.ones(n_added_nodes), self.node_scale[l].data])
                     self.node_bias[l].data = torch.cat([torch.zeros(n_added_nodes), self.node_bias[l].data])
@@ -1597,8 +1621,12 @@ class MultKAN(nn.Module):
                                 new.affine.data[j][i] = old.affine.data[j][i-n_added_nodes]
 
                     self.symbolic_fun[l] = new
-                    self.act_fun[l] = KANLayer(in_dim + n_added_nodes, out_dim, num=self.grid, k=self.k)
-                    self.act_fun[l].mask *= 0.
+                    
+                    #self.act_fun[l] = KANLayer(in_dim + n_added_nodes, out_dim, num=self.grid, k=self.k)
+                    #self.act_fun[l].mask *= 0.
+                    self.act_fun[l].expand(n_added_nodes, v_mode='in', h_mode='left')
+                    if perturb == False:
+                        self.act_fun[l].mask *= 0.
 
 
             else:
@@ -1628,8 +1656,12 @@ class MultKAN(nn.Module):
                                 new.affine.data[j][i] = old.affine.data[j][i]
 
                     self.symbolic_fun[l] = new
-                    self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_subnodes, num=self.grid, k=self.k)
-                    self.act_fun[l].mask *= 0.
+                    
+                    #self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_subnodes, num=self.grid, k=self.k)
+                    #self.act_fun[l].mask *= 0.
+                    self.act_fun[l].expand(n_added_subnodes, v_mode='out', h_mode='right')
+                    if perturb == False:
+                        self.act_fun[l].mask *= 0.
 
                     self.node_scale[l].data = torch.cat([self.node_scale[l].data, torch.ones(n_added_nodes)])
                     self.node_bias[l].data = torch.cat([self.node_bias[l].data, torch.zeros(n_added_nodes)])
@@ -1657,11 +1689,18 @@ class MultKAN(nn.Module):
                                 new.affine.data[j][i] = old.affine.data[j][i]
 
                     self.symbolic_fun[l] = new
-                    self.act_fun[l] = KANLayer(in_dim + n_added_nodes, out_dim, num=self.grid, k=self.k)
-                    self.act_fun[l].mask *= 0.
-
-        _expand(layer_id-1, n_added_nodes, sum_bool, mult_arity, added_dim='out')
-        _expand(layer_id, n_added_nodes, sum_bool, mult_arity, added_dim='in')
+                    
+                    #self.act_fun[l] = KANLayer(in_dim + n_added_nodes, out_dim, num=self.grid, k=self.k)
+                    #self.act_fun[l].mask *= 0.
+                    self.act_fun[l].expand(n_added_nodes, v_mode='in', h_mode='right')
+                    if perturb == False:
+                        self.act_fun[l].mask *= 0.
+        
+        if layer_id == 0:
+            _expand(layer_id, n_added_nodes, sum_bool, mult_arity, added_dim='in')
+        else:
+            _expand(layer_id-1, n_added_nodes, sum_bool, mult_arity, added_dim='out')
+            _expand(layer_id, n_added_nodes, sum_bool, mult_arity, added_dim='in')
         if sum_bool:
             self.width[layer_id][0] += n_added_nodes
         else:
@@ -1670,21 +1709,68 @@ class MultKAN(nn.Module):
 
             self.width[layer_id][1] += n_added_nodes
             self.mult_arity[layer_id] += mult_arity
+             
+        if layer_id == 0:
+            self.input_id = torch.arange(self.width_in[0])
             
+            
+        self.get_act(self.cache_data)
         self.log_history('expand_width')
             
-    def perturb(self, mag=0.02, mode='all'):
+    def perturb(self, mag=1.0, mode='non-intrusive'):
+        
+        perturb_bool = {}
+        
         if mode == 'all':
-            for i in range(self.depth):
-                self.act_fun[i].mask += self.act_fun[i].mask*0. + mag
+            perturb_bool['aa_a'] = True
+            perturb_bool['aa_i'] = True
+            perturb_bool['ai'] = True
+            perturb_bool['ia'] = True
+            perturb_bool['ii'] = True
+        elif mode == 'non-intrusive':
+            perturb_bool['aa_a'] = False
+            perturb_bool['aa_i'] = False
+            perturb_bool['ai'] = True
+            perturb_bool['ia'] = False
+            perturb_bool['ii'] = True
+        elif mode == 'minimal':
+            perturb_bool['aa_a'] = True
+            perturb_bool['aa_i'] = False
+            perturb_bool['ai'] = False
+            perturb_bool['ia'] = False
+            perturb_bool['ii'] = False
+        else:
+            raise Exception('mode not recognized, valid modes are \'all\', \'non-intrusive\', \'minimal\'.')
                 
-        if mode == 'minimal':
-            for l in range(self.depth):
-                funs_name = self.symbolic_fun[l].funs_name
-                for j in range(self.width_out[l+1]):
-                    for i in range(self.width_in[l]):
-                        if funs_name[j][i] != '0':
+        for l in range(self.depth):
+            funs_name = self.symbolic_fun[l].funs_name
+            for j in range(self.width_out[l+1]):
+                for i in range(self.width_in[l]):
+                    out_array = list(np.array(self.symbolic_fun[l].funs_name)[j])
+                    in_array = list(np.array(self.symbolic_fun[l].funs_name)[:,i])
+                    out_active = len([i for i, x in enumerate(out_array) if x != "0"]) > 0
+                    in_active = len([i for i, x in enumerate(in_array) if x != "0"]) > 0
+                    dic = {True: 'a', False: 'i'}
+                    edge_type = dic[in_active] + dic[out_active]
+                    
+                    if l < self.depth - 1 or mode != 'non-intrusive':
+                    
+                        if edge_type == 'aa':
+                            if self.symbolic_fun[l].funs_name[j][i] == '0':
+                                edge_type += '_i'
+                            else:
+                                edge_type += '_a'
+
+                        if perturb_bool[edge_type]:
                             self.act_fun[l].mask.data[i][j] = mag
+                            
+                    if l == self.depth - 1 and mode == 'non-intrusive':
+                        
+                        self.act_fun[l].mask.data[i][j] = torch.tensor(1.)
+                        self.act_fun[l].scale_base.data[i][j] = torch.tensor(0.)
+                        self.act_fun[l].scale_sp.data[i][j] = torch.tensor(0.)
+                        
+        self.get_act(self.cache_data)
         
         self.log_history('perturb')
                             
@@ -1711,7 +1797,7 @@ class MultKAN(nn.Module):
             
         self.log_history('module')
         
-    def tree(self, x=None, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=False):
+    def tree(self, x=None, in_var=None, style='tree', sym_th=1e-1, sep_th=1e-1, skip_sep_test=False, verbose=False):
         if x == None:
             x = self.cache_data
         plot_tree(self, x, in_var=in_var, style=style, sym_th=sym_th, sep_th=sep_th, skip_sep_test=skip_sep_test, verbose=verbose)
@@ -1818,7 +1904,7 @@ class MultKAN(nn.Module):
     
     def auto_swap_l(self, l):
 
-        num = self.width_in[1]
+        num = self.width_in[l]
         for i in range(num):
             ccs = []
             for j in range(num):

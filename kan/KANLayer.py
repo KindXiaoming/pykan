@@ -63,7 +63,7 @@ class KANLayer(nn.Module):
             unlock already locked activation functions
     """
 
-    def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.1, scale_base=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu', sparse_init=False):
+    def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.5, scale_base_mu=0.0, scale_base_sigma=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu', sparse_init=False):
         ''''
         initialize a KANLayer
         
@@ -119,7 +119,7 @@ class KANLayer(nn.Module):
         grid = torch.linspace(grid_range[0], grid_range[1], steps=num + 1)[None,:].expand(self.in_dim, num+1)
         grid = extend_grid(grid, k_extend=k)
         self.grid = torch.nn.Parameter(grid).requires_grad_(False)
-        noises = (torch.rand(self.num+1, self.in_dim, self.out_dim) - 1 / 2) * noise_scale / num
+        noises = (torch.rand(self.num+1, self.in_dim, self.out_dim) - 1/2) * noise_scale / num
         # shape: (size, coef)
         self.coef = torch.nn.Parameter(curve2coef(self.grid[:,k:-k].permute(1,0), noises, self.grid, k))
         #if isinstance(scale_base, float):
@@ -128,7 +128,9 @@ class KANLayer(nn.Module):
         else:
             mask = 1.
         
-        self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
+        self.scale_base = torch.nn.Parameter(scale_base_mu * 1 / np.sqrt(in_dim) + \
+                         scale_base_sigma * (torch.rand(in_dim, out_dim)*2-1) * 1/np.sqrt(in_dim))
+        #self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
         #else:
         #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
         self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * mask).requires_grad_(sp_trainable)  # make scale trainable
@@ -343,4 +345,51 @@ class KANLayer(nn.Module):
             swap_(self.scale_base.data, i1, i2, mode=mode)
             swap_(self.scale_sp.data, i1, i2, mode=mode)
             swap_(self.mask.data, i1, i2, mode=mode)
+            
+    def expand(self, added_dim, v_mode='in', h_mode='left'):
+        
+        #added_dim = 2
+        #v_mode = 'in' # 'out'
+        #h_mode = 'right' # 'right'
+        with torch.no_grad():
+            if v_mode == 'in':
+                ref = KANLayer(in_dim=self.in_dim+added_dim, out_dim=self.out_dim, num=self.num, k=self.k)
+                grid_extend = ref.grid.data[:added_dim]
+                coef_extend = ref.coef.data[:added_dim]
+                scale_base_extend = ref.scale_base.data[:added_dim]
+                scale_sp_extend = ref.scale_sp.data[:added_dim]
+                mask_extend = ref.mask.data[:added_dim]
+                if h_mode == 'left':
+                    self.grid = nn.Parameter(torch.cat([grid_extend, self.grid.data], dim=0))
+                    self.coef= nn.Parameter(torch.cat([coef_extend, self.coef.data], dim=0))
+                    self.scale_base = nn.Parameter(torch.cat([scale_base_extend, self.scale_base.data], dim=0))
+                    self.scale_sp = nn.Parameter(torch.cat([scale_sp_extend, self.scale_sp.data], dim=0))
+                    self.mask.data = torch.cat([mask_extend, self.mask.data], dim=0)
+                elif h_mode == 'right':
+                    self.grid = nn.Parameter(torch.cat([self.grid.data, grid_extend], dim=0))
+                    self.coef = nn.Parameter(torch.cat([self.coef.data, coef_extend], dim=0))
+                    self.scale_base = nn.Parameter(torch.cat([self.scale_base.data, scale_base_extend], dim=0))
+                    self.scale_sp = nn.Parameter(torch.cat([self.scale_sp.data, scale_sp_extend], dim=0))
+                    self.mask.data = torch.cat([self.mask.data, mask_extend], dim=0)
+
+            elif v_mode == 'out':
+                ref = KANLayer(in_dim=self.in_dim, out_dim=self.out_dim+added_dim, num=self.num, k=self.k)
+                coef_extend = ref.coef.data[:,:added_dim]
+                scale_base_extend = ref.scale_base.data[:,:added_dim]
+                scale_sp_extend = ref.scale_sp.data[:,:added_dim]
+                mask_extend = ref.mask.data[:,:added_dim]
+                if h_mode == 'left':
+                    self.coef = nn.Parameter(torch.cat([coef_extend, self.coef.data], dim=1))
+                    self.scale_base = nn.Parameter(torch.cat([scale_base_extend, self.scale_base.data], dim=1))
+                    self.scale_sp = nn.Parameter(torch.cat([scale_sp_extend, self.scale_sp.data], dim=1))
+                    self.mask.data = torch.cat([mask_extend, self.mask.data], dim=1)
+                elif h_mode == 'right':
+                    self.coef = nn.Parameter(torch.cat([self.coef.data, coef_extend], dim=1))
+                    self.scale_base = nn.Parameter(torch.cat([self.scale_base.data, scale_base_extend], dim=1))
+                    self.scale_sp = nn.Parameter(torch.cat([self.scale_sp.data, scale_sp_extend], dim=1))
+                    self.mask.data = torch.cat([self.mask.data, mask_extend], dim=1)
+
+            self.in_dim = ref.in_dim
+            self.out_dim = ref.out_dim
+
 

@@ -132,7 +132,6 @@ def test_separability(model, x, groups, mode='add', threshold=1e-2, bias=0):
     group_id = [x for xs in groups for x in xs]
     nongroup_id = list(set(range(x.shape[1])) - set(group_id))
     if len(nongroup_id) > 0 and len(group_id) > 0:
-        print(score_mat, group_id, nongroup_id)
         sep_bool *= torch.max(score_mat[group_id][:,nongroup_id]) < threshold 
 
     return sep_bool
@@ -318,7 +317,7 @@ def get_tree_node(model, x, moleculess, sep_th=1e-2, skip_test=True):
     return arities, properties
 
 
-def plot_tree(model, x, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=True):
+def plot_tree(model, x, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=False):
     
     moleculess = get_molecule(model, x, sym_th=sym_th, verbose=verbose)
     arities, properties = get_tree_node(model, x, moleculess, sep_th=sep_th, skip_test=skip_sep_test)
