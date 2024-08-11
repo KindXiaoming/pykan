@@ -308,6 +308,11 @@ class MultKAN(nn.Module):
                     model_load.symbolic_fun[l].funs_avoid_singularity[j][i] = SYMBOLIC_LIB[fun_name][3]
         return model_load
     
+    def copy(self):
+        path='copy_temp'
+        self.saveckpt(path)
+        return KAN.loadckpt(path)
+    
     def rewind(self, model_id):
         
         self.round += 1
@@ -377,9 +382,8 @@ class MultKAN(nn.Module):
 
     def forward(self, x, singularity_avoiding=False, y_th=10.):
         
-        assert x.shape[1] == self.width_in[0]
-        
         x = x[:,self.input_id.long()]
+        assert x.shape[1] == self.width_in[0]
         
         # cache data
         self.cache_data = x
@@ -1221,12 +1225,12 @@ class MultKAN(nn.Module):
             subnode_score = node_score[:,:width[0]]
             if isinstance(mult_arity, int):
                 #subnode_score[:,width[0]:] = node_score[:,width[0]:][:,:,None].expand(out_dim, node_score[width[0]:].shape[0], mult_arity).reshape(out_dim,-1)
-                subnode_score = torch.cat([subnode_score, node_score[:,width[0]:][:,:,None].expand(out_dim, node_score[width[0]:].shape[0], mult_arity).reshape(out_dim,-1)], dim=1)
+                subnode_score = torch.cat([subnode_score, node_score[:,width[0]:][:,:,None].expand(out_dim, node_score[:,width[0]:].shape[1], mult_arity).reshape(out_dim,-1)], dim=1)
             else:
                 acml = width[0]
                 for i in range(len(mult_arity)):
                     #subnode_score[:, acml:acml+mult_arity[i]] = node_score[:, width[0]+i]
-                    subnode_score = torch.cat([subnode_score, node_score[:, width[0]+i]].expand(out_dim, mult_arity[i]), dim=1)
+                    subnode_score = torch.cat([subnode_score, node_score[:, width[0]+i].expand(out_dim, mult_arity[i])], dim=1)
                     acml += mult_arity[i]
             return subnode_score
 
@@ -1258,7 +1262,8 @@ class MultKAN(nn.Module):
                 subnode_score = score_node2subnode(node_score, self.width[l], self.mult_arity, out_dim=out_dim)
             else:
                 mult_arity = self.mult_arity[l]
-                subnode_score = score_node2subnode(node_score, self.width[l], mult_arity)
+                #subnode_score = score_node2subnode(node_score, self.width[l], mult_arity)
+                subnode_score = score_node2subnode(node_score, self.width[l], mult_arity, out_dim=out_dim)
 
             subnode_scores.append(subnode_score)
             # subnode to edge
@@ -1288,7 +1293,7 @@ class MultKAN(nn.Module):
                 if plot:
                     in_dim = self.width_in[0]
                     plt.figure(figsize=(1*in_dim, 3))
-                    plt.bar(range(in_dim),self.node_scores_all[0][i].detach().numpy())
+                    plt.bar(range(in_dim),self.node_scores_all[0][i].cpu().detach().numpy())
                     plt.xticks(range(in_dim));
 
                 return self.node_scores_all[0][i]
@@ -1425,7 +1430,7 @@ class MultKAN(nn.Module):
             for ii in range(1, self.width[0][0] + 1):
                 exec(f"x{ii} = sympy.Symbol('x_{ii}')")
                 exec(f"x.append(x{ii})")
-        elif type(var[0]) == Symbol:
+        elif isinstance(var[0], sympy.Expr):
             x = var
         else:
             x = [sympy.symbols(var_) for var_ in var]
@@ -1671,18 +1676,60 @@ class MultKAN(nn.Module):
             self.width[layer_id][1] += n_added_nodes
             self.mult_arity[layer_id] += mult_arity
             
-    def perturb(self, mag=0.02, mode='all'):
+    def perturb(self, mag=1.0, mode='non-intrusive'):
+        
+        perturb_bool = {}
+        
         if mode == 'all':
-            for i in range(self.depth):
-                self.act_fun[i].mask += self.act_fun[i].mask*0. + mag
+            perturb_bool['aa_a'] = True
+            perturb_bool['aa_i'] = True
+            perturb_bool['ai'] = True
+            perturb_bool['ia'] = True
+            perturb_bool['ii'] = True
+        elif mode == 'non-intrusive':
+            perturb_bool['aa_a'] = False
+            perturb_bool['aa_i'] = False
+            perturb_bool['ai'] = True
+            perturb_bool['ia'] = False
+            perturb_bool['ii'] = True
+        elif mode == 'minimal':
+            perturb_bool['aa_a'] = True
+            perturb_bool['aa_i'] = False
+            perturb_bool['ai'] = False
+            perturb_bool['ia'] = False
+            perturb_bool['ii'] = False
+        else:
+            raise Exception('mode not recognized, valid modes are \'all\', \'non-intrusive\', \'minimal\'.')
                 
-        if mode == 'minimal':
-            for l in range(self.depth):
-                funs_name = self.symbolic_fun[l].funs_name
-                for j in range(self.width_out[l+1]):
-                    for i in range(self.width_in[l]):
-                        if funs_name[j][i] != '0':
+        for l in range(self.depth):
+            funs_name = self.symbolic_fun[l].funs_name
+            for j in range(self.width_out[l+1]):
+                for i in range(self.width_in[l]):
+                    out_array = list(np.array(self.symbolic_fun[l].funs_name)[j])
+                    in_array = list(np.array(self.symbolic_fun[l].funs_name)[:,i])
+                    out_active = len([i for i, x in enumerate(out_array) if x != "0"]) > 0
+                    in_active = len([i for i, x in enumerate(in_array) if x != "0"]) > 0
+                    dic = {True: 'a', False: 'i'}
+                    edge_type = dic[in_active] + dic[out_active]
+                    
+                    if l < self.depth - 1 or mode != 'non-intrusive':
+                    
+                        if edge_type == 'aa':
+                            if self.symbolic_fun[l].funs_name[j][i] == '0':
+                                edge_type += '_i'
+                            else:
+                                edge_type += '_a'
+
+                        if perturb_bool[edge_type]:
                             self.act_fun[l].mask.data[i][j] = mag
+                            
+                    if l == self.depth - 1 and mode == 'non-intrusive':
+                        
+                        self.act_fun[l].mask.data[i][j] = torch.tensor(1.)
+                        self.act_fun[l].scale_base.data[i][j] = torch.tensor(0.)
+                        self.act_fun[l].scale_sp.data[i][j] = torch.tensor(0.)
+                        
+        self.get_act(self.cache_data)
         
         self.log_history('perturb')
                             
@@ -1801,7 +1848,7 @@ class MultKAN(nn.Module):
         for t in self.edge_scores:
             
             def get_coordinate(n):
-                return torch.linspace(0,1,steps=n+1, device=device)[:n] + 1/(2*n)
+                return torch.linspace(0,1,steps=n+1, device=self.device)[:n] + 1/(2*n)
 
             in_dim = t.shape[0]
             x_in = get_coordinate(in_dim)

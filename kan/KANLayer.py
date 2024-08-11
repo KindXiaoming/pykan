@@ -124,19 +124,19 @@ class KANLayer(nn.Module):
         self.coef = torch.nn.Parameter(curve2coef(self.grid[:,k:-k].permute(1,0), noises, self.grid, k))
         #if isinstance(scale_base, float):
         if sparse_init:
-            mask = sparse_mask(in_dim, out_dim)
+            self.mask = torch.nn.Parameter(sparse_mask(in_dim, out_dim)).requires_grad_(False)
         else:
-            mask = 1.
+            self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim)).requires_grad_(False)
         
         self.scale_base = torch.nn.Parameter(scale_base_mu * 1 / np.sqrt(in_dim) + \
                          scale_base_sigma * (torch.rand(in_dim, out_dim)*2-1) * 1/np.sqrt(in_dim))
         #self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
         #else:
         #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
-        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * mask).requires_grad_(sp_trainable)  # make scale trainable
+        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * self.mask).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
-        self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim)).requires_grad_(False)
+        
         self.grid_eps = grid_eps
         
         self.to(device)
