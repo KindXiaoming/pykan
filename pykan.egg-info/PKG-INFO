@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pykan
-Version: 0.2.1
+Version: 0.2.4
 Summary: Kolmogorov Arnold Networks
 Author: Ziming Liu
 Author-email: zmliu@mit.edu
@@ -82,7 +82,7 @@ pip
 **For developers**
 
 ```
-pip clone https://github.com/KindXiaoming/pykan.git
+git clone https://github.com/KindXiaoming/pykan.git
 cd pykan
 pip install -e .
 ```
