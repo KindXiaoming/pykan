@@ -116,7 +116,7 @@ class KANLayer(nn.Module):
         # shape: (size, num)
         ### grid size: (batch, in_dim, out_dim, G + 1) => (batch, in_dim, G + 2*k + 1)
         
-        grid = torch.linspace(grid_range[0], grid_range[1], steps=num + 1)[None,:].expand(self.in_dim, num+1)
+        grid = torch.linspace(grid_range[0], grid_range[1], steps=num + 1)[None,:]#.expand(self.in_dim, num+1)
         grid = extend_grid(grid, k_extend=k)
         self.grid = torch.nn.Parameter(grid).requires_grad_(False)
         noises = (torch.rand(self.num+1, self.in_dim, self.out_dim) - 1/2) * noise_scale / num
