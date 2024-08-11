@@ -51,7 +51,8 @@ autodoc_mock_imports = ["numpy",
                         "sklearn",
                         "torch.optim",
                         "re",
-                        "yaml"]
+                        "yaml",
+                        "pandas"]
            
 
 source_suffix = [".rst", ".md"]
