@@ -24,7 +24,7 @@ from .hypothesis import plot_tree
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0, device='cpu'):
         
         super(MultKAN, self).__init__()
 
@@ -82,10 +82,10 @@ class MultKAN(nn.Module):
         exec('self.node_bias_0' + " = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)")
         
         for l in range(self.depth):
-            exec(f'self.node_bias_{l} = torch.nn.Parameter(torch.zeros(width_in[l+1],)).requires_grad_(affine_trainable)')
-            exec(f'self.node_scale_{l} = torch.nn.Parameter(torch.ones(width_in[l+1],)).requires_grad_(affine_trainable)')
-            exec(f'self.subnode_bias_{l} = torch.nn.Parameter(torch.zeros(width_out[l+1],)).requires_grad_(affine_trainable)')
-            exec(f'self.subnode_scale_{l} = torch.nn.Parameter(torch.ones(width_out[l+1],)).requires_grad_(affine_trainable)')
+            exec(f'self.node_bias_{l} = torch.nn.Parameter(torch.zeros(width_in[l+1])).requires_grad_(affine_trainable)')
+            exec(f'self.node_scale_{l} = torch.nn.Parameter(torch.ones(width_in[l+1])).requires_grad_(affine_trainable)')
+            exec(f'self.subnode_bias_{l} = torch.nn.Parameter(torch.zeros(width_out[l+1])).requires_grad_(affine_trainable)')
+            exec(f'self.subnode_scale_{l} = torch.nn.Parameter(torch.ones(width_out[l+1])).requires_grad_(affine_trainable)')
             exec(f'self.node_bias.append(self.node_bias_{l})')
             exec(f'self.node_scale.append(self.node_scale_{l})')
             exec(f'self.subnode_bias.append(self.subnode_bias_{l})')
@@ -124,6 +124,9 @@ class MultKAN(nn.Module):
         self.ckpt_path = ckpt_path
         self.round = round
         
+        self.device = device
+        self.to(device)
+        
         if auto_save:
             if first_init:
                 if not os.path.exists(ckpt_path):
@@ -141,6 +144,18 @@ class MultKAN(nn.Module):
                 self.state_id = state_id
             
         self.input_id = torch.arange(self.width_in[0],)
+        
+    def to(self, device):
+        super(MultKAN, self).to(device)
+        self.device = device
+        
+        for kanlayer in self.act_fun:
+            kanlayer.to(device)
+            
+        for symbolic_kanlayer in self.symbolic_fun:
+            symbolic_kanlayer.to(device)
+            
+        return self
 
     def initialize_from_another_model(self, another_model, x):
         another_model(x)  # get activations
@@ -215,7 +230,7 @@ class MultKAN(nn.Module):
         self.log_history('refine')
         model_new.state_id += 1
         
-        return model_new
+        return model_new.to(self.device)
     
     
     def saveckpt(self, path='model'):
@@ -237,7 +252,8 @@ class MultKAN(nn.Module):
             state_id = model.state_id,
             auto_save = model.auto_save,
             ckpt_path = model.ckpt_path,
-            round = model.round
+            round = model.round,
+            device = str(model.device)
         )
 
         for i in range (model.depth):
@@ -271,7 +287,8 @@ class MultKAN(nn.Module):
                      auto_save=config['auto_save'],
                      first_init=False,
                      ckpt_path=config['ckpt_path'],
-                     round = config['round']+1)
+                     round = config['round']+1,
+                     device = config['device'])
 
         model_load.load_state_dict(state)
         model_load.cache_data = torch.load(f'{path}_cache_data')
@@ -508,10 +525,10 @@ class MultKAN(nn.Module):
     def get_range(self, l, i, j, verbose=True):
         x = self.spline_preacts[l][:, j, i]
         y = self.spline_postacts[l][:, j, i]
-        x_min = torch.min(x)
-        x_max = torch.max(x)
-        y_min = torch.min(y)
-        y_max = torch.max(y)
+        x_min = torch.min(x).cpu().detach().numpy()
+        x_max = torch.max(x).cpu().detach().numpy()
+        y_min = torch.min(y).cpu().detach().numpy()
+        y_max = torch.max(y).cpu().detach().numpy()
         if verbose:
             print('x range: [' + '%.2f' % x_min, ',', '%.2f' % x_max, ']')
             print('y range: [' + '%.2f' % y_min, ',', '%.2f' % y_max, ']')
@@ -790,17 +807,23 @@ class MultKAN(nn.Module):
             
     def reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff):
 
-        if reg_metric == 'edge_forward_n':
+        if reg_metric == 'edge_forward_spline_n':
             acts_scale = self.acts_scale_spline
             
-        if reg_metric == 'edge_forward_u':
+        elif reg_metric == 'edge_forward_sum':
+            acts_scale = self.acts_scale
+            
+        elif reg_metric == 'edge_forward_spline_u':
             acts_scale = self.edge_actscale
             
-        if reg_metric == 'edge_backward':
+        elif reg_metric == 'edge_backward':
             acts_scale = self.edge_scores
             
-        if reg_metric == 'node_backward':
+        elif reg_metric == 'node_backward':
             acts_scale = self.node_attribute_scores
+            
+        else:
+            raise Exception(f'reg_metric = {reg_metric} not recognized!')
         
         reg_ = 0.
         for i in range(len(acts_scale)):
@@ -854,7 +877,7 @@ class MultKAN(nn.Module):
         
             
     def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
-              metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_backward', display_metrics=None):
+              metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_forward_spline_n', display_metrics=None):
 
         if lamb > 0. and not self.save_act:
             print('setting lamb=0. If you want to set lamb > 0, set self.save_act=True')
@@ -985,7 +1008,7 @@ class MultKAN(nn.Module):
         if self.acts == None:
             self.get_act()
         
-        mask_up = [torch.ones(self.width_in[0], )]
+        mask_up = [torch.ones(self.width_in[0], device=self.device)]
         mask_down = []
         active_neurons_up = [list(range(self.width_in[0]))]
         active_neurons_down = []
@@ -1005,7 +1028,7 @@ class MultKAN(nn.Module):
                 overall_important_up = self.node_scores[i+1] > threshold
                 
             elif mode == "manual":
-                overall_important_up = torch.zeros(self.width_in[i + 1], dtype=torch.bool)
+                overall_important_up = torch.zeros(self.width_in[i + 1], dtype=torch.bool, device=self.device)
                 overall_important_up[active_neurons_id[i]] = True
                 
                 
@@ -1018,7 +1041,7 @@ class MultKAN(nn.Module):
                 for j in range(overall_important_up[self.width[i+1][0]:].shape[0]):
                     active_bool = overall_important_up[self.width[i+1][0]+j]
                     arity = self.mult_arity[i+1][j]
-                    overall_important_down = torch.cat([overall_important_down, torch.tensor([active_bool]*arity)])
+                    overall_important_down = torch.cat([overall_important_down, torch.tensor([active_bool]*arity).to(self.device)])
                     if active_bool:
                         mult_arity.append(arity)
             
@@ -1034,7 +1057,7 @@ class MultKAN(nn.Module):
             mult_arities.append(mult_arity)
 
         active_neurons_down.append(list(range(self.width_out[-1])))
-        mask_down.append(torch.ones(self.width_out[-1], ))
+        mask_down.append(torch.ones(self.width_out[-1], device=self.device))
         
         if self.mult_homo == False:
             mult_arities.append(self.mult_arity[-1])
@@ -1052,7 +1075,7 @@ class MultKAN(nn.Module):
                 if i not in active_neurons_down[l]:
                     self.remove_node(l + 1, i, mode='down',log_history=False)
 
-        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun_name, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id, round=self.round)
+        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun_name, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id, round=self.round).to(self.device)
         model2.load_state_dict(self.state_dict())
         
         width_new = [self.width[0]]
@@ -1130,9 +1153,9 @@ class MultKAN(nn.Module):
             input_id = torch.where(input_mask==True)[0]
             
         else:
-            input_id = torch.tensor(active_inputs, dtype=torch.long)
+            input_id = torch.tensor(active_inputs, dtype=torch.long).to(self.device)
         
-        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id, round=self.round)
+        model2 = MultKAN(copy.deepcopy(self.width), grid=self.grid, k=self.k, base_fun=self.base_fun, mult_arity=self.mult_arity, ckpt_path=self.ckpt_path, auto_save=True, first_init=False, state_id=self.state_id, round=self.round).to(self.device)
         model2.load_state_dict(self.state_dict())
 
         model2.act_fun[0] = model2.act_fun[0].get_subset(input_id, torch.arange(self.width_out[1]))
@@ -1508,10 +1531,10 @@ class MultKAN(nn.Module):
 
         self.symbolic_fun.append(layer)
 
-        self.node_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable))
-        self.node_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable))
-        self.subnode_bias.append(torch.nn.Parameter(torch.zeros(dim_out,)).requires_grad_(self.affine_trainable))
-        self.subnode_scale.append(torch.nn.Parameter(torch.ones(dim_out,)).requires_grad_(self.affine_trainable))
+        self.node_bias.append(torch.nn.Parameter(torch.zeros(dim_out,device=self.device)).requires_grad_(self.affine_trainable))
+        self.node_scale.append(torch.nn.Parameter(torch.ones(dim_out,device=self.device)).requires_grad_(self.affine_trainable))
+        self.subnode_bias.append(torch.nn.Parameter(torch.zeros(dim_out,device=self.device)).requires_grad_(self.affine_trainable))
+        self.subnode_scale.append(torch.nn.Parameter(torch.ones(dim_out,device=self.device)).requires_grad_(self.affine_trainable))
 
     def expand_width(self, layer_id, n_added_nodes, sum_bool=True, mult_arity=2):
         
@@ -1545,10 +1568,10 @@ class MultKAN(nn.Module):
                     self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_nodes, num=self.grid, k=self.k)
                     self.act_fun[l].mask *= 0.
 
-                    self.node_scale[l].data = torch.cat([torch.ones(n_added_nodes), self.node_scale[l].data])
-                    self.node_bias[l].data = torch.cat([torch.zeros(n_added_nodes), self.node_bias[l].data])
-                    self.subnode_scale[l].data = torch.cat([torch.ones(n_added_nodes), self.subnode_scale[l].data])
-                    self.subnode_bias[l].data = torch.cat([torch.zeros(n_added_nodes), self.subnode_bias[l].data])
+                    self.node_scale[l].data = torch.cat([torch.ones(n_added_nodes, device=self.device), self.node_scale[l].data])
+                    self.node_bias[l].data = torch.cat([torch.zeros(n_added_nodes, device=self.device), self.node_bias[l].data])
+                    self.subnode_scale[l].data = torch.cat([torch.ones(n_added_nodes, device=self.device), self.subnode_scale[l].data])
+                    self.subnode_bias[l].data = torch.cat([torch.zeros(n_added_nodes, device=self.device), self.subnode_bias[l].data])
 
 
 
@@ -1607,10 +1630,10 @@ class MultKAN(nn.Module):
                     self.act_fun[l] = KANLayer(in_dim, out_dim + n_added_subnodes, num=self.grid, k=self.k)
                     self.act_fun[l].mask *= 0.
 
-                    self.node_scale[l].data = torch.cat([self.node_scale[l].data, torch.ones(n_added_nodes)])
-                    self.node_bias[l].data = torch.cat([self.node_bias[l].data, torch.zeros(n_added_nodes)])
-                    self.subnode_scale[l].data = torch.cat([self.subnode_scale[l].data, torch.ones(n_added_subnodes)])
-                    self.subnode_bias[l].data = torch.cat([self.subnode_bias[l].data, torch.zeros(n_added_subnodes)])
+                    self.node_scale[l].data = torch.cat([self.node_scale[l].data, torch.ones(n_added_nodes, device=self.device)])
+                    self.node_bias[l].data = torch.cat([self.node_bias[l].data, torch.zeros(n_added_nodes, device=self.device)])
+                    self.subnode_scale[l].data = torch.cat([self.subnode_scale[l].data, torch.ones(n_added_subnodes, device=self.device)])
+                    self.subnode_bias[l].data = torch.cat([self.subnode_bias[l].data, torch.zeros(n_added_subnodes, device=self.device)])
 
                 if added_dim == 'in':
                     new = Symbolic_KANLayer(in_dim + n_added_nodes, out_dim)
@@ -1714,8 +1737,8 @@ class MultKAN(nn.Module):
         self.save_act = save_act
         
     def get_fun(self, l, i, j):
-        inputs = self.spline_preacts[l][:,j,i]
-        outputs = self.spline_postacts[l][:,j,i]
+        inputs = self.spline_preacts[l][:,j,i].cpu().detach().numpy()
+        outputs = self.spline_postacts[l][:,j,i].cpu().detach().numpy()
         # they are not ordered yet
         rank = np.argsort(inputs)
         inputs = inputs[rank]
@@ -1777,7 +1800,7 @@ class MultKAN(nn.Module):
         for t in self.edge_scores:
             
             def get_coordinate(n):
-                return torch.linspace(0,1,steps=n+1)[:n] + 1/(2*n)
+                return torch.linspace(0,1,steps=n+1, device=device)[:n] + 1/(2*n)
 
             in_dim = t.shape[0]
             x_in = get_coordinate(in_dim)

@@ -348,3 +348,17 @@ def batch_hessian(model, x, create_graph=False):
     def _jac_sum(x):
         return jac(x).sum(dim=0)
     return torch.autograd.functional.jacobian(_jac_sum, x, create_graph=create_graph).permute(1,0,2)
+
+
+def create_dataset_from_data(inputs, labels, train_ratio=0.8, device='cpu'):
+
+    num = inputs.shape[0]
+    train_id = np.random.choice(num, int(num*train_ratio), replace=False)
+    test_id = list(set(np.arange(num)) - set(train_id))
+    dataset = {}
+    dataset['train_input'] = inputs[train_id].detach().to(device)
+    dataset['test_input'] = inputs[test_id].detach().to(device)
+    dataset['train_label'] = labels[train_id].detach().to(device)
+    dataset['test_label'] = labels[test_id].detach().to(device)
+    
+    return dataset

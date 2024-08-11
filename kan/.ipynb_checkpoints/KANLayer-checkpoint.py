@@ -137,11 +137,12 @@ class KANLayer(nn.Module):
         self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim)).requires_grad_(False)
         self.grid_eps = grid_eps
         
-        ### remove weight_sharing & lock parts
-        #self.weight_sharing = torch.arange(out_dim*in_dim).reshape(out_dim, in_dim)
-        #self.lock_counter = 0
-        #self.lock_id = torch.zeros(out_dim*in_dim).reshape(out_dim, in_dim)
+        self.to(device)
         
+    def to(self, device):
+        super(KANLayer, self).to(device)
+        self.device = device    
+        return self
 
     def forward(self, x):
         '''

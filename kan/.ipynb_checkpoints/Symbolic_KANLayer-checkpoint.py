@@ -76,6 +76,12 @@ class Symbolic_KANLayer(nn.Module):
         # c*f(a*x+b)+d
         
         self.device = device
+        self.to(device)
+        
+    def to(self, device):
+        super(Symbolic_KANLayer, self).to(device)
+        self.device = device    
+        return self
     
     def forward(self, x, singularity_avoiding=False, y_th=10.):
         '''
