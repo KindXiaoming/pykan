@@ -24,7 +24,7 @@ from .hypothesis import plot_tree
 class MultKAN(nn.Module):
 
     # include mult_ops = []
-    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=1.0, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0, device='cpu'):
+    def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=0.3, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0, device='cpu'):
         
         super(MultKAN, self).__init__()
 
@@ -60,6 +60,8 @@ class MultKAN(nn.Module):
             base_fun = torch.nn.SiLU()
         elif base_fun == 'identity':
             base_fun = torch.nn.Identity()
+        elif base_fun == 'zero':
+            base_fun = lambda x: x*0.
             
         self.grid_eps = grid_eps
         self.grid_range = grid_range
@@ -67,9 +69,7 @@ class MultKAN(nn.Module):
         
         for l in range(self.depth):
             # splines
-            scale_base = scale_base_mu * 1 / np.sqrt(width_in[l]) + \
-                         scale_base_sigma * (torch.randn(width_in[l], width_out[l + 1]) * 2 - 1) * 1/np.sqrt(width_in[l])
-            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base=scale_base, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
+            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base_mu=scale_base_mu, scale_base_sigma=scale_base_sigma, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
             self.act_fun.append(sp_batch)
 
         self.node_bias = []
@@ -185,7 +185,7 @@ class MultKAN(nn.Module):
         for l in range(self.depth):
             self.symbolic_fun[l] = another_model.symbolic_fun[l]
 
-        return self.to(device)
+        return self.to(self.device)
     
     def log_history(self, method_name): 
 
@@ -221,7 +221,8 @@ class MultKAN(nn.Module):
                      auto_save=True,
                      first_init=False,
                      state_id=self.state_id,
-                     round=self.round)
+                     round=self.round,
+                     device=self.device)
             
         model_new.initialize_from_another_model(self, self.cache_data)
         model_new.cache_data = self.cache_data
