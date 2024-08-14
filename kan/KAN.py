@@ -653,7 +653,7 @@ class KAN(nn.Module):
 
                     plt.savefig(f'{folder}/sp_{l}_{i}_{j}.png', bbox_inches="tight", dpi=400)
                     plt.close()
-
+        plt.show()
         def score2alpha(score):
             return np.tanh(beta * score)
 
