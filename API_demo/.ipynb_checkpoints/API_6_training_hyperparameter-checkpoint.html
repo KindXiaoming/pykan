@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 6: Training Hyperparamters &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API 6: Training Hyperparamters</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/API_demo/.ipynb_checkpoints/API_6_training_hyperparameter-checkpoint.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-6-training-hyperparamters">
+<h1>API 6: Training Hyperparamters<a class="headerlink" href="#api-6-training-hyperparamters" title="Link to this heading"></a></h1>
+<p>Regularization helps interpretability by making KANs sparser. This may
+require some hyperparamter tuning. Let’s see how hyperparameters can
+affect training</p>
+<p>Load KAN and create_dataset</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import torch
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+dataset[&#39;train_input&#39;].shape, dataset[&#39;train_label&#39;].shape
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Default setup</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.34e-02 | test_loss: 3.29e-02 | reg: 4.93e+00 | : 100%|█| 20/20 [00:05&lt;00:00,  3.73it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_4_3.png" src="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_4_3.png" />
+<section id="parameter-1-lambda-overall-penalty-strength">
+<h2>Parameter 1: <span class="math notranslate nohighlight">\(\lambda\)</span>, overall penalty strength.<a class="headerlink" href="#parameter-1-lambda-overall-penalty-strength" title="Link to this heading"></a></h2>
+<p>Previously <span class="math notranslate nohighlight">\(\lambda=0.01\)</span>, now we try different <span class="math notranslate nohighlight">\(\lambda\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\lambda=0\)</span></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.00);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 5.51e-03 | test_loss: 6.14e-03 | reg: 1.52e+01 | : 100%|█| 20/20 [00:03&lt;00:00,  5.84it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_7_3.png" src="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_7_3.png" />
+<p><span class="math notranslate nohighlight">\(\lambda=1\)</span></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model = KAN(width=[2,5,1], grid=5, k=3, seed=0, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=1.0);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.70e+00 | test_loss: 1.73e+00 | reg: 1.08e+01 | : 100%|█| 20/20 [00:04&lt;00:00,  4.59it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_9_3.png" src="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_9_3.png" />
+</section>
+<section id="parameter-2-relative-penalty-strength-of-entropy-lambda-rm-ent">
+<h2>Parameter 2: (relative) penalty strength of entropy <span class="math notranslate nohighlight">\(\lambda_{\rm ent}\)</span>.<a class="headerlink" href="#parameter-2-relative-penalty-strength-of-entropy-lambda-rm-ent" title="Link to this heading"></a></h2>
+<p>The absolute magnitude is <span class="math notranslate nohighlight">\(\lambda\lambda_{\rm ent}\)</span>. Previously
+we set <span class="math notranslate nohighlight">\(\lambda=0.1\)</span> and <span class="math notranslate nohighlight">\(\lambda_{\rm ent}=2.0\)</span> (default).
+Below we fix <span class="math notranslate nohighlight">\(\lambda=0.1\)</span> and vary <span class="math notranslate nohighlight">\(\lambda_{\rm ent}\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\lambda_{\rm ent}=0.0\)</span></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, lamb_entropy=0.0);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 4.20e-02 | test_loss: 4.50e-02 | reg: 2.57e+00 | : 100%|█| 20/20 [00:04&lt;00:00,  4.68it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_12_3.png" src="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_12_3.png" />
+<p><span class="math notranslate nohighlight">\(\lambda_{\rm ent}=10.\)</span></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, lamb_entropy=10.0);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 7.83e-02 | test_loss: 7.74e-02 | reg: 1.54e+01 | : 100%|█| 20/20 [00:05&lt;00:00,  3.77it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_14_3.png" src="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_14_3.png" />
+</section>
+<section id="parameter-3-seed">
+<h2>Parameter 3: seed.<a class="headerlink" href="#parameter-3-seed" title="Link to this heading"></a></h2>
+<p>Previously we use seed = 1. Below we vary seed.</p>
+<p><span class="math notranslate nohighlight">\({\rm seed} = 42\)</span></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = KAN(width=[2,5,1], grid=3, k=3, seed=42, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 5.67e-02 | test_loss: 5.72e-02 | reg: 5.81e+00 | : 100%|█| 20/20 [00:04&lt;00:00,  4.81it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_17_3.png" src="API_demo/.ipynb_checkpoints/API_6_training_hyperparameter_files/API_6_training_hyperparameter_17_3.png" />
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

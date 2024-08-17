@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics 4B: Constitutive Law P12 with prior &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Physics 4B: Constitutive Law P12 with prior</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Physics/Physics_4B_constitutive_laws_P12_with_prior.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="physics-4b-constitutive-law-p12-with-prior">
+<h1>Physics 4B: Constitutive Law P12 with prior<a class="headerlink" href="#physics-4b-constitutive-law-p12-with-prior" title="Link to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from constitutive_laws_generator import LinearElasticConstitutiveLaw, NeoHookeanConstitutiveLaw
+import torch
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from sympy import *
+from kan import *
+from kan.compiler import kanpiler
+
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
+torch.use_deterministic_algorithms(True)
+torch.set_default_dtype(torch.float64)
+
+N = 1000
+sigma = 0.2 # previously sigma = 0.2
+
+F = torch.eye(3,3)[None,:,:].expand(N,3,3) + (torch.rand(N,3,3)*2-1)*sigma
+det = torch.det(F)
+F *= (det &gt; 0)[:,None,None]
+
+linear = LinearElasticConstitutiveLaw(young_modulus=1.0, poisson_ratio=0.2)
+P_l = linear(F)
+P11_l = P_l[:,[0],[0]]
+P12_l = P_l[:,[0],[1]]
+
+neo = NeoHookeanConstitutiveLaw(young_modulus=1.0, poisson_ratio=0.2)
+P_n = neo(F)
+P11_n = P_n[:,[0],[0]]
+P12_n = P_n[:,[0],[1]]
+
+# P11
+# linear: P11 = 2 * mu * (F11 - 1) + lambda * (F11 + F22 + F33 - 3)
+# neohookean: P11 = mu * (F11^2 + F21^2 + F31^2 - 1) + lambda * log(|F|)
+
+# P12
+# linear: P12 = mu * (F12 + F21)
+# neohookean: P12 = mu * (F12 * F11 + F22 * F21 + F32 * F31)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mu, lambda_ = linear.get_lame_parameters()
+input_vars = F11, F12, F13, F21, F22, F23, F31, F32, F33 = symbols(&#39;F11 F12 F13 F21 F22 F23 F31 F32 F33&#39;)
+
+# compile more terms in ground truth
+# or make the network bigger
+P12_l_expr = mu * (F12 + F21)
+model = kanpiler(input_vars, P12_l_expr, base_fun=&#39;identity&#39;)
+
+F_flatten = F.reshape(N, -1)
+
+model.get_act(F_flatten)
+model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{12}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_2_1.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_2_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.expand_depth()
+model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{12}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_3_1.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_3_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.expand_width(1,5,sum_bool=False,mult_arity=2)
+model.expand_width(1,4)
+model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{12}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_4_1.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_4_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.perturb(mode=&#39;all&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{12}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_6_0.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_6_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dataset = create_dataset_from_data(F_flatten, P12_n)
+torch.sqrt(torch.mean((model(dataset[&#39;train_input&#39;]) - dataset[&#39;train_label&#39;])**2))
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.2937</span><span class="p">,</span> <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">SqrtBackward0</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import create_dataset_from_data
+
+#dataset = create_dataset_from_data(F_flatten, P12_n)
+model.fit(dataset, steps=100, lamb=1e-5);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.00e-03 | test_loss: 1.51e-03 | reg: 4.69e+00 | : 100%|█| 100/100 [02:47&lt;00:00,  1.67
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.6</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{12}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_9_0.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_9_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{12}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.7</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_10_1.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_10_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.rewind(&#39;0.7&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rewind</span> <span class="n">to</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">renamed</span> <span class="k">as</span> <span class="mf">1.7</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, steps=100);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.92e-04 | test_loss: 3.67e-04 | reg: 6.50e+00 | : 100%|█| 100/100 [01:23&lt;00:00,  1.20
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.8</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_4B_constitutive_laws_P12_with_prior_13_0.png" src="../_images/Physics_4B_constitutive_laws_P12_with_prior_13_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.9</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9983181760968648</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="n">sin</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9991134619027429</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9992434434738733</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9973857325647751</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9969197588869652</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9997375051819277</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9991375860233465</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9992679184992709</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999994286233544</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9985408882836544</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">0</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.10</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, steps=100);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 7.36e-03 | test_loss: 7.64e-03 | reg: 0.00e+00 | : 100%|█| 100/100 [01:31&lt;00:00,  1.09
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.11</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import ex_round
+ex_round(expand(ex_round(model.symbolic_formula(var=input_vars)[0][0],4)),2)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle 0.02 F_{12}^{2} + 0.42 F_{12} + 0.44 F_{13} F_{23} - 0.03 F_{21}^{2} + 0.42 F_{21}\]</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

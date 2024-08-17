@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpretability 10: Hessian &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpretability 10: Hessian</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Interp/Interp_10_hessian.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interpretability-10-hessian">
+<h1>Interpretability 10: Hessian<a class="headerlink" href="#interpretability-10-hessian" title="Link to this heading"></a></h1>
+<p>To understand the loss lanscape, we compute the hessian (loss wrt model
+parameters) and get its eigenvalues</p>
+<p>Try both KAN and MLP, you will usually see that KANs have more non-zero
+eigenvalues than MLPs, meaning that KANs have more effective number of
+parameters than MLP.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import get_derivative
+import torch
+from kan.MLP import MLP
+from kan.MultKAN import KAN
+from kan.utils import create_dataset, model2param
+import copy
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+f = lambda x: x[:,[0]]**2
+dataset = create_dataset(f, n_var=1, train_num=1000, device=device)
+
+inputs = dataset[&#39;train_input&#39;]
+labels = dataset[&#39;train_label&#39;]
+
+#model = MLP(width = [1,30,1])
+model = KAN(width=[1,5,1], device=device)
+model.fit(dataset, opt=&#39;Adam&#39;, lr=1e-2, lamb=0.000, steps=1000);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 8.51e-04 | test_loss: 8.26e-04 | reg: 1.11e+01 | : 100%|█| 1000/1000 [00:08&lt;00:00, 114
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_10_hessian_4_0.png" src="../_images/Interp_10_hessian_4_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>hess = get_derivative(model, inputs, labels, derivative=&#39;hessian&#39;)
+values, vectors = torch.linalg.eigh(hess)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import matplotlib.pyplot as plt
+plt.plot(values.cpu().numpy()[0], marker=&#39;o&#39;);
+plt.yscale(&#39;log&#39;)
+</pre></div>
+</div>
+<img alt="../_images/Interp_10_hessian_6_0.png" src="../_images/Interp_10_hessian_6_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics 3: Blackhole &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Physics 3: Blackhole</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Physics/Physics_3_blackhole.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="physics-3-blackhole">
+<h1>Physics 3: Blackhole<a class="headerlink" href="#physics-3-blackhole" title="Link to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import torch
+from kan import *
+from kan.utils import batch_jacobian
+from kan.MLP import MLP
+
+torch.use_deterministic_algorithms(True)
+torch.set_default_dtype(torch.float64)
+
+#model = KAN(width=[1,5,5,1], grid=5, grid_range=[1.2,3], grid_eps=0.)
+#model = KAN(width=[1,1], grid=1, grid_range=[1.2,3], grid_eps=0., base_fun=&#39;zero&#39;)
+#model.speed()
+model = MLP(width=[1,20,20,1])
+
+#model = lambda x: 2 * torch.sqrt(x) + torch.log((torch.sqrt(x)-1)/(torch.sqrt(x)+1))
+
+# Schwarzschild 2M = 1
+def g(x_):
+    bs = x_.shape[0]
+    t = x_[:,0]
+    a = torch.ones_like(t)
+    x = x_[:,1]
+    y = x_[:,2]
+    z = x_[:,3]
+    r = torch.sqrt(x**2+y**2+z**2)
+    stack1 = torch.stack([torch.ones(bs,)-1/r, torch.zeros(bs,), torch.zeros(bs,), torch.zeros(bs,)])
+    stack2 = torch.stack([torch.zeros(bs,), -(1+x**2/((r-1)*r**2)), -x*y/((r-1)*r**2), -x*z/((r-1)*r**2)])
+    stack3 = torch.stack([torch.zeros(bs,), -x*y/((r-1)*r**2), -(1+y**2/((r-1)*r**2)), -y*z/((r-1)*r**2)])
+    stack4 = torch.stack([torch.zeros(bs,), -x*z/((r-1)*r**2), -y*z/((r-1)*r**2), -(1+z**2/((r-1)*r**2))])
+    gs = torch.stack([stack1, stack2, stack3, stack4]).permute(2,0,1)
+    return gs
+
+def transform_g(transform, g, x):
+    jac = batch_jacobian(transform, x, create_graph=True, mode=&#39;vector&#39;)
+    jac_inv = torch.inverse(jac)
+    return torch.matmul(torch.matmul(jac_inv.permute(0,2,1), g(x)),jac_inv)
+
+def transform(x):
+    t = x[:,[0]]
+    r = torch.linalg.norm(x[:,1:], dim=1, keepdim=True)
+    tp = t + model(r)
+    #u = torch.sqrt(r)
+    #tp = t - (2*u+torch.log((u-1)/(u+1)))
+    return torch.cat([tp, x[:,1:]], dim=1)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+from kan.utils import batch_jacobian, create_dataset_from_data
+import numpy as np
+
+
+steps = 5
+log = 1
+optimizer = LBFGS(model.parameters(), lr=1, history_size=10, line_search_fn=&quot;strong_wolfe&quot;, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+#optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
+#optimizer = torch.optim.Adam([], lr=1e-3)
+pbar = tqdm(range(steps), desc=&#39;description&#39;, ncols=100)
+
+n_train = 10000
+W = torch.normal(0,1,size=(n_train,4))
+input_ = torch.empty(n_train,4, requires_grad=False)
+input_[:,0] = torch.rand(n_train, requires_grad=True)
+#rs = 1.2 + 1.8 * torch.linspace(0,1,n_train)
+rs = 1.2 + 1.8 * torch.linspace(0,1,n_train)
+input_[:,1:] = W[:,1:]/torch.norm(W[:,1:], dim=1, keepdim=True)*torch.unsqueeze(rs, dim=1)
+x = input_.detach().requires_grad_(True)
+
+def closure():
+
+    global loss
+    global x
+    optimizer.zero_grad()
+
+    g_GP = transform_g(transform, g, x)
+    num = x.shape[0]
+    loss = torch.mean((g_GP[:,1:,1:] + torch.eye(3,3)[None,:,:].expand(num,3,3))**2)
+
+    loss.backward()
+    return loss
+
+for _ in pbar:
+
+    &#39;&#39;&#39;if _ &lt; 50 and _ % 5 == 0:
+        model.update_grid(x)&#39;&#39;&#39;
+
+    optimizer.step(closure)
+
+    if _ % log == 0:
+        pbar.set_description(&quot;| loss: %.2e |&quot; % loss.cpu().detach().numpy())
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| loss: 1.05e-04 |: 100%|█████████████████████████████████████████████| 5/5 [00:12&lt;00:00,  2.42s/it]
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.refine(20)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.scatter(rs.detach().numpy(), model(rs[:,None])[:,0].detach().numpy())
+u = torch.sqrt(rs)
+dt = 2*u + torch.log((u-1)/(u+1))
+#plt.plot(rs, dt+3.65, color=&#39;red&#39;, ls=&#39;--&#39;, lw=2)
+plt.plot(rs, -dt-23.85, color=&#39;orange&#39;, ls=&#39;--&#39;, lw=2)
+plt.xlabel(r&#39;$r$&#39;, fontsize=20)
+plt.ylabel(r&#39;$\Delta t$&#39;, fontsize=20)
+#plt.text(1.5,3,r&#39;$2\sqrt{r}+{\rm log}(\frac{\sqrt{r}-1}{\sqrt{r}+1})+C_1$&#39;,color=&#39;red&#39;,fontsize=20)
+plt.text(1.5,-23.3,r&#39;$-(2\sqrt{r}+{\rm log}(\frac{\sqrt{r}-1}{\sqrt{r}+1}))+C$&#39;,color=&#39;orange&#39;,fontsize=20)
+</pre></div>
+</div>
+<pre class="literal-block">Text(1.5, -23.3, '$-(2\sqrt{r}+{\rm log}(\frac{\sqrt{r}-1}{\sqrt{r}+1}))+C$')</pre>
+<img alt="../_images/Physics_3_blackhole_5_1.png" src="../_images/Physics_3_blackhole_5_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.scatter(rs.detach().numpy(), model(rs[:,None])[:,0].detach().numpy())
+u = torch.sqrt(rs)
+dt = 2*u + torch.log((u-1)/(u+1))
+plt.plot(rs, dt+3.65, color=&#39;red&#39;, ls=&#39;--&#39;, lw=2)
+plt.plot(rs, -dt+6.5, color=&#39;orange&#39;, ls=&#39;--&#39;, lw=2)
+plt.xlabel(r&#39;$r$&#39;, fontsize=20)
+plt.ylabel(r&#39;$\Delta t$&#39;, fontsize=20)
+plt.text(1.5,3,r&#39;$2\sqrt{r}+{\rm log}(\frac{\sqrt{r}-1}{\sqrt{r}+1})+C_1$&#39;,color=&#39;red&#39;,fontsize=20)
+plt.text(1.5,7,r&#39;$-(2\sqrt{r}+{\rm log}(\frac{\sqrt{r}-1}{\sqrt{r}+1}))+C_2$&#39;,color=&#39;orange&#39;,fontsize=20)
+</pre></div>
+</div>
+<pre class="literal-block">Text(1.5, 7, '$-(2\sqrt{r}+{\rm log}(\frac{\sqrt{r}-1}{\sqrt{r}+1}))+C_2$')</pre>
+<img alt="../_images/Physics_3_blackhole_6_1.png" src="../_images/Physics_3_blackhole_6_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.scatter(rs.detach().numpy(), model(rs[:,None])[:,0].detach().numpy())
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PathCollection</span> <span class="n">at</span> <span class="mh">0x7ff4489537f0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_3_blackhole_7_1.png" src="../_images/Physics_3_blackhole_7_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>g_GP = transform_g(transform, g, x)
+num = x.shape[0]
+loss = torch.mean((g_GP[:,1:,1:] + torch.eye(3,3)[None,:,:].expand(num,3,3))**2, dim=[1,2])
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>loss
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">([</span><span class="mf">2.4633e-03</span><span class="p">,</span> <span class="mf">2.4056e-03</span><span class="p">,</span> <span class="mf">2.3489e-03</span><span class="p">,</span>  <span class="o">...</span><span class="p">,</span> <span class="mf">5.6274e-05</span><span class="p">,</span> <span class="mf">5.7003e-05</span><span class="p">,</span>
+        <span class="mf">5.7739e-05</span><span class="p">],</span> <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">MeanBackward1</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.plot(rs.detach().numpy(), loss.detach().numpy())
+plt.xlabel(r&#39;$r$&#39;, fontsize=20)
+plt.ylabel(&#39;Minkowski Loss&#39;, fontsize=20)
+plt.plot([2.282,2.282],[0,0.08], ls=&#39;--&#39;, color=&#39;black&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7ff41eb709a0</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_3_blackhole_10_1.png" src="../_images/Physics_3_blackhole_10_1.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

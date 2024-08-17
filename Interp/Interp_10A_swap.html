@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpretability 10A: swap &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpretability 10A: swap</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Interp/Interp_10A_swap.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interpretability-10a-swap">
+<h1>Interpretability 10A: swap<a class="headerlink" href="#interpretability-10a-swap" title="Link to this heading"></a></h1>
+<p>The task has 9 inputs bits <span class="math notranslate nohighlight">\(x_1, \cdots, x_9\in\{0,1\}\)</span> and one
+output bit <span class="math notranslate nohighlight">\(y\in \{0,1\}\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(y = {\rm maj}({\rm maj}(x_1,x_2,x_3), {\rm maj}(x_4,x_5,x_6), {\rm maj}(x_7,x_8,x_9))\)</span></p>
+<p>where <span class="math notranslate nohighlight">\({\rm maj}\)</span> outputs 1 and two or three input bits are 1,
+otherwise outputs 0.</p>
+<p><strong>KAN</strong></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import torch
+import numpy as np
+from kan import *
+
+seed = 5
+torch.manual_seed(seed)
+np.random.seed(seed)
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+
+inputs = []
+for i in range(2**9):
+    string = &quot;{0:b}&quot;.format(i)
+    sample = [int(string[i]) for i in range(len(string))]
+    sample = (9 - len(sample)) * [0] + sample
+    inputs.append(sample)
+
+inputs = np.array(inputs).astype(np.float32)
+middle = np.array([np.sum(inputs[:,:3], axis=1) &gt; 1.5, np.sum(inputs[:,3:6], axis=1) &gt; 1.5, np.sum(inputs[:,6:9], axis=1) &gt; 1.5]).astype(np.float32)
+labels = (np.sum(middle, axis=0) &gt; 1.5).astype(np.float32)[:,None]
+inputs = torch.tensor(inputs)
+labels = torch.tensor(labels)
+
+
+dataset = create_dataset_from_data(inputs, labels, device=device)
+
+width = [9, 10, 10, 1]
+model = KAN(width=width, seed=seed, noise_scale=1.0, device=device)
+depth = len(width) - 1
+
+def train_acc():
+    return torch.mean(((model(dataset[&#39;train_input&#39;]) &gt; 0.5) == dataset[&#39;train_label&#39;]).float())
+
+def test_acc():
+    return torch.mean(((model(dataset[&#39;test_input&#39;]) &gt; 0.5) == dataset[&#39;test_label&#39;]).float())
+
+
+model.fit(dataset, lamb=0.001, lamb_entropy=5., steps=20, stop_grid_update_step=1000, metrics=[train_acc, test_acc], display_metrics=[&#39;train_loss&#39;, &#39;train_acc&#39;, &#39;test_acc&#39;, &#39;reg&#39;]);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train_loss: 2.40e-02 | train_acc: 1.00e+00 | test_acc: 1.00e+00 | reg: 2.69e+01 |: 100%|█| 20/20 [0
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>#model.plot()
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.auto_swap()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_10A_swap_6_0.png" src="../_images/Interp_10A_swap_6_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune(node_th=5e-2)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_10A_swap_8_0.png" src="../_images/Interp_10A_swap_8_0.png" />
+<p><strong>MLP</strong></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import torch
+import numpy as np
+from kan import *
+from kan.MLP import MLP
+
+seed = 5
+torch.manual_seed(seed)
+np.random.seed(seed)
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+inputs = []
+for i in range(2**9):
+    string = &quot;{0:b}&quot;.format(i)
+    sample = [int(string[i]) for i in range(len(string))]
+    sample = (9 - len(sample)) * [0] + sample
+    inputs.append(sample)
+
+inputs = np.array(inputs).astype(np.float32)
+middle = np.array([np.sum(inputs[:,:3], axis=1) &gt; 1.5, np.sum(inputs[:,3:6], axis=1) &gt; 1.5, np.sum(inputs[:,6:9], axis=1) &gt; 1.5]).astype(np.float32)
+labels = (np.sum(middle, axis=0) &gt; 1.5).astype(np.float32)[:,None]
+inputs = torch.tensor(inputs)
+labels = torch.tensor(labels)
+
+
+dataset = create_dataset_from_data(inputs, labels, device=device)
+
+width = [9, 20, 20, 1]
+model = MLP(width=width, seed=seed, device=device)
+depth = len(width) - 1
+
+def train_acc():
+    return torch.mean(((model(dataset[&#39;train_input&#39;]) &gt; 0.5) == dataset[&#39;train_label&#39;]).float())
+
+def test_acc():
+    return torch.mean(((model(dataset[&#39;test_input&#39;]) &gt; 0.5) == dataset[&#39;test_label&#39;]).float())
+
+
+model.fit(dataset, lamb=0.0001, lamb_entropy=2., steps=1000, reg_metric=&#39;w&#39;, metrics=[train_acc, test_acc], display_metrics=[&#39;train_loss&#39;, &#39;train_acc&#39;, &#39;test_acc&#39;, &#39;reg&#39;]);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>train_loss: 1.28e-02 | train_acc: 1.00e+00 | test_acc: 1.00e+00 | reg: 7.73e+01 |: 100%|█| 1000/100
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(scale=1.5)
+</pre></div>
+</div>
+<img alt="../_images/Interp_10A_swap_11_0.png" src="../_images/Interp_10A_swap_11_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.auto_swap()
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(scale=1.5)
+</pre></div>
+</div>
+<img alt="../_images/Interp_10A_swap_13_0.png" src="../_images/Interp_10A_swap_13_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpretability 4: Feature attribution &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpretability 4: Feature attribution</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Interp/Interp_4_feature_attribution.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interpretability-4-feature-attribution">
+<h1>Interpretability 4: Feature attribution<a class="headerlink" href="#interpretability-4-feature-attribution" title="Link to this heading"></a></h1>
+<p>How to determine the importance of features? This is known as feature
+attribution. This notebook shows how to get feature scores in KANs.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+from sympy import *
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+# let&#39;s construct a dataset
+f = lambda x: x[:,0]**2 + 0.3*x[:,1] + 0.1*x[:,2]**3 + 0.0*x[:,3]
+dataset = create_dataset(f, n_var=4, device=device)
+
+input_vars = [r&#39;$x_&#39;+str(i)+&#39;$&#39; for i in range(4)]
+
+model = KAN(width=[4,5,1], device=device)
+model.fit(dataset, steps=40, lamb=0.001);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 8.00e-03 | test_loss: 8.47e-03 | reg: 4.61e+00 | : 100%|█| 40/40 [00:07&lt;00:00,  5.20it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_3_0.png" src="../_images/Interp_4_feature_attribution_3_0.png" />
+<p>get feature score (for input variables)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.feature_score
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.8916</span><span class="p">,</span> <span class="mf">0.5155</span><span class="p">,</span> <span class="mf">0.1079</span><span class="p">,</span> <span class="mf">0.0040</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span><span class="p">,</span>
+       <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">MeanBackward1</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Inspect how hidden nodes depend on features</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># the 2nd neuron (index start from 0) in the 1st layer
+model.attribute(1,2)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.8915</span><span class="p">,</span> <span class="mf">0.5146</span><span class="p">,</span> <span class="mf">0.1079</span><span class="p">,</span> <span class="mf">0.0040</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span><span class="p">,</span>
+       <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">SelectBackward0</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_7_1.png" src="../_images/Interp_4_feature_attribution_7_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># the 3nd neuron (index start from 0) in the 1st layer
+# note the y axis scale is really small
+model.attribute(1,3)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">([</span><span class="mf">4.6616e-05</span><span class="p">,</span> <span class="mf">8.2072e-04</span><span class="p">,</span> <span class="mf">3.2453e-06</span><span class="p">,</span> <span class="mf">1.3511e-05</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span><span class="p">,</span>
+       <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">SelectBackward0</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_8_1.png" src="../_images/Interp_4_feature_attribution_8_1.png" />
+<p>prune inputs</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune_input()
+model.plot(in_vars=input_vars)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keep</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_10_1.png" src="../_images/Interp_4_feature_attribution_10_1.png" />
+<p>Let’s consider a high-dimensional case. In the case of many inputs but
+only few are important, the users may want to prune input otherwise too
+many inputs make interpretable hard.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+
+# let&#39;s construct a dataset
+n_var = 100
+
+def f(x):
+    y = 0
+    for i in range(n_var):
+        # exponential decay
+        y += x[:,[i]]**2*0.5**i
+    return y
+
+dataset = create_dataset(f, n_var=n_var, device=device)
+
+input_vars = [r&#39;$x_{&#39;+str(i)+&#39;}$&#39; for i in range(n_var)]
+
+model = KAN(width=[n_var,10,10,1], seed=2, device=device)
+model.fit(dataset, steps=50, lamb=1e-3);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.20e-02 | test_loss: 5.46e-02 | reg: 1.71e+01 | : 100%|█| 50/50 [00:16&lt;00:00,  3.12it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_13_0.png" src="../_images/Interp_4_feature_attribution_13_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.rewind(&#39;0.1&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rewind</span> <span class="n">to</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">renamed</span> <span class="k">as</span> <span class="mf">1.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.scatter(np.arange(n_var)+1, model.feature_score.cpu().detach().numpy())
+plt.xscale(&#39;log&#39;)
+plt.yscale(&#39;log&#39;)
+plt.xlabel(&#39;rank of input features&#39;, fontsize=15)
+plt.ylabel(&#39;feature attribution score&#39;, fontsize=15)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;feature attribution score&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_15_1.png" src="../_images/Interp_4_feature_attribution_15_1.png" />
+<p>Since there are 100D inputs, it’s very time consuming to plot the whole
+diagram and hard to read anything meaningful out of the diagram. So we
+want to prune the network first (including pruning hidden nodes and
+pruning inputs) and then plot it.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model = model.prune_input(threshold=3e-2)
+model.plot(in_vars=input_vars)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.2</span>
+<span class="n">keep</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.3</span>
+</pre></div>
+</div>
+<img alt="../_images/Interp_4_feature_attribution_17_1.png" src="../_images/Interp_4_feature_attribution_17_1.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

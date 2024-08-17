@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 1: Function Fitting &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 4: Classification" href="Example_4_classfication.html" />
+    <link rel="prev" title="Examples" href="../examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example 1: Function Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_4_classfication.html">Example 4: Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_5_special_functions.html">Example 5: Special functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_6_PDE_interpretation.html">Example 6: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_7_PDE_accuracy.html">Example 7: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_8_continual_learning.html">Example 8: Continual Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_9_singularity.html">Example 9: Singularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_10_relativity-addition.html">Example 10: Relativitistic Velocity Addition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_11_encouraing_linear.html">Example 11: Encouraging linearity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_12_unsupervised_learning.html">Example 12: Unsupervised learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_13_phase_transition.html">Example 13: Phase transition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_14_knot_supervised.html">Example 14: Knot supervised</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_15_knot_unsupervised.html">Example 15: Knot unsupervised</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Example 1: Function Fitting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Example/Example_1_function_fitting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-1-function-fitting">
+<h1>Example 1: Function Fitting<a class="headerlink" href="#example-1-function-fitting" title="Link to this heading"></a></h1>
+<p>In this example, we will cover how to leverage grid refinement to
+maximimze KANs’ ability to fit functions</p>
+<p>intialize model and create dataset</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+# initialize KAN with G=3
+model = KAN(width=[2,1,1], grid=3, k=3, seed=1, device=device)
+
+# create dataset
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>Train KAN (grid=3)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 4.16e-02 | test_loss: 4.35e-02 | reg: 9.79e+00 | : 100%|█| 20/20 [00:03&lt;00:00,  6.03it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<p>The loss plateaus. we want a more fine-grained KAN!</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># initialize a more fine-grained KAN with G=10
+model = model.refine(10)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<p>Train KAN (grid=10)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 6.96e-03 | test_loss: 6.10e-03 | reg: 9.75e+00 | : 100%|█| 20/20 [00:02&lt;00:00,  7.32it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+</pre></div>
+</div>
+<p>The loss becomes lower. This is good! Now we can even iteratively making
+grids finer.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>grids = np.array([3,10,20,50,100])
+
+
+train_losses = []
+test_losses = []
+steps = 200
+k = 3
+
+for i in range(grids.shape[0]):
+    if i == 0:
+        model = KAN(width=[2,1,1], grid=grids[i], k=k, seed=1, device=device)
+    if i != 0:
+        model = model.refine(grids[i])
+    results = model.fit(dataset, opt=&quot;LBFGS&quot;, steps=steps)
+    train_losses += results[&#39;train_loss&#39;]
+    test_losses += results[&#39;test_loss&#39;]
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.46e-02 | test_loss: 1.53e-02 | reg: 8.83e+00 | : 100%|█| 200/200 [00:10&lt;00:00, 19.67
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.84e-04 | test_loss: 3.29e-04 | reg: 8.84e+00 | : 100%|█| 200/200 [00:15&lt;00:00, 13.09
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 4.21e-05 | test_loss: 4.04e-05 | reg: 8.84e+00 | : 100%|█| 200/200 [00:09&lt;00:00, 21.22
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.5</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.6</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.02e-05 | test_loss: 1.24e-05 | reg: 8.84e+00 | : 100%|█| 200/200 [00:10&lt;00:00, 18.76
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.7</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.64e-04 | test_loss: 1.74e-03 | reg: 8.86e+00 | : 100%|█| 200/200 [00:17&lt;00:00, 11.72
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.9</span>
+</pre></div>
+</div>
+<p>Training dynamics of losses display staircase structures (loss suddenly
+drops after grid refinement)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.plot(train_losses)
+plt.plot(test_losses)
+plt.legend([&#39;train&#39;, &#39;test&#39;])
+plt.ylabel(&#39;RMSE&#39;)
+plt.xlabel(&#39;step&#39;)
+plt.yscale(&#39;log&#39;)
+</pre></div>
+</div>
+<img alt="../_images/Example_1_function_fitting_12_0.png" src="../_images/Example_1_function_fitting_12_0.png" />
+<p>Neural scaling laws (For some reason, this got worse than pykan 0.0.
+We’re still investigating the reason, probably due to the updates of
+curve2coef)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>n_params = 3 * grids
+train_vs_G = train_losses[(steps-1)::steps]
+test_vs_G = test_losses[(steps-1)::steps]
+plt.plot(n_params, train_vs_G, marker=&quot;o&quot;)
+plt.plot(n_params, test_vs_G, marker=&quot;o&quot;)
+plt.plot(n_params, 100*n_params**(-4.), ls=&quot;--&quot;, color=&quot;black&quot;)
+plt.xscale(&#39;log&#39;)
+plt.yscale(&#39;log&#39;)
+plt.legend([&#39;train&#39;, &#39;test&#39;, r&#39;$N^{-4}$&#39;])
+plt.xlabel(&#39;number of params&#39;)
+plt.ylabel(&#39;RMSE&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Text</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;RMSE&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/Example_1_function_fitting_14_1.png" src="../_images/Example_1_function_fitting_14_1.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Example_4_classfication.html" class="btn btn-neutral float-right" title="Example 4: Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

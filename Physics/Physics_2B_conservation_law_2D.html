@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics 2B: Conservation Laws &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Physics 2B: Conservation Laws</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Physics/Physics_2B_conservation_law_2D.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="physics-2b-conservation-laws">
+<h1>Physics 2B: Conservation Laws<a class="headerlink" href="#physics-2b-conservation-laws" title="Link to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+from kan.utils import batch_jacobian, create_dataset_from_data
+import numpy as np
+
+torch.use_deterministic_algorithms(True)
+
+
+#model = KAN(width=[4,[0,2],1], seed=0, base_fun=&#39;identity&#39;)
+#model = KAN(width=[4,[0,2],1], seed=2, base_fun=&#39;identity&#39;)
+model = KAN(width=[4,[0,2],1], seed=12, base_fun=&#39;identity&#39;)
+
+# the model learns the Hamiltonian H = 1/2 * (x**2 + p**2)
+x = torch.rand(1000,4) * 2 - 1
+flow = torch.cat([x[:,[1]], -x[:,[0]], x[:,[3]], -x[:,[2]]], dim=1)
+flow = flow/torch.linalg.norm(flow, dim=1, keepdim=True)
+
+loss_fn = lambda v1, v2: torch.mean(torch.sum(v1 * v2, dim=1)**2)
+
+
+def get_grad_normalized(model, x):
+    grad = batch_jacobian(model, x, create_graph=True)
+    grad_normalized = grad/torch.linalg.norm(grad, dim=1, keepdim=True)
+    return grad_normalized
+
+def closure():
+
+    global cq_loss, reg_loss
+    optimizer.zero_grad()
+
+    grads = []
+    grad = get_grad_normalized(model, x)
+    cq_loss = loss_fn(grad, flow)
+    reg_loss = model.reg(lamb_l1=1., entropy_offset=1e-4, lamb_coef=1.)
+
+    lamb = 1e-2
+    objective = cq_loss + lamb * reg_loss
+    objective.backward()
+    return objective
+
+steps = 50
+log = 1
+optimizer = LBFGS(model.parameters(), lr=1, history_size=10, line_search_fn=&quot;strong_wolfe&quot;, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+#optimizer = torch.optim.Adam(params, lr=1e-2)
+pbar = tqdm(range(steps), desc=&#39;description&#39;, ncols=100)
+
+
+for _ in pbar:
+
+    # update grid
+    if _ &lt; 5 and _ % 20 == 0:
+        model.update_grid_from_samples(x)
+
+    optimizer.step(closure)
+
+    if _ % log == 0:
+        pbar.set_description(&quot;| cq_loss: %.2e | reg_loss: %.2e |&quot; % (cq_loss.cpu().detach().numpy(), reg_loss.cpu().detach().numpy()))
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| cq_loss: 1.57e-03 | reg_loss: 1.01e+01 |: 100%|███████████████████| 50/50 [00:30&lt;00:00,  1.63it/s]
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>#model = KAN(width=[4,[0,2],1], seed=12, base_fun=&#39;identity&#39;)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_2B_conservation_law_2D_2_0.png" src="../_images/Physics_2B_conservation_law_2D_2_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune(edge_th=5e-2)
+model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9983036518096924</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9988861680030823</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9961345195770264</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9859936237335205</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999908804893494</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999944567680359</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import ex_round
+from sympy import *
+ex_round(expand(ex_round(model.symbolic_formula()[0][0],5)),3)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle - 0.011 x_{3}^{2} - 0.01 x_{4}^{2} + 0.001 x_{4} + 0.002\]</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>#model = KAN(width=[4,[0,2],1], seed=0, base_fun=&#39;identity&#39;)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_2B_conservation_law_2D_6_0.png" src="../_images/Physics_2B_conservation_law_2D_6_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune(edge_th=5e-2)
+model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9965425133705139</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9997711181640625</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999427199363708</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9986546635627747</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">exp</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">1.000000238418579</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.999911904335022</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.unfix_symbolic(1,0,0)
+model.fix_symbolic(1,0,0,&#39;x&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">Best</span> <span class="n">value</span> <span class="n">at</span> <span class="n">boundary</span><span class="o">.</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9992757439613342</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.9993</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import ex_round
+from sympy import *
+ex_round(expand(ex_round(model.symbolic_formula()[0][0],5)),3)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle - 0.011 x_{1}^{2} - 0.01 x_{2}^{2} - 0.006\]</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># model = KAN(width=[4,[0,2],1], seed=2, base_fun=&#39;identity&#39;)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_2B_conservation_law_2D_12_0.png" src="../_images/Physics_2B_conservation_law_2D_12_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9994129538536072</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999893307685852</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.999798059463501</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">1.0000004768371582</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9998863935470581</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">exp</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">1.0000001192092896</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.unfix_symbolic(1,1,0)
+model.fix_symbolic(1,1,0,&#39;x&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">Best</span> <span class="n">value</span> <span class="n">at</span> <span class="n">boundary</span><span class="o">.</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9831650257110596</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.9832</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import ex_round
+from sympy import *
+ex_round(expand(ex_round(model.symbolic_formula()[0][0],5)),4)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle - 0.003 x_{1} x_{4} + 0.0031 x_{2} x_{3} - 0.0819\]</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

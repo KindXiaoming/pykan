@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community 1: Physics-informed KAN &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Community 1: Physics-informed KAN</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Community/Community_1_physics_informed_kan.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="community-1-physics-informed-kan">
+<h1>Community 1: Physics-informed KAN<a class="headerlink" href="#community-1-physics-informed-kan" title="Link to this heading"></a></h1>
+<p><strong>Disclaimer: This is uploaded from a github user, not the KAN authors.
+KAN authors did not writer this or proofread this carefully, hence are
+not responsible for mistakes in this notebook. If you have questions,
+please consult the github user who uploaded it. Thank you!</strong></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import torch
+from torch import autograd
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+from kan import KAN, LBFGS
+
+device = torch.device(&quot;cpu&quot;)
+print(&quot;Using device:&quot;, device)
+
+rho = torch.tensor(1.0, device=device, requires_grad=False)
+nu = torch.tensor(0.01, device=device, requires_grad=False)
+eps = torch.tensor(1e-8, device=device, requires_grad=False)
+
+width, height = 10.0, 2.0
+num_points_x, num_points_y = 100, 20
+
+x = torch.linspace(0, width, num_points_x, device=device, requires_grad=False)
+y = torch.linspace(0, height, num_points_y, device=device, requires_grad=False)
+X, Y = torch.meshgrid(x, y, indexing=&#39;ij&#39;)
+coordinates = torch.stack([X.flatten(), Y.flatten()], dim=1).to(device)
+coordinates.requires_grad = True  # Ensure coordinates require grad
+
+model = KAN(width=[2,3,3, 3], grid=5, k=10, grid_eps=1.0,
+            noise_scale_base=0.25).to(device)
+
+def batch_jacobian(func, x, create_graph=False):
+    def _func_sum(x):
+        return func(x).sum(dim=0)
+    return autograd.functional.jacobian(_func_sum, x, create_graph=create_graph).permute(1, 0, 2)
+
+def batch_hessian(func, x):
+    jacobian = batch_jacobian(func, x, create_graph=True)
+    hessians = []
+    for i in range(jacobian.size(1)):
+        grad = autograd.grad(jacobian[:, i].sum(), x, create_graph=True, retain_graph=True)[0]
+        hessians.append(grad.unsqueeze(1))
+    return torch.cat(hessians, dim=1)
+
+def navier_stokes_residuals(coords):
+    coords = coords.clone().detach().requires_grad_(True)  # Ensure coords require grad
+    y_pred = model(coords)
+    grads = batch_jacobian(model, coords, create_graph=True)
+    hessians = batch_hessian(model, coords)
+
+    u, v, p = y_pred[:, 0], y_pred[:, 1], y_pred[:, 2]
+    u_x, u_y = grads[:, 0, 0], grads[:, 0, 1]
+    v_x, v_y = grads[:, 1, 0], grads[:, 1, 1]
+    p_x, p_y = grads[:, 2, 0], grads[:, 2, 1]
+
+    u_xx, u_yy = hessians[:, 0, 0], hessians[:, 0, 1]
+    v_xx, v_yy = hessians[:, 1, 0], hessians[:, 1, 1]
+
+    continuity = u_x + v_y + eps * p
+    x_momentum = u * u_x + v * u_y + (1 / rho) * p_x - nu * (u_xx + u_yy)
+    y_momentum = u * v_x + v * v_y + (1 / rho) * p_y - nu * (v_xx + v_yy)
+
+    no_slip_mask = (coords[:, 1] == 0) | (coords[:, 1] == height)
+    inlet_mask = (coords[:, 0] == 0)
+    outlet_mask = (coords[:, 0] == width)
+
+    no_slip_loss = torch.mean(u[no_slip_mask] ** 2 + v[no_slip_mask] ** 2)
+    inlet_loss = torch.mean((u[inlet_mask] - 1) ** 2)
+    outlet_pressure_loss = torch.mean(p[outlet_mask] ** 2)
+
+    bc_loss = no_slip_loss + inlet_loss + outlet_pressure_loss
+    total_loss = torch.mean(continuity ** 2 + x_momentum ** 2 + y_momentum ** 2) + bc_loss
+    return total_loss
+
+writer = SummaryWriter()
+
+def train():
+    optimizer = LBFGS(model.parameters(), lr=1,
+                      history_size=10, line_search_fn=&quot;strong_wolfe&quot;, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+
+    steps = 200 # 20 steps are enough
+    pbar = tqdm(range(steps), desc=&#39;Training Progress&#39;)
+
+    for step in pbar:
+        def closure():
+            optimizer.zero_grad()
+            loss = navier_stokes_residuals(coordinates)
+            loss.backward()
+            return loss
+
+        optimizer.step(closure)
+        if step % 5 == 0:
+            current_loss = closure().item()
+            pbar.set_description(&quot;Step: %d | Loss: %.3f&quot; %
+                                 (step, current_loss))
+            writer.add_scalar(&#39;Loss/train&#39;, current_loss, step)
+
+train()
+
+writer.close()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Using</span> <span class="n">device</span><span class="p">:</span> <span class="n">cpu</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Step: 195 | Loss: 0.011: 100%|██████████| 200/200 [2:52:51&lt;00:00, 51.86s/it]
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>u_pred = model(coordinates)[:, 0].detach().reshape(
+    num_points_x, num_points_y).T
+
+v_pred = model(coordinates)[:, 1].detach().reshape(
+    num_points_x, num_points_y).T
+
+
+magnitude = torch.sqrt(u_pred ** 2 + v_pred ** 2)
+
+plt.figure(figsize=(10, 5))  # Set the figure size as needed
+plt.imshow(magnitude, extent=(0, width, 0, height), origin=&#39;lower&#39;, cmap=&#39;viridis&#39;)
+plt.colorbar()  # Add a colorbar to show the magnitude scale
+plt.title(&#39;Velocity Magnitude Contour&#39;)
+plt.xlabel(&#39;Width&#39;)
+plt.ylabel(&#39;Height&#39;)
+plt.axis(&#39;equal&#39;)  # Ensure the plot has equal scaling
+plt.tight_layout()  # Adjust layout to prevent overlap
+plt.show()
+</pre></div>
+</div>
+<img alt="../_images/Community_1_physics_informed_kan_3_0.png" src="../_images/Community_1_physics_informed_kan_3_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Extracting predictions
+u_pred = model(coordinates)[:, 0].detach().reshape(num_points_x, num_points_y).T
+v_pred = model(coordinates)[:, 1].detach().reshape(num_points_x, num_points_y).T
+p_pred = model(coordinates)[:, 2].detach().reshape(num_points_x, num_points_y).T
+
+# Velocity Magnitude
+magnitude = torch.sqrt(u_pred ** 2 + v_pred ** 2)
+
+# Plotting all subplots
+fig, axs = plt.subplots(2, 2, figsize=(15, 10))
+
+# Velocity Magnitude
+im0 = axs[0, 0].imshow(magnitude, extent=(0, width, 0, height), origin=&#39;lower&#39;, cmap=&#39;viridis&#39;)
+fig.colorbar(im0, ax=axs[0, 0])
+axs[0, 0].set_title(&#39;Velocity Magnitude Contour&#39;)
+axs[0, 0].set_xlabel(&#39;Width&#39;)
+axs[0, 0].set_ylabel(&#39;Height&#39;)
+axs[0, 0].axis(&#39;equal&#39;)
+
+# u Component
+im1 = axs[0, 1].imshow(u_pred, extent=(0, width, 0, height), origin=&#39;lower&#39;, cmap=&#39;coolwarm&#39;)
+fig.colorbar(im1, ax=axs[0, 1])
+axs[0, 1].set_title(&#39;u Component&#39;)
+axs[0, 1].set_xlabel(&#39;Width&#39;)
+axs[0, 1].set_ylabel(&#39;Height&#39;)
+axs[0, 1].axis(&#39;equal&#39;)
+
+# v Component
+im2 = axs[1, 0].imshow(v_pred, extent=(0, width, 0, height), origin=&#39;lower&#39;, cmap=&#39;coolwarm&#39;)
+fig.colorbar(im2, ax=axs[1, 0])
+axs[1, 0].set_title(&#39;v Component&#39;)
+axs[1, 0].set_xlabel(&#39;Width&#39;)
+axs[1, 0].set_ylabel(&#39;Height&#39;)
+axs[1, 0].axis(&#39;equal&#39;)
+
+# Pressure
+im3 = axs[1, 1].imshow(p_pred, extent=(0, width, 0, height), origin=&#39;lower&#39;, cmap=&#39;coolwarm&#39;)
+fig.colorbar(im3, ax=axs[1, 1])
+axs[1, 1].set_title(&#39;Pressure&#39;)
+axs[1, 1].set_xlabel(&#39;Width&#39;)
+axs[1, 1].set_ylabel(&#39;Height&#39;)
+axs[1, 1].axis(&#39;equal&#39;)
+
+plt.tight_layout()  # Adjust layout to prevent overlap
+plt.show()
+</pre></div>
+</div>
+<img alt="../_images/Community_1_physics_informed_kan_4_0.png" src="../_images/Community_1_physics_informed_kan_4_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(beta=10)
+</pre></div>
+</div>
+<img alt="../_images/Community_1_physics_informed_kan_5_0.png" src="../_images/Community_1_physics_informed_kan_5_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

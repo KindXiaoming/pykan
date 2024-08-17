@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 14: Knot supervised &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 15: Knot unsupervised" href="Example_15_knot_unsupervised.html" />
+    <link rel="prev" title="Example 13: Phase transition" href="Example_13_phase_transition.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Example_1_function_fitting.html">Example 1: Function Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_4_classfication.html">Example 4: Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_5_special_functions.html">Example 5: Special functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_6_PDE_interpretation.html">Example 6: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_7_PDE_accuracy.html">Example 7: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_8_continual_learning.html">Example 8: Continual Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_9_singularity.html">Example 9: Singularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_10_relativity-addition.html">Example 10: Relativitistic Velocity Addition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_11_encouraing_linear.html">Example 11: Encouraging linearity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_12_unsupervised_learning.html">Example 12: Unsupervised learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_13_phase_transition.html">Example 13: Phase transition</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example 14: Knot supervised</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_15_knot_unsupervised.html">Example 15: Knot unsupervised</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Example 14: Knot supervised</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Example/Example_14_knot_supervised.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-14-knot-supervised">
+<h1>Example 14: Knot supervised<a class="headerlink" href="#example-14-knot-supervised" title="Link to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+import numpy as np
+import torch
+from kan import *
+import copy
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+seed = 42
+torch.manual_seed(seed)
+np.random.seed(seed)
+
+# Download data: https://colab.research.google.com/github/deepmind/mathematics_conjectures/blob/main/knot_theory.ipynb#scrollTo=l10N2ZbHu6Ob
+df = pd.read_csv(&quot;./knot_data.csv&quot;)
+df.keys()
+
+X = df[df.keys()[1:-1]].to_numpy()
+Y = df[[&#39;signature&#39;]].to_numpy()
+
+# normalize X
+X_mean = np.mean(X, axis=0)
+X_std = np.std(X, axis=0)
+X = (X - X_mean[np.newaxis,:])/X_std[np.newaxis,:]
+input_normalier = [X_mean, X_std]
+
+# normalize Y
+max_signature = np.max(Y)
+min_signature = np.min(Y)
+Y = ((Y-min_signature)/2).astype(int)
+n_class = int((max_signature-min_signature)/2+1)
+output_normalier = [min_signature, 2]
+
+dataset = {}
+num = X.shape[0]
+n_feature = X.shape[1]
+train_ratio = 0.8
+train_id_ = np.random.choice(num, int(num*train_ratio), replace=False)
+test_id_ = np.array(list(set(range(num))-set(train_id_)))
+
+dtype = torch.get_default_dtype()
+dataset[&#39;train_input&#39;] = torch.from_numpy(X[train_id_]).type(dtype).to(device)
+dataset[&#39;train_label&#39;] = torch.from_numpy(Y[train_id_][:,0]).type(torch.long).to(device)
+dataset[&#39;test_input&#39;] = torch.from_numpy(X[test_id_]).type(dtype).to(device)
+dataset[&#39;test_label&#39;] = torch.from_numpy(Y[test_id_][:,0]).type(torch.long).to(device)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---------------------------------------------------------------------------</span>
+
+<span class="ne">FileNotFoundError</span>                         <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">folders</span><span class="o">/</span><span class="mi">6</span><span class="n">j</span><span class="o">/</span><span class="n">b6y80djd4nb5hl73rv3sv8y80000gn</span><span class="o">/</span><span class="n">T</span><span class="o">/</span><span class="n">ipykernel_75986</span><span class="o">/</span><span class="mf">3212158569.</span><span class="n">py</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+     <span class="mi">11</span>
+     <span class="mi">12</span> <span class="c1"># Download data: https://colab.research.google.com/github/deepmind/mathematics_conjectures/blob/main/knot_theory.ipynb#scrollTo=l10N2ZbHu6Ob</span>
+<span class="o">---&gt;</span> <span class="mi">13</span> <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;./knot_data.csv&quot;</span><span class="p">)</span>
+     <span class="mi">14</span> <span class="n">df</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+     <span class="mi">15</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">util</span><span class="o">/</span><span class="n">_decorators</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">309</span>                     <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">,</span>
+    <span class="mi">310</span>                 <span class="p">)</span>
+<span class="o">--&gt;</span> <span class="mi">311</span>             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">312</span>
+    <span class="mi">313</span>         <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">io</span><span class="o">/</span><span class="n">parsers</span><span class="o">/</span><span class="n">readers</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">index_col</span><span class="p">,</span> <span class="n">usecols</span><span class="p">,</span> <span class="n">squeeze</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">mangle_dupe_cols</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">converters</span><span class="p">,</span> <span class="n">true_values</span><span class="p">,</span> <span class="n">false_values</span><span class="p">,</span> <span class="n">skipinitialspace</span><span class="p">,</span> <span class="n">skiprows</span><span class="p">,</span> <span class="n">skipfooter</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">na_values</span><span class="p">,</span> <span class="n">keep_default_na</span><span class="p">,</span> <span class="n">na_filter</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">skip_blank_lines</span><span class="p">,</span> <span class="n">parse_dates</span><span class="p">,</span> <span class="n">infer_datetime_format</span><span class="p">,</span> <span class="n">keep_date_col</span><span class="p">,</span> <span class="n">date_parser</span><span class="p">,</span> <span class="n">dayfirst</span><span class="p">,</span> <span class="n">cache_dates</span><span class="p">,</span> <span class="n">iterator</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">compression</span><span class="p">,</span> <span class="n">thousands</span><span class="p">,</span> <span class="n">decimal</span><span class="p">,</span> <span class="n">lineterminator</span><span class="p">,</span> <span class="n">quotechar</span><span class="p">,</span> <span class="n">quoting</span><span class="p">,</span> <span class="n">doublequote</span><span class="p">,</span> <span class="n">escapechar</span><span class="p">,</span> <span class="n">comment</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">encoding_errors</span><span class="p">,</span> <span class="n">dialect</span><span class="p">,</span> <span class="n">error_bad_lines</span><span class="p">,</span> <span class="n">warn_bad_lines</span><span class="p">,</span> <span class="n">on_bad_lines</span><span class="p">,</span> <span class="n">delim_whitespace</span><span class="p">,</span> <span class="n">low_memory</span><span class="p">,</span> <span class="n">memory_map</span><span class="p">,</span> <span class="n">float_precision</span><span class="p">,</span> <span class="n">storage_options</span><span class="p">)</span>
+    <span class="mi">676</span>     <span class="n">kwds</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwds_defaults</span><span class="p">)</span>
+    <span class="mi">677</span>
+<span class="o">--&gt;</span> <span class="mi">678</span>     <span class="k">return</span> <span class="n">_read</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="n">kwds</span><span class="p">)</span>
+    <span class="mi">679</span>
+    <span class="mi">680</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">io</span><span class="o">/</span><span class="n">parsers</span><span class="o">/</span><span class="n">readers</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">_read</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="n">kwds</span><span class="p">)</span>
+    <span class="mi">573</span>
+    <span class="mi">574</span>     <span class="c1"># Create the parser.</span>
+<span class="o">--&gt;</span> <span class="mi">575</span>     <span class="n">parser</span> <span class="o">=</span> <span class="n">TextFileReader</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="mi">576</span>
+    <span class="mi">577</span>     <span class="k">if</span> <span class="n">chunksize</span> <span class="ow">or</span> <span class="n">iterator</span><span class="p">:</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">io</span><span class="o">/</span><span class="n">parsers</span><span class="o">/</span><span class="n">readers</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="mi">930</span>
+    <span class="mi">931</span>         <span class="bp">self</span><span class="o">.</span><span class="n">handles</span><span class="p">:</span> <span class="n">IOHandles</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="o">--&gt;</span> <span class="mi">932</span>         <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_engine</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+    <span class="mi">933</span>
+    <span class="mi">934</span>     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">io</span><span class="o">/</span><span class="n">parsers</span><span class="o">/</span><span class="n">readers</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">_make_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">engine</span><span class="p">)</span>
+   <span class="mi">1214</span>             <span class="c1"># &quot;Union[str, PathLike[str], ReadCsvBuffer[bytes], ReadCsvBuffer[str]]&quot;</span>
+   <span class="mi">1215</span>             <span class="c1"># , &quot;str&quot;, &quot;bool&quot;, &quot;Any&quot;, &quot;Any&quot;, &quot;Any&quot;, &quot;Any&quot;, &quot;Any&quot;</span>
+<span class="o">-&gt;</span> <span class="mi">1216</span>             <span class="bp">self</span><span class="o">.</span><span class="n">handles</span> <span class="o">=</span> <span class="n">get_handle</span><span class="p">(</span>  <span class="c1"># type: ignore[call-overload]</span>
+   <span class="mi">1217</span>                 <span class="n">f</span><span class="p">,</span>
+   <span class="mi">1218</span>                 <span class="n">mode</span><span class="p">,</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pandas</span><span class="o">/</span><span class="n">io</span><span class="o">/</span><span class="n">common</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">get_handle</span><span class="p">(</span><span class="n">path_or_buf</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">compression</span><span class="p">,</span> <span class="n">memory_map</span><span class="p">,</span> <span class="n">is_text</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">storage_options</span><span class="p">)</span>
+    <span class="mi">784</span>         <span class="k">if</span> <span class="n">ioargs</span><span class="o">.</span><span class="n">encoding</span> <span class="ow">and</span> <span class="s2">&quot;b&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ioargs</span><span class="o">.</span><span class="n">mode</span><span class="p">:</span>
+    <span class="mi">785</span>             <span class="c1"># Encoding</span>
+<span class="o">--&gt;</span> <span class="mi">786</span>             <span class="n">handle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+    <span class="mi">787</span>                 <span class="n">handle</span><span class="p">,</span>
+    <span class="mi">788</span>                 <span class="n">ioargs</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+
+
+<span class="ne">FileNotFoundError</span><span class="p">:</span> <span class="p">[</span><span class="n">Errno</span> <span class="mi">2</span><span class="p">]</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span><span class="p">:</span> <span class="s1">&#39;./knot_data.csv&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def train_acc():
+    return torch.mean((torch.argmax(model(dataset[&#39;train_input&#39;]), dim=1) == dataset[&#39;train_label&#39;]).float())
+
+def test_acc():
+    return torch.mean((torch.argmax(model(dataset[&#39;test_input&#39;]), dim=1) == dataset[&#39;test_label&#39;]).float())
+
+model = KAN(width=[n_feature,1,n_class], grid=5, k=3, seed=seed, device=device)
+model.fit(dataset, lamb=0.005, batch=1024, loss_fn = nn.CrossEntropyLoss(), metrics=[train_acc, test_acc], display_metrics=[&#39;train_loss&#39;, &#39;reg&#39;, &#39;train_acc&#39;, &#39;test_acc&#39;]);
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(scale=1.0, beta=0.2)
+
+n = 17
+for i in range(n):
+    plt.gcf().get_axes()[0].text(1/(2*n)+i/n-0.005,-0.02,df.keys()[1:-1][i], rotation=270, rotation_mode=&quot;anchor&quot;)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>scores = model.feature_score
+features = list(df.keys()[1:-1])
+
+y_pos = range(len(features))
+plt.bar(y_pos, scores)
+plt.xticks(y_pos, features, rotation=90);
+plt.ylabel(&#39;feature importance&#39;)
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Example_13_phase_transition.html" class="btn btn-neutral float-left" title="Example 13: Phase transition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Example_15_knot_unsupervised.html" class="btn btn-neutral float-right" title="Example 15: Knot unsupervised" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

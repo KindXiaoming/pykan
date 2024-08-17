@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpretability 3: KAN Compiler &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpretability 3: KAN Compiler</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Interp/Interp_3_KAN_Compiler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interpretability-3-kan-compiler">
+<h1>Interpretability 3: KAN Compiler<a class="headerlink" href="#interpretability-3-kan-compiler" title="Link to this heading"></a></h1>
+<p>We have shown in many examples how to extract symbolic formulas from
+KANs. Now we want to consider the reverse task: compiling a symbolic
+formula into KANs. This might be needed for many reasons. One use case
+is that we have prior knowledge which is the approximate ground truth
+(empirical/constitutive laws etc.) and we want to build this knowledge
+into neural networks and only fine tune the network to real data.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.compiler import kanpiler
+from sympy import *
+from kan.utils import create_dataset
+import torch
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+input_variables = x,y = symbols(&#39;x y&#39;)
+expr = exp(sin(pi*x)+y**2)
+
+model = kanpiler(input_variables, expr).to(device)
+
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,0]) + x[:,1]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+model.get_act(dataset)
+
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_2_1.png" src="../_images/Interp_3_KAN_Compiler_2_1.png" />
+<p>if you want more complicated formulas, you can load in an equation in
+the Feynman dataset.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.feynman import get_feynman_dataset
+import matplotlib.pyplot as plt
+
+problem_id = 36 # problem_id in 1-120
+input_variables, expr, f, ranges = get_feynman_dataset(problem_id)
+n_var = len(input_variables)
+model = kanpiler(input_variables, expr)
+
+dataset = create_dataset(f, n_var=n_var, ranges=ranges)
+model.get_act(dataset)
+#model.plot(in_vars=input_variables, out_vars=[expr], beta=10000, title=&#39;P{}&#39;.format(problem_id))
+model.plot(in_vars=input_variables, out_vars=[symbols(&#39;omega&#39;)], beta=10000)
+#plt.savefig(&#39;./fig1.pdf&#39;, bbox_inches=&#39;tight&#39;, dpi=200)
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_4_0.png" src="../_images/Interp_3_KAN_Compiler_4_0.png" />
+<p>We can check that the model indeed achieves zero loss (near machine
+precision) on the data</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>torch.mean((model(dataset[&#39;train_input&#39;])-dataset[&#39;train_label&#39;])**2)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.5383e-15</span><span class="p">,</span> <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">MeanBackward0</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Assume we have a dataset for which the symbolic formula is only an
+approximate ground truth, we want to train on the real data to fine tune
+the model. The current model has the symbolic front turned on and the
+spline front turned off. So only the affine parameters in the symbolic
+equations are trainable. Depending on how much expressive power you
+would like, you may need:</p>
+<ul class="simple">
+<li><p>If you want to keep the symbolic functions, but just train the affine
+parameters, no need to do anything.</p></li>
+<li><p>If you want to the functions to be trainable, call model.perturb().
+If you want only the currently active functions to be trainable while
+the currently dead functions to remain dead, use mode=‘minimal’.
+Otherwise if you want to allow the currently dead functions to be
+active, use mode = ‘all’ (by default).</p></li>
+<li><p>If you think the ground truth should be more complicated than the
+current network, you can expand it first using expand_width and/or
+expand_depth, and then use model.perturb().</p></li>
+</ul>
+<p>In the following, we present the most complicated case where you want to
+expand the network first.</p>
+<p>step 1: expand depth, add an extra linear function in the end</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.expand_depth()
+model.get_act(dataset)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_9_0.png" src="../_images/Interp_3_KAN_Compiler_9_0.png" />
+<p>step 2: add two addition nodes in layer 1.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.expand_width(1, 2)
+model.get_act(dataset)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_11_0.png" src="../_images/Interp_3_KAN_Compiler_11_0.png" />
+<p>step 3: add two multiplication nodes in layer 2, with arity 2 and 3.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.expand_width(2, 2, sum_bool=False, mult_arity=[2,3])
+model.get_act(dataset)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_13_0.png" src="../_images/Interp_3_KAN_Compiler_13_0.png" />
+<p>step 4: now we perturb all edges (mode=‘minimal’ only perturb the
+currently active edges, mode=‘all’ perturbs all neurons).</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.perturb(mag=0.1, mode=&#39;all&#39;)
+model.get_act(dataset)
+model.plot(metric=&#39;forward_n&#39;)
+# purple means both symbolic front (red) and spline front (black) are active
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_15_0.png" src="../_images/Interp_3_KAN_Compiler_15_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(beta=1000)
+</pre></div>
+</div>
+<img alt="../_images/Interp_3_KAN_Compiler_16_0.png" src="../_images/Interp_3_KAN_Compiler_16_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

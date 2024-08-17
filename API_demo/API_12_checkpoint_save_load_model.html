@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 12: Checkpoint, save &amp; load model &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="../examples.html" />
+    <link rel="prev" title="API 11: Create dataset" href="API_11_create_dataset.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../demos.html">API Demos</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="API_1_indexing.html">API 1: Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_2_plotting.html">API 2: Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_3_extract_activations.html">API 3: Extracting activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_4_initialization.html">API 4: Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_5_grid.html">API 5: Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_6_training_hyperparameter.html">API 6: Training Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_7_pruning.html">API 7: Pruning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_8_regularization.html">API 8: Regularization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_9_video.html">API 9: Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_10_device.html">Demo 10: Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_11_create_dataset.html">API 11: Create dataset</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">API 12: Checkpoint, save &amp; load model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../demos.html">API Demos</a></li>
+      <li class="breadcrumb-item active">API 12: Checkpoint, save &amp; load model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API_demo/API_12_checkpoint_save_load_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-12-checkpoint-save-load-model">
+<h1>API 12: Checkpoint, save &amp; load model<a class="headerlink" href="#api-12-checkpoint-save-load-model" title="Link to this heading"></a></h1>
+<p>Whenever the KAN (model) is altered (e.g., fit, prune …), a new version
+is saved to the model.ckpt folder (by default ‘model’). The version
+number is ‘a.b’, where a is the round number (starting from zero, +1
+when model.rewind() is called), b is the version number in each round.</p>
+<p>the initialized model has version 0.0</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import torch
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, auto_save=True, device=device)
+model.get_act(dataset)
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<img alt="../_images/API_12_checkpoint_save_load_model_3_1.png" src="../_images/API_12_checkpoint_save_load_model_3_1.png" />
+<p>the auto_save is on (by default)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.auto_save
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kc">True</span>
+</pre></div>
+</div>
+<p>After fitting, the version becomes 0.1</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.34e-02 | test_loss: 3.29e-02 | reg: 4.93e+00 | : 100%|█| 20/20 [00:03&lt;00:00,  5.10it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_12_checkpoint_save_load_model_7_2.png" src="../_images/API_12_checkpoint_save_load_model_7_2.png" />
+<p>After pruning, the version becomes 0.2</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/API_12_checkpoint_save_load_model_9_1.png" src="../_images/API_12_checkpoint_save_load_model_9_1.png" />
+<p>Suppose we want to revert back to version 0.1, use model =
+model.rewind(‘0.1’). This starts a new round, meaning version 0.1
+renamed to version 1.1.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># revert to version 0.1 (if continuing)
+model = model.rewind(&#39;0.1&#39;)
+
+# revert to version 0.1 (if starting from scratch)
+#model = KAN.loadckpt(&#39;./model&#39; + &#39;0.1&#39;)
+#model.get_act(dataset)
+
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rewind</span> <span class="n">to</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">renamed</span> <span class="k">as</span> <span class="mf">1.1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_12_checkpoint_save_load_model_11_1.png" src="../_images/API_12_checkpoint_save_load_model_11_1.png" />
+<p>Suppose we do some more manipulation to version 1.1, we will roll
+forward to version 1.2</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;LBFGS&quot;, steps=2);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.06e-02 | test_loss: 2.18e-02 | reg: 5.48e+00 | : 100%|█| 2/2 [00:00&lt;00:00,  5.83it/s
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.2</span>
+</pre></div>
+</div>
+<img alt="../_images/API_12_checkpoint_save_load_model_13_2.png" src="../_images/API_12_checkpoint_save_load_model_13_2.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API_11_create_dataset.html" class="btn btn-neutral float-left" title="API 11: Create dataset" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

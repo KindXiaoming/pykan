@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interprebility 5: Test symmetries &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interprebility 5: Test symmetries</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Interp/Interp_5_test_symmetry.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interprebility-5-test-symmetries">
+<h1>Interprebility 5: Test symmetries<a class="headerlink" href="#interprebility-5-test-symmetries" title="Link to this heading"></a></h1>
+<p>Figuring out the symbolic formula represented by a model is ideal but
+sometimes too challenging. In this case, we might be content with simply
+figuring out some modular structures or symmetries. These hypothesis
+testing is partially inspired by AI Feynman.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.hypothesis import *
+import torch
+</pre></div>
+</div>
+<p>Case 1: detect separability. * Additive separability:
+<span class="math notranslate nohighlight">\(f(x_1, x_2, ...) = g_1(x_1,x_2) + g_2(x_3) + g_3(x_4,x_5,x_6) + ...\)</span>
+* Multiplicative separability:
+<span class="math notranslate nohighlight">\(f(x_1, x_2, ...) = g_1(x_1,x_2)g_2(x_3)g_3(x_4,x_5,x_6)...\)</span> *
+General separability:
+<span class="math notranslate nohighlight">\(f(x_1, x_2, x_3, ...) = h(p(x_1,x_2)+q(x_3,\cdots))\)</span>. (Note that
+general additive separability = general multiplicative separability)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: x[:,[0]] * x[:,[1]] + x[:,[2]] * x[:,[3]] + x[:,[4]] * x[:,[5]]
+x = torch.rand(100,6) * 2 - 1
+detect_separability(f, x, &#39;add&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add</span> <span class="n">separability</span> <span class="n">detected</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;hessian&#39;</span><span class="p">:</span> <span class="n">tensor</span><span class="p">([[</span><span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.3147</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">],</span>
+         <span class="p">[</span><span class="mf">0.3147</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">],</span>
+         <span class="p">[</span><span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.3619</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">],</span>
+         <span class="p">[</span><span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.3619</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">],</span>
+         <span class="p">[</span><span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.3358</span><span class="p">],</span>
+         <span class="p">[</span><span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">,</span> <span class="mf">0.3358</span><span class="p">,</span> <span class="mf">0.0000</span><span class="p">]]),</span>
+ <span class="s1">&#39;n_groups&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+ <span class="s1">&#39;groups&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]}</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: (x[:,[0]] + x[:,[1]]) * (x[:,[2]] + x[:,[3]]) * (x[:,[4]] + x[:,[5]])
+x = torch.rand(100,6) * 2 - 1
+detect_separability(f, x, &#39;mul&#39;);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mul</span> <span class="n">separability</span> <span class="n">detected</span>
+</pre></div>
+</div>
+<p>We could also test separability by providing a group partition as an
+argument.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: (x[:,[0]] + x[:,[1]]) * (x[:,[2]] + x[:,[3]]) * (x[:,[4]] + x[:,[5]])
+x = torch.rand(100,6) * 2 - 1
+groups = [[0,1],[2,3],[4,5]]
+test_separability(f, x, groups, &#39;mul&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>test_separability(f, x, [[0,1],[2,4],[3,5]], &#39;mul&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: torch.sin((x[:,[0]] + x[:,[1]]) * (x[:,[2]] + x[:,[3]]) * (x[:,[4]] + x[:,[5]]))
+x = torch.rand(100,6) * 2 - 1
+test_separability(f, x, [[0,1],[2,3],[4,5]], &#39;mul&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>test_general_separability(f, x, [[0,1],[2,3],[4,5]])
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Case 2: test symmetry. * Symmetry means the output <span class="math notranslate nohighlight">\(y\)</span> is only
+dependent on a scalar function of a few variables, but otherwise does
+not gain more infomration from knowing the individual values of these
+variables. * For example, we say a function has a symmetry
+<span class="math notranslate nohighlight">\(h(x_1, x_2)\)</span> if
+<span class="math notranslate nohighlight">\(f(x_1,x_2,x_3,\cdots)= g(h(x_1, x_2), x_3,\cdots)\)</span>. * To
+hypothesis test <span class="math notranslate nohighlight">\(h\)</span>, use test_symmetry_var</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: (x[:,[0]] + x[:,[1]]) * (x[:,[2]] + x[:,[3]]) * (x[:,[4]] + x[:,[5]])
+x = torch.rand(100,6) * 2 - 1
+print(&#39;[0,1]:&#39;, test_symmetry(f, x, [0,1]))
+print(&#39;[0,2]:&#39;, test_symmetry(f, x, [0,2]))
+print(&#39;[2,3]:&#39;, test_symmetry(f, x, [2,3]))
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span> <span class="n">tensor</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span> <span class="n">tensor</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]:</span> <span class="n">tensor</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from sympy import *
+
+# the function is only dependent on b/c, but not on the individual values of b and c.
+f = lambda x: x[:,[0]] * torch.sqrt(1 + (x[:,[1]]/x[:,[2]])**2)
+input_vars = a, b, c = symbols(&#39;a b c&#39;)
+symmetry_var = b/c
+x = torch.rand(100,3) * 2 - 1
+test_symmetry_var(f, x, input_vars, symmetry_var);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">100.0</span><span class="o">%</span> <span class="n">data</span> <span class="n">have</span> <span class="n">more</span> <span class="n">than</span> <span class="mf">0.9</span> <span class="n">cosine</span> <span class="n">similarity</span>
+<span class="n">suggesting</span> <span class="n">symmetry</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>not_symmetry_var = b * c
+test_symmetry_var(f, x, input_vars, not_symmetry_var);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">20.0</span><span class="o">%</span> <span class="n">data</span> <span class="n">have</span> <span class="n">more</span> <span class="n">than</span> <span class="mf">0.9</span> <span class="n">cosine</span> <span class="n">similarity</span>
+<span class="ow">not</span> <span class="n">suggesting</span> <span class="n">symmetry</span>
+</pre></div>
+</div>
+<p>Case 3: Plot tree graph. By applying the hypothesis testing above
+iteratively, we are able to figure out the tree graph.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: ((x[:,[0]]**2 + x[:,[1]]**2) ** 2 + (x[:,[2]]**2 + x[:,[3]]**2) ** 2) ** 2 + ((x[:,[4]]**2 + x[:,[5]]**2) ** 2 + (x[:,[6]]**2 + x[:,[7]]**2) ** 2) ** 2
+x = torch.rand(100,8) * 2 - 1
+plot_tree(f, x, style=&#39;tree&#39;) # by default, style = &#39;tree&#39;
+</pre></div>
+</div>
+<img alt="../_images/Interp_5_test_symmetry_16_0.png" src="../_images/Interp_5_test_symmetry_16_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plot_tree(f, x, style=&#39;box&#39;)
+</pre></div>
+</div>
+<img alt="../_images/Interp_5_test_symmetry_17_0.png" src="../_images/Interp_5_test_symmetry_17_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>f = lambda x: ((x[:,[0]]**2 + x[:,[1]]**2) ** 2 + (x[:,[2]]**2 + x[:,[3]]**2) ** 2) ** 2 + x[:,[4]]**2
+x = torch.rand(100,5) * 2 - 1
+plot_tree(f, x, style=&#39;tree&#39;) # by default, style = &#39;tree&#39;
+</pre></div>
+</div>
+<img alt="../_images/Interp_5_test_symmetry_18_0.png" src="../_images/Interp_5_test_symmetry_18_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plot_tree(f, x, style=&#39;box&#39;)
+</pre></div>
+</div>
+<img alt="../_images/Interp_5_test_symmetry_19_0.png" src="../_images/Interp_5_test_symmetry_19_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

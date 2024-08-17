@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpretability 1: Hello, MultKAN! &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpretability 1: Hello, MultKAN!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Interp/Interp_1_Hello, MultKAN.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interpretability-1-hello-multkan">
+<h1>Interpretability 1: Hello, MultKAN!<a class="headerlink" href="#interpretability-1-hello-multkan" title="Link to this heading"></a></h1>
+<p>Motivation: The original KAN has some level of interpretability, but
+sometimes not fully interpretable (fully interpretable = convert the
+network to a symbolic formula). The biggest limitation is the lack of
+multiplications operators. The original KAN only has addition operators.
+Although multiplication can be expressed as addition and single-variable
+functions (which is the core idea of Kolmogorov-Arnold representation
+theorem), we still hope to explicitly have multiplications in the KANs
+so that multiplications can be more easily read out from KANs.</p>
+<p>We first show how multiplications can be represented by addition and
+single variable functions. Usually KAN would find solutions leveraging
+linear functions and quadractic functions (the solutions are not
+unique).</p>
+<div class="math notranslate nohighlight">
+\[xy=((x+y)^2-(x-y)^2)/4=((x+y)^2-x^2-y^2)/2=\cdots\]</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+torch.set_default_dtype(torch.float64)
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+model = KAN(width=[2,5,1], device=device)
+
+f = lambda x: x[:,0] * x[:,1]
+dataset = create_dataset(f, n_var=2, device=device)
+model.fit(dataset, steps=20, lamb=0.001);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 4.73e-03 | test_loss: 4.96e-03 | reg: 6.68e+00 | : 100%|█| 20/20 [00:04&lt;00:00,  4.77it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_4_0.png" src="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_4_0.png" />
+<p>This network seems to be using the equality
+<span class="math notranslate nohighlight">\(xy=((x+y)^2-(x-y)^2)/4\)</span> but not exactly.</p>
+<p>Now we want to explicitly introduce multiplication operators, called
+MultKAN. Note that MultKAN and KAN are actually the same class in
+implementation, so you can use either class name. If you dig into
+MultKAN.py, there is a line ‘KAN = MultKAN’. KAN is just a special case
+of MultKAN. To inlcude multiplications, you only need to modify the
+width parameter. For example, [2,5,1] KAN means 2 inputs, 5 hidden add
+neurons, and 1 output; [2,[5,2],1] MultKAN means 2 inputs, 5 hidden add
+neurons and 2 hidden mult neurons, and 1 output.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = KAN(width=[2,[5,2],1], base_fun=&#39;identity&#39;, device=device)
+model.get_act(dataset)
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<img alt="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_7_1.png" src="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_7_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, steps=20, lamb=0.01, lamb_coef=1.0);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 6.34e-02 | test_loss: 7.16e-02 | reg: 7.99e+00 | : 100%|█| 20/20 [00:04&lt;00:00,  4.79it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_9_0.png" src="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_9_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_11_0.png" src="Interp/Interp_1_Hello%2C%20MultKAN_files/Interp_1_Hello%2C%20MultKAN_11_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.37e-07 | test_loss: 1.66e-07 | reg: 6.31e+00 | : 100%|█| 20/20 [00:02&lt;00:00,  6.90it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999999997931204</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.99999999995849</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999999918922519</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.43e-16 | test_loss: 1.28e-16 | reg: 0.00e+00 | : 100%|█| 20/20 [00:00&lt;00:00, 37.98it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sf = model.symbolic_formula()[0][0]
+nsimplify(ex_round(ex_round(sf, 3),3))
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle x_{1} x_{2}\]</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics 1: Lagrangian neural network &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Physics 1: Lagrangian neural network</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Physics/Physics_1_Lagrangian.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="physics-1-lagrangian-neural-network">
+<h1>Physics 1: Lagrangian neural network<a class="headerlink" href="#physics-1-lagrangian-neural-network" title="Link to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+from kan.utils import batch_jacobian, batch_hessian
+
+torch.use_deterministic_algorithms(True)
+torch.set_default_dtype(torch.float64)
+
+seed = 0
+torch.manual_seed(seed)
+
+#example = &#39;harmonic_oscillator&#39;
+#example = &#39;single_pendulum&#39;
+example = &#39;relativistic_mass&#39;
+
+# three examples: harmonic oscillator, single pendulum, double pendulum
+
+# dimension of q
+# Lagrangian: (q, qd) -&gt; (qdd)
+
+if example == &#39;harmonic_oscillator&#39;:
+    n_sample = 1000
+    # harmonic oscillator
+    d = 1
+    q = torch.rand(size=(n_sample,1)) * 4 - 2
+    qd = torch.rand(size=(n_sample,1)) * 4 - 2
+    qdd = - q
+    x = torch.cat([q, qd], dim=1)
+
+if example == &#39;single_pendulum&#39;:
+    n_sample = 1000
+    # harmonic oscillator
+    d = 1
+    q = torch.rand(size=(n_sample,1)) * 4 - 2
+    qd = torch.rand(size=(n_sample,1)) * 4 - 2
+    qdd = - torch.sin(q)
+    x = torch.cat([q, qd], dim=1)
+
+if example == &#39;relativistic_mass&#39;:
+    n_sample = 10000
+    # harmonic oscillator
+    d = 1
+    q = torch.rand(size=(n_sample,1)) * 4 - 2
+    #qd = torch.rand(size=(n_sample,1)) * 1.998 - 0.999
+    #qd = 0.95 + torch.rand(size=(n_sample,1)) * 0.05
+    qd = torch.rand(size=(n_sample,1)) * 2 - 1
+    qdd = (1 - qd**2)**(3/2)
+    x = torch.cat([q, qd], dim=1)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.compiler import kanpiler
+from sympy import *
+
+input_variables = symbol_x, symbol_vx = symbols(&#39;x v_x&#39;)
+expr = symbol_vx ** 2
+model = kanpiler(input_variables, expr, grid=20)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.get_act(x)
+model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_1_Lagrangian_3_0.png" src="../_images/Physics_1_Lagrangian_3_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.perturb(mode=&#39;best&#39;, mag=0.1)
+model.get_act(x)
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_1_Lagrangian_4_1.png" src="../_images/Physics_1_Lagrangian_4_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+from kan.utils import batch_jacobian, create_dataset_from_data
+import numpy as np
+
+torch.use_deterministic_algorithms(True)
+
+def closure():
+
+    global loss
+    optimizer.zero_grad()
+
+    jacobian = batch_jacobian(model, x, create_graph=True)
+    hessian = batch_hessian(model, x, create_graph=True)
+    Lqdqd = hessian[:,d:,d:]
+    Lq = jacobian[:,:d]
+    Lqqd = hessian[:,d:,:d]
+
+    Lqqd_qd_prod = torch.einsum(&#39;ijk,ik-&gt;ij&#39;, Lqqd, qd)
+
+    qdd_pred = torch.einsum(&#39;ijk,ik-&gt;ij&#39;, torch.linalg.inv(Lqdqd), Lq - Lqqd_qd_prod)
+    loss = torch.mean((qdd - qdd_pred)**2)
+
+    loss.backward()
+    return loss
+
+steps = 20
+log = 1
+optimizer = LBFGS(model.parameters(), lr=1, history_size=10, line_search_fn=&quot;strong_wolfe&quot;, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+#optimizer = torch.optim.Adam(params, lr=1e-2)
+pbar = tqdm(range(steps), desc=&#39;description&#39;, ncols=100)
+
+
+for _ in pbar:
+
+    # update grid
+    if _ &lt; 5 and _ % 20 == 0:
+        model.update_grid(x)
+
+    optimizer.step(closure)
+
+    if _ % log == 0:
+        pbar.set_description(&quot;| loss: %.2e |&quot; % loss.cpu().detach().numpy())
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| loss: 5.03e-05 |: 100%|███████████████████████████████████████████| 20/20 [02:59&lt;00:00,  8.99s/it]
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_1_Lagrangian_6_0.png" src="../_images/Physics_1_Lagrangian_6_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---------------------------------------------------------------------------</span>
+
+<span class="ne">KeyboardInterrupt</span>                         <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">folders</span><span class="o">/</span><span class="mi">6</span><span class="n">j</span><span class="o">/</span><span class="n">b6y80djd4nb5hl73rv3sv8y80000gn</span><span class="o">/</span><span class="n">T</span><span class="o">/</span><span class="n">ipykernel_24271</span><span class="o">/</span><span class="mf">2849209031.</span><span class="n">py</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="o">----&gt;</span> <span class="mi">1</span> <span class="n">model</span><span class="o">.</span><span class="n">auto_symbolic</span><span class="p">()</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">MultKAN</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">auto_symbolic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="p">,</span> <span class="n">lib</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+   <span class="mi">1402</span>                         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fixing (</span><span class="si">{</span><span class="n">l</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s1">) with 0&#39;</span><span class="p">)</span>
+   <span class="mi">1403</span>                     <span class="k">else</span><span class="p">:</span>
+<span class="o">-&gt;</span> <span class="mi">1404</span>                         <span class="n">name</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">suggest_symbolic</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">a_range</span><span class="o">=</span><span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="o">=</span><span class="n">b_range</span><span class="p">,</span> <span class="n">lib</span><span class="o">=</span><span class="n">lib</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+   <span class="mi">1405</span>                         <span class="bp">self</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">log_history</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+   <span class="mi">1406</span>                         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">MultKAN</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">suggest_symbolic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="p">,</span> <span class="n">lib</span><span class="p">,</span> <span class="n">topk</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">r2_loss_fun</span><span class="p">,</span> <span class="n">c_loss_fun</span><span class="p">,</span> <span class="n">weight_simple</span><span class="p">)</span>
+   <span class="mi">1332</span>         <span class="c1"># getting r2 and complexities</span>
+   <span class="mi">1333</span>         <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span> <span class="ow">in</span> <span class="n">symbolic_lib</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="o">-&gt;</span> <span class="mi">1334</span>             <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">a_range</span><span class="o">=</span><span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="o">=</span><span class="n">b_range</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_history</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+   <span class="mi">1335</span>             <span class="k">if</span> <span class="n">r2</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1e8</span><span class="p">:</span> <span class="c1"># zero function</span>
+   <span class="mi">1336</span>                 <span class="n">r2s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mf">1e8</span><span class="p">)</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">MultKAN</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">fix_symbolic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">fun_name</span><span class="p">,</span> <span class="n">fit_params_bool</span><span class="p">,</span> <span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">random</span><span class="p">,</span> <span class="n">log_history</span><span class="p">)</span>
+    <span class="mi">488</span>             <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spline_postacts</span><span class="p">[</span><span class="n">l</span><span class="p">][:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+    <span class="mi">489</span>             <span class="c1">#y = self.postacts[l][:, j, i]</span>
+<span class="o">--&gt;</span> <span class="mi">490</span>             <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbolic_fun</span><span class="p">[</span><span class="n">l</span><span class="p">]</span><span class="o">.</span><span class="n">fix_symbolic</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">fun_name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">a_range</span><span class="o">=</span><span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="o">=</span><span class="n">b_range</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="mi">491</span>             <span class="k">if</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="mi">492</span>                 <span class="n">r2</span> <span class="o">=</span> <span class="o">-</span> <span class="mf">1e8</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">Symbolic_KANLayer</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">fix_symbolic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">fun_name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">random</span><span class="p">,</span> <span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="mi">229</span>             <span class="k">else</span><span class="p">:</span>
+    <span class="mi">230</span>                 <span class="c1">#initialize from x &amp; y and fun</span>
+<span class="o">--&gt;</span> <span class="mi">231</span>                 <span class="n">params</span><span class="p">,</span> <span class="n">r2</span> <span class="o">=</span> <span class="n">fit_params</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">fun</span><span class="p">,</span> <span class="n">a_range</span><span class="o">=</span><span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="o">=</span><span class="n">b_range</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="mi">232</span>                 <span class="bp">self</span><span class="o">.</span><span class="n">funs</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fun</span>
+    <span class="mi">233</span>                 <span class="bp">self</span><span class="o">.</span><span class="n">funs_avoid_singularity</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fun_avoid_singularity</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">utils</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">fit_params</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">a_range</span><span class="p">,</span> <span class="n">b_range</span><span class="p">,</span> <span class="n">grid_number</span><span class="p">,</span> <span class="n">iteration</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="mi">235</span>         <span class="n">b_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">b_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">steps</span><span class="o">=</span><span class="n">grid_number</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="mi">236</span>         <span class="n">a_grid</span><span class="p">,</span> <span class="n">b_grid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">a_</span><span class="p">,</span> <span class="n">b_</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="o">--&gt;</span> <span class="mi">237</span>         <span class="n">post_fun</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">a_grid</span><span class="p">[</span><span class="kc">None</span><span class="p">,:,:]</span> <span class="o">*</span> <span class="n">x</span><span class="p">[:,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">b_grid</span><span class="p">[</span><span class="kc">None</span><span class="p">,:,:])</span>
+    <span class="mi">238</span>         <span class="n">x_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">post_fun</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="mi">239</span>         <span class="n">y_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.unfix_symbolic(0,0,0)
+model.suggest_symbolic(0,0,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.5</span>
+  <span class="n">function</span>  <span class="n">fitting</span> <span class="n">r2</span>    <span class="n">r2</span> <span class="n">loss</span>  <span class="n">complexity</span>  <span class="n">complexity</span> <span class="n">loss</span>  <span class="n">total</span> <span class="n">loss</span>
+<span class="mi">0</span>        <span class="n">x</span>    <span class="mf">1.000000</span> <span class="o">-</span><span class="mf">16.565706</span>           <span class="mi">1</span>                <span class="mi">1</span>   <span class="o">-</span><span class="mf">2.513141</span>
+<span class="mi">1</span>      <span class="n">cos</span>    <span class="mf">1.000000</span> <span class="o">-</span><span class="mf">16.599499</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">1.719900</span>
+<span class="mi">2</span>      <span class="n">sin</span>    <span class="mf">1.000000</span> <span class="o">-</span><span class="mf">16.599499</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">1.719900</span>
+<span class="mi">3</span>      <span class="n">exp</span>    <span class="mf">0.999997</span> <span class="o">-</span><span class="mf">16.268112</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">1.653622</span>
+<span class="mi">4</span>    <span class="n">x</span><span class="o">^</span><span class="mf">0.5</span>    <span class="mf">0.999977</span> <span class="o">-</span><span class="mf">14.896568</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">1.379314</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+ <span class="p">(</span><span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_th</span><span class="p">)</span><span class="o">&gt;</span><span class="p">),</span>
+ <span class="mf">0.9999996907837526</span><span class="p">,</span>
+ <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.unfix_symbolic(0,1,0)
+model.suggest_symbolic(0,1,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+  <span class="n">function</span>  <span class="n">fitting</span> <span class="n">r2</span>   <span class="n">r2</span> <span class="n">loss</span>  <span class="n">complexity</span>  <span class="n">complexity</span> <span class="n">loss</span>  <span class="n">total</span> <span class="n">loss</span>
+<span class="mi">0</span>        <span class="mi">0</span>    <span class="mf">0.000000</span>  <span class="mf">0.000014</span>           <span class="mi">0</span>                <span class="mi">0</span>    <span class="mf">0.000003</span>
+<span class="mi">1</span>      <span class="n">cos</span>    <span class="mf">0.969503</span> <span class="o">-</span><span class="mf">5.034727</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">0.593055</span>
+<span class="mi">2</span>      <span class="n">x</span><span class="o">^</span><span class="mi">2</span>    <span class="mf">0.969092</span> <span class="o">-</span><span class="mf">5.015413</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">0.596917</span>
+<span class="mi">3</span>      <span class="n">sin</span>    <span class="mf">0.965249</span> <span class="o">-</span><span class="mf">4.846400</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">0.630720</span>
+<span class="mi">4</span>        <span class="n">x</span>    <span class="mf">0.000392</span> <span class="o">-</span><span class="mf">0.000551</span>           <span class="mi">1</span>                <span class="mi">1</span>    <span class="mf">0.799890</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
+ <span class="p">(</span><span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_th</span><span class="p">)</span><span class="o">&gt;</span><span class="p">),</span>
+ <span class="mf">0.0</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>x, y = model.get_fun(0,1,0)
+</pre></div>
+</div>
+<img alt="../_images/Physics_1_Lagrangian_10_0.png" src="../_images/Physics_1_Lagrangian_10_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import create_dataset_from_data
+
+dataset2 = create_dataset_from_data(x[:,None], y[:,None])
+model2 = KAN(width=[1,1,1])
+model2.fix_symbolic(0,0,0,&#39;x^2&#39;,fit_params_bool=False)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model2.get_act(dataset2)
+model2.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_1_Lagrangian_12_0.png" src="../_images/Physics_1_Lagrangian_12_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model2.fit(dataset2, steps=50);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.77e-04 | test_loss: 3.76e-04 | reg: 3.35e+00 | : 100%|█| 50/50 [00:46&lt;00:00,  1.07it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model2.fit(dataset2, steps=50, update_grid=False);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.73e-04 | test_loss: 3.72e-04 | reg: 3.35e+00 | : 100%|█| 50/50 [00:13&lt;00:00,  3.81it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model2.plot()
+</pre></div>
+</div>
+<img alt="../_images/Physics_1_Lagrangian_15_0.png" src="../_images/Physics_1_Lagrangian_15_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model2.suggest_symbolic(1,0,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">function</span>  <span class="n">fitting</span> <span class="n">r2</span>    <span class="n">r2</span> <span class="n">loss</span>  <span class="n">complexity</span>  <span class="n">complexity</span> <span class="n">loss</span>  <span class="n">total</span> <span class="n">loss</span>
+<span class="mi">0</span>      <span class="n">x</span><span class="o">^</span><span class="mf">0.5</span>    <span class="mf">0.999957</span> <span class="o">-</span><span class="mf">14.193489</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">1.238698</span>
+<span class="mi">1</span>       <span class="n">sqrt</span>    <span class="mf">0.999957</span> <span class="o">-</span><span class="mf">14.193489</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">1.238698</span>
+<span class="mi">2</span>        <span class="n">log</span>    <span class="mf">0.999722</span> <span class="o">-</span><span class="mf">11.763921</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">0.752784</span>
+<span class="mi">3</span>    <span class="mi">1</span><span class="o">/</span><span class="n">x</span><span class="o">^</span><span class="mf">0.5</span>    <span class="mf">0.999485</span> <span class="o">-</span><span class="mf">10.894391</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">0.578878</span>
+<span class="mi">4</span>  <span class="mi">1</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>    <span class="mf">0.999485</span> <span class="o">-</span><span class="mf">10.894391</span>           <span class="mi">2</span>                <span class="mi">2</span>   <span class="o">-</span><span class="mf">0.578878</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;x^0.5&#39;</span><span class="p">,</span>
+ <span class="p">(</span><span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="mi">2</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_th</span><span class="p">)</span><span class="o">&gt;</span><span class="p">),</span>
+ <span class="mf">0.9999566254728288</span><span class="p">,</span>
+ <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import fit_params
+fit_params(x**2, y, lambda x: x**(1/2))
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Best</span> <span class="n">value</span> <span class="n">at</span> <span class="n">boundary</span><span class="o">.</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9989821969546337</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">tensor</span><span class="p">([</span><span class="o">-</span><span class="mf">9.8000</span><span class="p">,</span>  <span class="mf">9.8868</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3482</span><span class="p">,</span>  <span class="mf">1.2049</span><span class="p">]),</span> <span class="n">tensor</span><span class="p">(</span><span class="mf">0.9990</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model2.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">skipping</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="n">since</span> <span class="n">already</span> <span class="n">symbolic</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999494098870415</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import ex_round
+ex_round(model2.symbolic_formula()[0][0], 2)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle 1.19 - 1.08 \sqrt{1 - 1.0 x_{1}^{2}}\]</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

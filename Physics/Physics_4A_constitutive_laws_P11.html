@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics 4A: Constitutive Law P11 &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Physics 4A: Constitutive Law P11</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Physics/Physics_4A_constitutive_laws_P11.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="physics-4a-constitutive-law-p11">
+<h1>Physics 4A: Constitutive Law P11<a class="headerlink" href="#physics-4a-constitutive-law-p11" title="Link to this heading"></a></h1>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from constitutive_laws_generator import LinearElasticConstitutiveLaw, NeoHookeanConstitutiveLaw
+import torch
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from sympy import *
+from kan import *
+from kan.compiler import kanpiler
+
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
+torch.use_deterministic_algorithms(True)
+torch.set_default_dtype(torch.float64)
+
+N = 1000
+sigma = 0.2
+
+F = torch.eye(3,3)[None,:,:].expand(N,3,3) + (torch.rand(N,3,3)*2-1)*sigma
+det = torch.det(F)
+F *= (det &gt; 0)[:,None,None]
+
+linear = LinearElasticConstitutiveLaw(young_modulus=1.0, poisson_ratio=0.2)
+P_l = linear(F)
+P11_l = P_l[:,[0],[0]]
+P12_l = P_l[:,[0],[1]]
+
+neo = NeoHookeanConstitutiveLaw(young_modulus=1.0, poisson_ratio=0.2)
+P_n = neo(F)
+P11_n = P_n[:,[0],[0]]
+P12_n = P_n[:,[0],[1]]
+
+# P11
+# linear: P11 = 2 * mu * (F11 - 1) + lambda * (F11 + F22 + F33 - 3)
+# neohookean: P11 = mu * (F11^2 + F21^2 + F31^2 - 1) + lambda * log(|F|)
+
+# P12
+# linear: P12 = mu * (F12 + F21)
+# neohookean: P12 = mu * (F12 * F11 + F22 * F21 + F32 * F31)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mu, lambda_ = linear.get_lame_parameters()
+input_vars = F11, F12, F13, F21, F22, F23, F31, F32, F33 = symbols(&#39;F11 F12 F13 F21 F22 F23 F31 F32 F33&#39;)
+P11_l_expr = 2 * mu * (F11 - 1) + lambda_ * (F11 + F22 + F33 - 3)
+model = kanpiler(input_vars, P11_l_expr)
+
+F_flatten = F.reshape(N, -1)
+
+model.get_act(F_flatten)
+model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{11}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_2_1.png" src="../_images/Physics_4A_constitutive_laws_P11_2_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.perturb()
+model.get_act(F_flatten)
+model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{11}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_3_1.png" src="../_images/Physics_4A_constitutive_laws_P11_3_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import create_dataset_from_data
+
+dataset = create_dataset_from_data(F_flatten, P11_n)
+model.fit(dataset, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 6.38e-03 | test_loss: 6.99e-03 | reg: 1.36e+00 | : 100%|█| 20/20 [00:06&lt;00:00,  3.00it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(in_vars=input_vars, out_vars=[r&#39;$P_{11}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_5_0.png" src="../_images/Physics_4A_constitutive_laws_P11_5_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>detF = F11 * F22 * F33 + F12 * F23 * F31 + F13 * F21 * F32 - F11 * F23 * F32 - F12 * F21 * F33 - F13 * F22 * F31
+D = symbols(&#39;|F|&#39;)
+
+dataset = augment_input(input_vars, [detF], dataset)
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.expand_width(0,1,perturb=True)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.get_act(dataset)
+model.plot(in_vars=[D] + list(input_vars), out_vars=[r&#39;$P_{11}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_8_0.png" src="../_images/Physics_4A_constitutive_laws_P11_8_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&#39;LBFGS&#39;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.91e-04 | test_loss: 3.21e-04 | reg: 2.95e+00 | : 100%|█| 20/20 [00:17&lt;00:00,  1.15it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.get_act(dataset)
+model.plot(in_vars=[D] + list(input_vars), out_vars=[r&#39;$P_{11}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_10_0.png" src="../_images/Physics_4A_constitutive_laws_P11_10_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model.get_act(dataset)
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.6</span>
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_11_1.png" src="../_images/Physics_4A_constitutive_laws_P11_11_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.auto_symbolic()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">log</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999966767727161</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9999980195191509</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9998412733282299</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">r2</span><span class="o">=</span><span class="mf">0.9996084382228987</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">fixing</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">with</span> <span class="mi">0</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.7</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&#39;LBFGS&#39;, steps=100);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.31e-11 | test_loss: 2.89e-11 | reg: 0.00e+00 | : 100%|█| 100/100 [00:18&lt;00:00,  5.44
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(in_vars=[D] + list(input_vars),out_vars=[r&#39;$P_{11}$&#39;], varscale=0.75, scale=1.0, out_vars_offset=0.08)
+</pre></div>
+</div>
+<img alt="../_images/Physics_4A_constitutive_laws_P11_14_0.png" src="../_images/Physics_4A_constitutive_laws_P11_14_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan.utils import ex_round
+
+ex_round(ex_round(model.symbolic_formula(var= [D] + list(input_vars))[0][0],5),2)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle 0.42 F_{11}^{2} + 0.42 F_{12}^{2} + 0.42 F_{13}^{2} + 0.28 \log{\left(2.5 |F| \right)} - 0.67\]</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>0.28*np.log(2.5) - 0.67
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="mf">0.41343859507523656</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

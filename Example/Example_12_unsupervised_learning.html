@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 12: Unsupervised learning &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 13: Phase transition" href="Example_13_phase_transition.html" />
+    <link rel="prev" title="Example 11: Encouraging linearity" href="Example_11_encouraing_linear.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Example_1_function_fitting.html">Example 1: Function Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_4_classfication.html">Example 4: Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_5_special_functions.html">Example 5: Special functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_6_PDE_interpretation.html">Example 6: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_7_PDE_accuracy.html">Example 7: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_8_continual_learning.html">Example 8: Continual Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_9_singularity.html">Example 9: Singularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_10_relativity-addition.html">Example 10: Relativitistic Velocity Addition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_11_encouraing_linear.html">Example 11: Encouraging linearity</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example 12: Unsupervised learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_13_phase_transition.html">Example 13: Phase transition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_14_knot_supervised.html">Example 14: Knot supervised</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_15_knot_unsupervised.html">Example 15: Knot unsupervised</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Example 12: Unsupervised learning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Example/Example_12_unsupervised_learning.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-12-unsupervised-learning">
+<h1>Example 12: Unsupervised learning<a class="headerlink" href="#example-12-unsupervised-learning" title="Link to this heading"></a></h1>
+<p>In this example, we will use KAN for unsupervised learning. Instead of
+trying to figure out how a target variable <span class="math notranslate nohighlight">\(y\)</span> depends on input
+variables, we treat all variables on the equal footing (as input
+variables). Below we contruct a synthetic dataset where we have six
+variables <span class="math notranslate nohighlight">\(x_1, x_2, x_3, x_4, x_5, x_6\)</span>. <span class="math notranslate nohighlight">\((x_1, x_2, x_3)\)</span>
+are dependent such that <span class="math notranslate nohighlight">\(x_3={\rm exp}({\rm sin}(\pi x_1)+x_2^2)\)</span>;
+<span class="math notranslate nohighlight">\((x_4,x_5)\)</span> are dependent such that <span class="math notranslate nohighlight">\(x_5=x_4^3\)</span>. And
+<span class="math notranslate nohighlight">\(x_6\)</span> is independent of all other variables. Can we use KANs to
+discover these dependent groups?</p>
+<p>The idea is that we treat the problem as a classification problem. The
+dataset that satisfies these interdependent relations are ‘positive’
+samples, while corrupted samples (by random permutation of features
+across samples) are ‘negative’ samples. We want to train a KAN to output
+1 when it is a positive sample, and output 0 when it is a negative
+sample. We set the last layer activation to be Gaussian, so positive
+samples will have zero activation in the second to last layer, while
+negtive samples will have non-zero activation in the second to last
+layer. We can then define the relation implicitly as <span class="math notranslate nohighlight">\(g=0\)</span> where
+<span class="math notranslate nohighlight">\(g\)</span> is the activation in the second to last layer.</p>
+<p>Intialize model and create dataset</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import KAN
+import torch
+import copy
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+seed = 1
+
+model = KAN(width=[6,1,1], grid=3, k=3, seed=seed, device=device)
+
+# create dataset
+
+
+def create_dataset(train_num=500, test_num=500):
+
+    def generate_contrastive(x):
+        # positive samples
+        batch = x.shape[0]
+        x[:,2] = torch.exp(torch.sin(torch.pi*x[:,0])+x[:,1]**2)
+        x[:,3] = x[:,4]**3
+
+        # negative samples
+        def corrupt(tensor):
+            y = copy.deepcopy(tensor)
+            for i in range(y.shape[1]):
+                y[:,i] = y[:,i][torch.randperm(y.shape[0])]
+            return y
+
+        x_cor = corrupt(x)
+        x = torch.cat([x, x_cor], dim=0)
+        y = torch.cat([torch.ones(batch,), torch.zeros(batch,)], dim=0)[:,None]
+        return x, y
+
+    x = torch.rand(train_num, 6) * 2 - 1
+    x_train, y_train = generate_contrastive(x)
+
+    x = torch.rand(test_num, 6) * 2 - 1
+    x_test, y_test = generate_contrastive(x)
+
+    dataset = {}
+    dataset[&#39;train_input&#39;] = x_train.to(device)
+    dataset[&#39;test_input&#39;] = x_test.to(device)
+    dataset[&#39;train_label&#39;] = y_train.to(device)
+    dataset[&#39;test_label&#39;] = y_test.to(device)
+    return dataset
+
+dataset = create_dataset()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model(dataset[&#39;train_input&#39;])
+model.plot(beta=10)
+</pre></div>
+</div>
+<img alt="../_images/Example_12_unsupervised_learning_4_0.png" src="../_images/Example_12_unsupervised_learning_4_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># set the (1,0,0) activation to be gausssian
+#model.fix_symbolic(1,0,0,lambda x: torch.exp(-x**2/10),fit_params_bool=False)
+model.fix_symbolic(1,0,0,&#39;gaussian&#39;,fit_params_bool=False)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model(dataset[&#39;train_input&#39;])
+model.plot(beta=10)
+</pre></div>
+</div>
+<img alt="../_images/Example_12_unsupervised_learning_6_0.png" src="../_images/Example_12_unsupervised_learning_6_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;LBFGS&quot;, steps=50, lamb=0.002, lamb_entropy=10.0, lamb_coef=1.0);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.80e-01 | test_loss: 1.78e-01 | reg: 3.77e+01 | : 100%|█| 50/50 [00:13&lt;00:00,  3.76it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(in_vars=[r&#39;$x_{}$&#39;.format(i) for i in range(1,7)])
+</pre></div>
+</div>
+<img alt="../_images/Example_12_unsupervised_learning_8_0.png" src="../_images/Example_12_unsupervised_learning_8_0.png" />
+<p>This gives the dependence among <span class="math notranslate nohighlight">\((x_4,x_5)\)</span>. Another random seed
+can give dependence among <span class="math notranslate nohighlight">\((x_1,x_2,x_3)\)</span>.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Example_11_encouraing_linear.html" class="btn btn-neutral float-left" title="Example 11: Encouraging linearity" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Example_13_phase_transition.html" class="btn btn-neutral float-right" title="Example 13: Phase transition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

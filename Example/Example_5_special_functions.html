@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 5: Special functions &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 6: Solving Partial Differential Equation (PDE)" href="Example_6_PDE_interpretation.html" />
+    <link rel="prev" title="Example 4: Classification" href="Example_4_classfication.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Example_1_function_fitting.html">Example 1: Function Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_4_classfication.html">Example 4: Classification</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example 5: Special functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_6_PDE_interpretation.html">Example 6: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_7_PDE_accuracy.html">Example 7: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_8_continual_learning.html">Example 8: Continual Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_9_singularity.html">Example 9: Singularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_10_relativity-addition.html">Example 10: Relativitistic Velocity Addition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_11_encouraing_linear.html">Example 11: Encouraging linearity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_12_unsupervised_learning.html">Example 12: Unsupervised learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_13_phase_transition.html">Example 13: Phase transition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_14_knot_supervised.html">Example 14: Knot supervised</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_15_knot_unsupervised.html">Example 15: Knot unsupervised</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Example 5: Special functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Example/Example_5_special_functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-5-special-functions">
+<h1>Example 5: Special functions<a class="headerlink" href="#example-5-special-functions" title="Link to this heading"></a></h1>
+<p>Let’s construct a dataset which contains special functions
+<span class="math notranslate nohighlight">\(f(x,y)={\rm exp}(J_0(20x)+y^2)\)</span>, where <span class="math notranslate nohighlight">\(J_0(x)\)</span> is the
+Bessel function.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,1,1], grid=3, k=3, seed=2, device=device)
+f = lambda x: torch.exp(torch.special.bessel_j0(20*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+
+# train the model
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 5.15e-01 | test_loss: 5.86e-01 | reg: 5.84e+00 | : 100%|█| 20/20 [00:03&lt;00:00,  5.89it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<p>Plot trained KAN, the bessel function shows up in the bettom left</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Example_5_special_functions_4_0.png" src="../_images/Example_5_special_functions_4_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.refine(20)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.54e-02 | test_loss: 4.73e-02 | reg: 7.50e+00 | : 100%|█| 20/20 [00:02&lt;00:00,  6.93it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Example_5_special_functions_6_0.png" src="../_images/Example_5_special_functions_6_0.png" />
+<p>suggest_symbolic does not return anything that matches with it, since
+Bessel function isn’t included in the default SYMBOLIC_LIB. We want to
+add Bessel to it.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.suggest_symbolic(0,0,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">function</span>  <span class="n">fitting</span> <span class="n">r2</span>   <span class="n">r2</span> <span class="n">loss</span>  <span class="n">complexity</span>  <span class="n">complexity</span> <span class="n">loss</span>  <span class="n">total</span> <span class="n">loss</span>
+<span class="mi">0</span>        <span class="mi">0</span>    <span class="mf">0.000000</span>  <span class="mf">0.000014</span>           <span class="mi">0</span>                <span class="mi">0</span>    <span class="mf">0.000003</span>
+<span class="mi">1</span>        <span class="n">x</span>    <span class="mf">0.001602</span> <span class="o">-</span><span class="mf">0.002298</span>           <span class="mi">1</span>                <span class="mi">1</span>    <span class="mf">0.799540</span>
+<span class="mi">2</span>      <span class="n">sin</span>    <span class="mf">0.161428</span> <span class="o">-</span><span class="mf">0.253977</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.549205</span>
+<span class="mi">3</span>      <span class="n">cos</span>    <span class="mf">0.161428</span> <span class="o">-</span><span class="mf">0.253977</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.549205</span>
+<span class="mi">4</span>    <span class="mi">1</span><span class="o">/</span><span class="n">x</span><span class="o">^</span><span class="mi">2</span>    <span class="mf">0.099456</span> <span class="o">-</span><span class="mf">0.151116</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.569777</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
+ <span class="p">(</span><span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_th</span><span class="p">)</span><span class="o">&gt;</span><span class="p">),</span>
+ <span class="mf">0.0</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>SYMBOLIC_LIB.keys()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dict_keys</span><span class="p">([</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x^2&#39;</span><span class="p">,</span> <span class="s1">&#39;x^3&#39;</span><span class="p">,</span> <span class="s1">&#39;x^4&#39;</span><span class="p">,</span> <span class="s1">&#39;x^5&#39;</span><span class="p">,</span> <span class="s1">&#39;1/x&#39;</span><span class="p">,</span> <span class="s1">&#39;1/x^2&#39;</span><span class="p">,</span> <span class="s1">&#39;1/x^3&#39;</span><span class="p">,</span> <span class="s1">&#39;1/x^4&#39;</span><span class="p">,</span> <span class="s1">&#39;1/x^5&#39;</span><span class="p">,</span> <span class="s1">&#39;sqrt&#39;</span><span class="p">,</span> <span class="s1">&#39;x^0.5&#39;</span><span class="p">,</span> <span class="s1">&#39;x^1.5&#39;</span><span class="p">,</span> <span class="s1">&#39;1/sqrt(x)&#39;</span><span class="p">,</span> <span class="s1">&#39;1/x^0.5&#39;</span><span class="p">,</span> <span class="s1">&#39;exp&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;abs&#39;</span><span class="p">,</span> <span class="s1">&#39;sin&#39;</span><span class="p">,</span> <span class="s1">&#39;cos&#39;</span><span class="p">,</span> <span class="s1">&#39;tan&#39;</span><span class="p">,</span> <span class="s1">&#39;tanh&#39;</span><span class="p">,</span> <span class="s1">&#39;sgn&#39;</span><span class="p">,</span> <span class="s1">&#39;arcsin&#39;</span><span class="p">,</span> <span class="s1">&#39;arccos&#39;</span><span class="p">,</span> <span class="s1">&#39;arctan&#39;</span><span class="p">,</span> <span class="s1">&#39;arctanh&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;gaussian&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>add bessel function J0 to the symbolic library. we should include a name
+and a pytorch implementation. c is the complexity assigned to J0.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>add_symbolic(&#39;J0&#39;, torch.special.bessel_j0, c=1)
+</pre></div>
+</div>
+<p>After adding Bessel, we check suggest_symbolic again</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># J0 fitting is not very good
+model.suggest_symbolic(0,0,0)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">function</span>  <span class="n">fitting</span> <span class="n">r2</span>   <span class="n">r2</span> <span class="n">loss</span>  <span class="n">complexity</span>  <span class="n">complexity</span> <span class="n">loss</span>  <span class="n">total</span> <span class="n">loss</span>
+<span class="mi">0</span>        <span class="mi">0</span>    <span class="mf">0.000000</span>  <span class="mf">0.000014</span>           <span class="mi">0</span>                <span class="mi">0</span>    <span class="mf">0.000003</span>
+<span class="mi">1</span>       <span class="n">J0</span>    <span class="mf">0.198505</span> <span class="o">-</span><span class="mf">0.319216</span>           <span class="mi">1</span>                <span class="mi">1</span>    <span class="mf">0.736157</span>
+<span class="mi">2</span>        <span class="n">x</span>    <span class="mf">0.001602</span> <span class="o">-</span><span class="mf">0.002298</span>           <span class="mi">1</span>                <span class="mi">1</span>    <span class="mf">0.799540</span>
+<span class="mi">3</span>      <span class="n">sin</span>    <span class="mf">0.161428</span> <span class="o">-</span><span class="mf">0.253977</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.549205</span>
+<span class="mi">4</span>      <span class="n">cos</span>    <span class="mf">0.161428</span> <span class="o">-</span><span class="mf">0.253977</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.549205</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
+ <span class="p">(</span><span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="mi">0</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">kan</span><span class="o">.</span><span class="n">utils</span><span class="o">.&lt;</span><span class="k">lambda</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_th</span><span class="p">)</span><span class="o">&gt;</span><span class="p">),</span>
+ <span class="mf">0.0</span><span class="p">,</span>
+ <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The fitting r2 is still not high, this is because the ground truth is
+J0(20x) which involves 20 which is too large. our default search is in
+(-10,10). so we need to set the search range bigger in order to include
+20. now J0 appears at the top of the list</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.suggest_symbolic(0,0,0,a_range=(-40,40))
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">function</span>  <span class="n">fitting</span> <span class="n">r2</span>   <span class="n">r2</span> <span class="n">loss</span>  <span class="n">complexity</span>  <span class="n">complexity</span> <span class="n">loss</span>  <span class="n">total</span> <span class="n">loss</span>
+<span class="mi">0</span>       <span class="n">J0</span>    <span class="mf">0.998912</span> <span class="o">-</span><span class="mf">9.830484</span>           <span class="mi">1</span>                <span class="mi">1</span>   <span class="o">-</span><span class="mf">1.166097</span>
+<span class="mi">1</span>        <span class="mi">0</span>    <span class="mf">0.000000</span>  <span class="mf">0.000014</span>           <span class="mi">0</span>                <span class="mi">0</span>    <span class="mf">0.000003</span>
+<span class="mi">2</span>        <span class="n">x</span>    <span class="mf">0.001602</span> <span class="o">-</span><span class="mf">0.002298</span>           <span class="mi">1</span>                <span class="mi">1</span>    <span class="mf">0.799540</span>
+<span class="mi">3</span>      <span class="n">cos</span>    <span class="mf">0.583964</span> <span class="o">-</span><span class="mf">1.265186</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.346963</span>
+<span class="mi">4</span>      <span class="n">sin</span>    <span class="mf">0.583964</span> <span class="o">-</span><span class="mf">1.265186</span>           <span class="mi">2</span>                <span class="mi">2</span>    <span class="mf">1.346963</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="s1">&#39;J0&#39;</span><span class="p">,</span>
+ <span class="p">(</span><span class="o">&lt;</span><span class="n">function</span> <span class="n">torch</span><span class="o">.</span><span class="n">_C</span><span class="o">.</span><span class="n">_special</span><span class="o">.</span><span class="n">special_bessel_j0</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">J0</span><span class="p">,</span>
+  <span class="mi">1</span><span class="p">,</span>
+  <span class="o">&lt;</span><span class="n">function</span> <span class="n">torch</span><span class="o">.</span><span class="n">_C</span><span class="o">.</span><span class="n">_special</span><span class="o">.</span><span class="n">special_bessel_j0</span><span class="o">&gt;</span><span class="p">),</span>
+ <span class="mf">0.9989116787910461</span><span class="p">,</span>
+ <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Example_4_classfication.html" class="btn btn-neutral float-left" title="Example 4: Classification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Example_6_PDE_interpretation.html" class="btn btn-neutral float-right" title="Example 6: Solving Partial Differential Equation (PDE)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

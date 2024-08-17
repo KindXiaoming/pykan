@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 7: Pruning &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API 8: Regularization" href="API_8_regularization.html" />
+    <link rel="prev" title="API 6: Training Hyperparamters" href="API_6_training_hyperparameter.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../demos.html">API Demos</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="API_1_indexing.html">API 1: Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_2_plotting.html">API 2: Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_3_extract_activations.html">API 3: Extracting activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_4_initialization.html">API 4: Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_5_grid.html">API 5: Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_6_training_hyperparameter.html">API 6: Training Hyperparamters</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">API 7: Pruning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pruning-nodes">Pruning nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pruning-edges">Pruning Edges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prune-nodes-and-edges-together">Prune nodes and edges together</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="API_8_regularization.html">API 8: Regularization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_9_video.html">API 9: Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_10_device.html">Demo 10: Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_11_create_dataset.html">API 11: Create dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_12_checkpoint_save_load_model.html">API 12: Checkpoint, save &amp; load model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../demos.html">API Demos</a></li>
+      <li class="breadcrumb-item active">API 7: Pruning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API_demo/API_7_pruning.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-7-pruning">
+<h1>API 7: Pruning<a class="headerlink" href="#api-7-pruning" title="Link to this heading"></a></h1>
+<p>We usually use pruning to make neural networks sparser hence more
+efficient and more interpretable. KANs provide two ways of pruning:
+automatic pruning, and manual pruning.</p>
+<section id="pruning-nodes">
+<h2>Pruning nodes<a class="headerlink" href="#pruning-nodes" title="Link to this heading"></a></h2>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+
+# create dataset f(x,y) = exp(sin(pi*x)+y^2)
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+dataset[&#39;train_input&#39;].shape, dataset[&#39;train_label&#39;].shape
+
+# train the model
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01);
+model(dataset[&#39;train_input&#39;])
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.46e-02 | test_loss: 3.46e-02 | reg: 4.91e+00 | : 100%|█| 20/20 [00:05&lt;00:00,  3.36it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_7_pruning_2_3.png" src="../_images/API_7_pruning_2_3.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mode = &#39;auto&#39;
+
+if mode == &#39;auto&#39;:
+    # automatic
+    model = model.prune_node(threshold=1e-2) # by default the threshold is 1e-2
+    model.plot()
+elif mode == &#39;manual&#39;:
+    # manual
+    model = model.prune_node(active_neurons_id=[[0]])
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/API_7_pruning_3_1.png" src="../_images/API_7_pruning_3_1.png" />
+</section>
+<section id="pruning-edges">
+<h2>Pruning Edges<a class="headerlink" href="#pruning-edges" title="Link to this heading"></a></h2>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+
+# create dataset f(x,y) = exp(sin(pi*x)+y^2)
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+dataset[&#39;train_input&#39;].shape, dataset[&#39;train_label&#39;].shape
+
+# train the model
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=6, lamb=0.01);
+model(dataset[&#39;train_input&#39;])
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 7.84e-02 | test_loss: 7.80e-02 | reg: 7.26e+00 | : 100%|█| 6/6 [00:01&lt;00:00,  3.72it/s
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_7_pruning_5_3.png" src="../_images/API_7_pruning_5_3.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.prune_edge()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/API_7_pruning_7_0.png" src="../_images/API_7_pruning_7_0.png" />
+</section>
+<section id="prune-nodes-and-edges-together">
+<h2>Prune nodes and edges together<a class="headerlink" href="#prune-nodes-and-edges-together" title="Link to this heading"></a></h2>
+<p>just use model.prune()</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,5,1], grid=5, k=3, seed=1, device=device)
+
+# create dataset f(x,y) = exp(sin(pi*x)+y^2)
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+dataset[&#39;train_input&#39;].shape, dataset[&#39;train_label&#39;].shape
+
+# train the model
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01);
+model(dataset[&#39;train_input&#39;])
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.46e-02 | test_loss: 3.46e-02 | reg: 4.91e+00 | : 100%|█| 20/20 [00:05&lt;00:00,  3.70it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_7_pruning_10_3.png" src="../_images/API_7_pruning_10_3.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.prune()
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+</pre></div>
+</div>
+<img alt="../_images/API_7_pruning_11_1.png" src="../_images/API_7_pruning_11_1.png" />
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API_6_training_hyperparameter.html" class="btn btn-neutral float-left" title="API 6: Training Hyperparamters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="API_8_regularization.html" class="btn btn-neutral float-right" title="API 8: Regularization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

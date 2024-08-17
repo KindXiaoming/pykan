@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 9: Singularity &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 10: Relativitistic Velocity Addition" href="Example_10_relativity-addition.html" />
+    <link rel="prev" title="Example 8: Continual Learning" href="Example_8_continual_learning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Example_1_function_fitting.html">Example 1: Function Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_4_classfication.html">Example 4: Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_5_special_functions.html">Example 5: Special functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_6_PDE_interpretation.html">Example 6: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_7_PDE_accuracy.html">Example 7: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_8_continual_learning.html">Example 8: Continual Learning</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example 9: Singularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_10_relativity-addition.html">Example 10: Relativitistic Velocity Addition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_11_encouraing_linear.html">Example 11: Encouraging linearity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_12_unsupervised_learning.html">Example 12: Unsupervised learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_13_phase_transition.html">Example 13: Phase transition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_14_knot_supervised.html">Example 14: Knot supervised</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_15_knot_unsupervised.html">Example 15: Knot unsupervised</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Example 9: Singularity</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Example/Example_9_singularity.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-9-singularity">
+<h1>Example 9: Singularity<a class="headerlink" href="#example-9-singularity" title="Link to this heading"></a></h1>
+<p>Let’s construct a dataset which contains singularity
+<span class="math notranslate nohighlight">\(f(x,y)=sin(log(x)+log(y))  (x&gt;0,y&gt;0)\)</span></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import torch
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,1,1], grid=5, k=3, seed=2, device=device)
+f = lambda x: torch.sin(2*(torch.log(x[:,[0]])+torch.log(x[:,[1]])))
+dataset = create_dataset(f, n_var=2, ranges=[0.2,5], device=device)
+
+# train the model
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 1.14e-01 | test_loss: 1.29e-01 | reg: 6.34e+00 | : 100%|█| 20/20 [00:03&lt;00:00,  5.03it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Example_9_singularity_3_0.png" src="../_images/Example_9_singularity_3_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(0,0,0,&#39;log&#39;)
+model.fix_symbolic(0,1,0,&#39;log&#39;)
+model.fix_symbolic(1,0,0,&#39;sin&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9974619150161743</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.997527003288269</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9740613698959351</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.9741</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.66e-07 | test_loss: 2.75e-07 | reg: 0.00e+00 | : 100%|█| 20/20 [00:01&lt;00:00, 15.69it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ex_round(model.symbolic_formula()[0][0], 3)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle - 1.0 \sin{\left(2.0 \log{\left(5.017 x_{1} \right)} + 2.0 \log{\left(1.512 x_{2} \right)} - 7.194 \right)}\]</div>
+<p>We were lucky – singularity does not seem to be a problem in this case.
+But let’s instead consider <span class="math notranslate nohighlight">\(f(x,y)=\sqrt{x^2+y^2}\)</span>. <span class="math notranslate nohighlight">\(x=y=0\)</span>
+is a singularity point.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import torch
+
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[2,1,1], grid=5, k=3, seed=0)
+f = lambda x: torch.sqrt(x[:,[0]]**2+x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2)
+
+# train the model
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 3.65e-03 | test_loss: 3.97e-03 | reg: 4.84e+00 | : 100%|█| 20/20 [00:03&lt;00:00,  5.36it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot()
+</pre></div>
+</div>
+<img alt="../_images/Example_9_singularity_9_0.png" src="../_images/Example_9_singularity_9_0.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(0,0,0,&#39;x^2&#39;)
+model.fix_symbolic(0,1,0,&#39;x^2&#39;)
+model.fix_symbolic(1,0,0,&#39;sqrt&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9999973773956299</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9999948740005493</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.9998846650123596</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.9999</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = model.rewind(&#39;0.4&#39;)
+model.get_act(dataset)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rewind</span> <span class="n">to</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">renamed</span> <span class="k">as</span> <span class="mf">1.4</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>formula = model.symbolic_formula()[0][0]
+formula
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle 1.00775534257195 \sqrt{0.999962771771901 \left(6.10769914067904 \cdot 10^{-5} - x_{1}\right)^{2} + \left(9.20887777110479 \cdot 10^{-5} - x_{2}\right)^{2} + 0.00441348508007971} - 0.00955450534820557\]</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ex_round(formula, 2)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle 1.01 \sqrt{1.0 x_{1}^{2} + x_{2}^{2}} - 0.01\]</div>
+<p>w/ singularity avoiding (LBFGS may still get nan because of line search,
+but Adam won’t get nan).</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;Adam&quot;, steps=1000, lr=1e-3, update_grid=False, singularity_avoiding=True);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 5.11e-04 | test_loss: 5.64e-04 | reg: 0.00e+00 | : 100%|█| 1000/1000 [00:14&lt;00:00, 70.
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.5</span>
+</pre></div>
+</div>
+<p>w/o singularity avoiding, nan may appear</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fit(dataset, opt=&quot;Adam&quot;, steps=1000, lr=1e-3, update_grid=False);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: nan | test_loss: nan | reg: nan | : 100%|█████████| 1000/1000 [00:17&lt;00:00, 57.55it/s]
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">1.6</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Example_8_continual_learning.html" class="btn btn-neutral float-left" title="Example 8: Continual Learning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Example_10_relativity-addition.html" class="btn btn-neutral float-right" title="Example 10: Relativitistic Velocity Addition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

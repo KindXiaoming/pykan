@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 8: Regularization &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API 9: Videos" href="API_9_video.html" />
+    <link rel="prev" title="API 7: Pruning" href="API_7_pruning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../demos.html">API Demos</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="API_1_indexing.html">API 1: Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_2_plotting.html">API 2: Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_3_extract_activations.html">API 3: Extracting activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_4_initialization.html">API 4: Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_5_grid.html">API 5: Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_6_training_hyperparameter.html">API 6: Training Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_7_pruning.html">API 7: Pruning</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">API 8: Regularization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_9_video.html">API 9: Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_10_device.html">Demo 10: Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_11_create_dataset.html">API 11: Create dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_12_checkpoint_save_load_model.html">API 12: Checkpoint, save &amp; load model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../demos.html">API Demos</a></li>
+      <li class="breadcrumb-item active">API 8: Regularization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API_demo/API_8_regularization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-8-regularization">
+<h1>API 8: Regularization<a class="headerlink" href="#api-8-regularization" title="Link to this heading"></a></h1>
+<p>Regularization helps interpretability by making KANs sparser. This may
+require some hyperparamter tuning. Let’s see how hyperparameters can
+affect training</p>
+<p>Load KAN and create_dataset</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import torch
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+dataset = create_dataset(f, n_var=2, device=device)
+dataset[&#39;train_input&#39;].shape, dataset[&#39;train_label&#39;].shape
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>We apply L1 regularization to which tensor? Currently, we support five
+choices for reg_metric: * ‘edge_forward_spline_n’: the “norm” of edge,
+normalized (output std/input std), only consider the spline (ignorning
+symbolic) * ‘edge_forward_sum’: the “norm” of edge, normamlized (output
+std/input std), including both spline + symbolic *
+‘edge_forward_spline_u’: the “norm” of edge, unnormalized (output std),
+only consider the spline (ignorning symbolic) * ‘edge_backward’: edge
+attribution score * ‘node_backward’: node attribution score</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># train the model
+model = KAN(width=[2,5,1], grid=3, k=3, seed=1, device=device)
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, reg_metric=&#39;edge_forward_spline_n&#39;); # default
+#model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, reg_metric=&#39;edge_forward_sum&#39;);
+#model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, reg_metric=&#39;edge_forward_spline_u&#39;);
+#model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, reg_metric=&#39;edge_backward&#39;);
+#model.fit(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=0.01, reg_metric=&#39;node_backward&#39;);
+model.plot()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 4.57e-02 | test_loss: 4.35e-02 | reg: 7.15e+00 | : 100%|█| 20/20 [00:04&lt;00:00,  4.58it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<img alt="../_images/API_8_regularization_4_3.png" src="../_images/API_8_regularization_4_3.png" />
+<p>Note: To plot the KAN diagram, there are also three options *
+forward_u: same as edge_forward_spline_u * forward_n: same as
+edge_forward_spline_u * backward: same as edge_backward</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(metric=&#39;forward_u&#39;)
+#model.plot(metric=&#39;forward_n&#39;)
+#model.plot(metric=&#39;backward&#39;) # default
+</pre></div>
+</div>
+<img alt="../_images/API_8_regularization_6_0.png" src="../_images/API_8_regularization_6_0.png" />
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API_7_pruning.html" class="btn btn-neutral float-left" title="API 7: Pruning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="API_9_video.html" class="btn btn-neutral float-right" title="API 9: Videos" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

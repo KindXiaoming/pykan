@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 9: Videos &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Demo 10: Device" href="API_10_device.html" />
+    <link rel="prev" title="API 8: Regularization" href="API_8_regularization.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../demos.html">API Demos</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="API_1_indexing.html">API 1: Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_2_plotting.html">API 2: Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_3_extract_activations.html">API 3: Extracting activation functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_4_initialization.html">API 4: Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_5_grid.html">API 5: Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_6_training_hyperparameter.html">API 6: Training Hyperparamters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_7_pruning.html">API 7: Pruning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_8_regularization.html">API 8: Regularization</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">API 9: Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_10_device.html">Demo 10: Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_11_create_dataset.html">API 11: Create dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API_12_checkpoint_save_load_model.html">API 12: Checkpoint, save &amp; load model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../demos.html">API Demos</a></li>
+      <li class="breadcrumb-item active">API 9: Videos</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/API_demo/API_9_video.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-9-videos">
+<h1>API 9: Videos<a class="headerlink" href="#api-9-videos" title="Link to this heading"></a></h1>
+<p>We have shown one can visualize KAN with the plot() method. If one wants
+to save the training dynamics of KAN plots, one only needs to pass
+argument save_video = True to train() method (and set some video related
+parameters)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import torch
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+# create a KAN: 2D inputs, 1D output, and 5 hidden neurons. cubic spline (k=3), 5 grid intervals (grid=5).
+model = KAN(width=[4,2,1,1], grid=3, k=3, seed=1, device=device)
+f = lambda x: torch.exp((torch.sin(torch.pi*(x[:,[0]]**2+x[:,[1]]**2))+torch.sin(torch.pi*(x[:,[2]]**2+x[:,[3]]**2)))/2)
+dataset = create_dataset(f, n_var=4, train_num=3000, device=device)
+
+image_folder = &#39;video_img&#39;
+
+# train the model
+#model.train(dataset, opt=&quot;LBFGS&quot;, steps=20, lamb=1e-3, lamb_entropy=2.);
+model.fit(dataset, opt=&quot;LBFGS&quot;, steps=5, lamb=0.001, lamb_entropy=2., save_fig=True, beta=10,
+            in_vars=[r&#39;$x_1$&#39;, r&#39;$x_2$&#39;, r&#39;$x_3$&#39;, r&#39;$x_4$&#39;],
+            out_vars=[r&#39;${\rm exp}({\rm sin}(x_1^2+x_2^2)+{\rm sin}(x_3^2+x_4^2))$&#39;],
+            img_folder=image_folder);
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| train_loss: 2.89e-01 | test_loss: 2.96e-01 | reg: 1.31e+01 | : 100%|█| 5/5 [00:09&lt;00:00,  1.94s/it
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+import numpy as np
+import moviepy.video.io.ImageSequenceClip # moviepy == 1.0.3
+
+video_name=&#39;video&#39;
+fps=5
+
+fps = fps
+files = os.listdir(image_folder)
+train_index = []
+for file in files:
+    if file[0].isdigit() and file.endswith(&#39;.jpg&#39;):
+        train_index.append(int(file[:-4]))
+
+train_index = np.sort(train_index)
+
+image_files = [image_folder+&#39;/&#39;+str(train_index[index])+&#39;.jpg&#39; for index in train_index]
+
+clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
+clip.write_videofile(video_name+&#39;.mp4&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Moviepy</span> <span class="o">-</span> <span class="n">Building</span> <span class="n">video</span> <span class="n">video</span><span class="o">.</span><span class="n">mp4</span><span class="o">.</span>
+<span class="n">Moviepy</span> <span class="o">-</span> <span class="n">Writing</span> <span class="n">video</span> <span class="n">video</span><span class="o">.</span><span class="n">mp4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Moviepy - Done !
+Moviepy - video ready video.mp4
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API_8_regularization.html" class="btn btn-neutral float-left" title="API 8: Regularization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="API_10_device.html" class="btn btn-neutral float-right" title="Demo 10: Device" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

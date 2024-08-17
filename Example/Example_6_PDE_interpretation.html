@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example 6: Solving Partial Differential Equation (PDE) &mdash; Kolmogorov Arnold Network  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example 7: Solving Partial Differential Equation (PDE)" href="Example_7_PDE_accuracy.html" />
+    <link rel="prev" title="Example 5: Special functions" href="Example_5_special_functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Kolmogorov Arnold Network
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Hello, KAN!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">API Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Example_1_function_fitting.html">Example 1: Function Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_4_classfication.html">Example 4: Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_5_special_functions.html">Example 5: Special functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example 6: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_7_PDE_accuracy.html">Example 7: Solving Partial Differential Equation (PDE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_8_continual_learning.html">Example 8: Continual Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_9_singularity.html">Example 9: Singularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_10_relativity-addition.html">Example 10: Relativitistic Velocity Addition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_11_encouraing_linear.html">Example 11: Encouraging linearity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_12_unsupervised_learning.html">Example 12: Unsupervised learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_13_phase_transition.html">Example 13: Phase transition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_14_knot_supervised.html">Example 14: Knot supervised</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Example_15_knot_unsupervised.html">Example 15: Knot unsupervised</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Kolmogorov Arnold Network</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Example 6: Solving Partial Differential Equation (PDE)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/Example/Example_6_PDE_interpretation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-6-solving-partial-differential-equation-pde">
+<h1>Example 6: Solving Partial Differential Equation (PDE)<a class="headerlink" href="#example-6-solving-partial-differential-equation-pde" title="Link to this heading"></a></h1>
+<p>We aim to solve a 2D poisson equation
+<span class="math notranslate nohighlight">\(\nabla^2 f(x,y) = -2\pi^2{\rm sin}(\pi x){\rm sin}(\pi y)\)</span>, with
+boundary condition <span class="math notranslate nohighlight">\(f(-1,y)=f(1,y)=f(x,-1)=f(x,1)=0\)</span>. The ground
+truth solution is <span class="math notranslate nohighlight">\(f(x,y)={\rm sin}(\pi x){\rm sin}(\pi y)\)</span>.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from kan import *
+import matplotlib.pyplot as plt
+from torch import autograd
+from tqdm import tqdm
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+print(device)
+
+dim = 2
+np_i = 21 # number of interior points (along each dimension)
+np_b = 21 # number of boundary points (along each dimension)
+ranges = [-1, 1]
+
+model = KAN(width=[2,2,1], grid=5, k=3, seed=1, device=device)
+
+def batch_jacobian(func, x, create_graph=False):
+    # x in shape (Batch, Length)
+    def _func_sum(x):
+        return func(x).sum(dim=0)
+    return autograd.functional.jacobian(_func_sum, x, create_graph=create_graph).permute(1,0,2)
+
+# define solution
+sol_fun = lambda x: torch.sin(torch.pi*x[:,[0]])*torch.sin(torch.pi*x[:,[1]])
+source_fun = lambda x: -2*torch.pi**2 * torch.sin(torch.pi*x[:,[0]])*torch.sin(torch.pi*x[:,[1]])
+
+# interior
+sampling_mode = &#39;random&#39; # &#39;radnom&#39; or &#39;mesh&#39;
+
+x_mesh = torch.linspace(ranges[0],ranges[1],steps=np_i)
+y_mesh = torch.linspace(ranges[0],ranges[1],steps=np_i)
+X, Y = torch.meshgrid(x_mesh, y_mesh, indexing=&quot;ij&quot;)
+if sampling_mode == &#39;mesh&#39;:
+    #mesh
+    x_i = torch.stack([X.reshape(-1,), Y.reshape(-1,)]).permute(1,0)
+else:
+    #random
+    x_i = torch.rand((np_i**2,2))*2-1
+
+x_i = x_i.to(device)
+
+# boundary, 4 sides
+helper = lambda X, Y: torch.stack([X.reshape(-1,), Y.reshape(-1,)]).permute(1,0)
+xb1 = helper(X[0], Y[0])
+xb2 = helper(X[-1], Y[0])
+xb3 = helper(X[:,0], Y[:,0])
+xb4 = helper(X[:,0], Y[:,-1])
+x_b = torch.cat([xb1, xb2, xb3, xb4], dim=0)
+
+x_b = x_b.to(device)
+
+steps = 20
+alpha = 0.01
+log = 1
+
+def train():
+    optimizer = LBFGS(model.parameters(), lr=1, history_size=10, line_search_fn=&quot;strong_wolfe&quot;, tolerance_grad=1e-32, tolerance_change=1e-32, tolerance_ys=1e-32)
+
+    pbar = tqdm(range(steps), desc=&#39;description&#39;, ncols=100)
+
+    for _ in pbar:
+        def closure():
+            global pde_loss, bc_loss
+            optimizer.zero_grad()
+            # interior loss
+            sol = sol_fun(x_i)
+            sol_D1_fun = lambda x: batch_jacobian(model, x, create_graph=True)[:,0,:]
+            sol_D1 = sol_D1_fun(x_i)
+            sol_D2 = batch_jacobian(sol_D1_fun, x_i, create_graph=True)[:,:,:]
+            lap = torch.sum(torch.diagonal(sol_D2, dim1=1, dim2=2), dim=1, keepdim=True)
+            source = source_fun(x_i)
+            pde_loss = torch.mean((lap - source)**2)
+
+            # boundary loss
+            bc_true = sol_fun(x_b)
+            bc_pred = model(x_b)
+            bc_loss = torch.mean((bc_pred-bc_true)**2)
+
+            loss = alpha * pde_loss + bc_loss
+            loss.backward()
+            return loss
+
+        if _ % 5 == 0 and _ &lt; 50:
+            model.update_grid_from_samples(x_i)
+
+        optimizer.step(closure)
+        sol = sol_fun(x_i)
+        loss = alpha * pde_loss + bc_loss
+        l2 = torch.mean((model(x_i) - sol)**2)
+
+        if _ % log == 0:
+            pbar.set_description(&quot;pde loss: %.2e | bc loss: %.2e | l2: %.2e &quot; % (pde_loss.cpu().detach().numpy(), bc_loss.cpu().detach().numpy(), l2.cpu().detach().numpy()))
+
+train()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cuda</span>
+<span class="n">checkpoint</span> <span class="n">directory</span> <span class="n">created</span><span class="p">:</span> <span class="o">./</span><span class="n">model</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>pde loss: 2.23e+00 | bc loss: 5.99e-03 | l2: 3.78e-03 : 100%|███████| 20/20 [00:22&lt;00:00,  1.11s/it]
+</pre></div>
+</div>
+<p>Plot the trained KAN</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.plot(beta=10)
+</pre></div>
+</div>
+<img alt="../_images/Example_6_PDE_interpretation_4_0.png" src="../_images/Example_6_PDE_interpretation_4_0.png" />
+<p>Fix the first layer activation to be linear function, and the second
+layer to be sine functions (caveat: this is quite sensitive to
+hypreparams)</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model.fix_symbolic(0,0,0,&#39;x&#39;)
+model.fix_symbolic(0,0,1,&#39;x&#39;)
+model.fix_symbolic(0,1,0,&#39;x&#39;)
+model.fix_symbolic(0,1,1,&#39;x&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.8357976675033569</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">very</span> <span class="n">high</span><span class="p">,</span> <span class="n">please</span> <span class="n">double</span> <span class="n">check</span> <span class="k">if</span> <span class="n">you</span> <span class="n">are</span> <span class="n">choosing</span> <span class="n">the</span> <span class="n">correct</span> <span class="n">symbolic</span> <span class="n">function</span><span class="o">.</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.1</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.8300805687904358</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">very</span> <span class="n">high</span><span class="p">,</span> <span class="n">please</span> <span class="n">double</span> <span class="n">check</span> <span class="k">if</span> <span class="n">you</span> <span class="n">are</span> <span class="n">choosing</span> <span class="n">the</span> <span class="n">correct</span> <span class="n">symbolic</span> <span class="n">function</span><span class="o">.</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.2</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.8376883268356323</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">very</span> <span class="n">high</span><span class="p">,</span> <span class="n">please</span> <span class="n">double</span> <span class="n">check</span> <span class="k">if</span> <span class="n">you</span> <span class="n">are</span> <span class="n">choosing</span> <span class="n">the</span> <span class="n">correct</span> <span class="n">symbolic</span> <span class="n">function</span><span class="o">.</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.3</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="mf">0.8372848629951477</span>
+<span class="n">r2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">very</span> <span class="n">high</span><span class="p">,</span> <span class="n">please</span> <span class="n">double</span> <span class="n">check</span> <span class="k">if</span> <span class="n">you</span> <span class="n">are</span> <span class="n">choosing</span> <span class="n">the</span> <span class="n">correct</span> <span class="n">symbolic</span> <span class="n">function</span><span class="o">.</span>
+<span class="n">saving</span> <span class="n">model</span> <span class="n">version</span> <span class="mf">0.4</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.8373</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After setting all to be symbolic, we further train the model (affine
+parameters are still trainable). The model can now reach machine
+precision!</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>train()
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>pde loss: 1.71e+01 | bc loss: 1.14e-02 | l2: 1.37e-01 :  50%|███▌   | 10/20 [00:11&lt;00:11,  1.20s/it]
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---------------------------------------------------------------------------</span>
+
+<span class="ne">KeyboardInterrupt</span>                         <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span>
+
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">folders</span><span class="o">/</span><span class="mi">6</span><span class="n">j</span><span class="o">/</span><span class="n">b6y80djd4nb5hl73rv3sv8y80000gn</span><span class="o">/</span><span class="n">T</span><span class="o">/</span><span class="n">ipykernel_75424</span><span class="o">/</span><span class="mf">3364925475.</span><span class="n">py</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="o">----&gt;</span> <span class="mi">1</span> <span class="n">train</span><span class="p">()</span>
+
+
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">folders</span><span class="o">/</span><span class="mi">6</span><span class="n">j</span><span class="o">/</span><span class="n">b6y80djd4nb5hl73rv3sv8y80000gn</span><span class="o">/</span><span class="n">T</span><span class="o">/</span><span class="n">ipykernel_75424</span><span class="o">/</span><span class="mf">2545871995.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">train</span><span class="p">()</span>
+     <span class="mi">76</span>             <span class="n">model</span><span class="o">.</span><span class="n">update_grid_from_samples</span><span class="p">(</span><span class="n">x_i</span><span class="p">)</span>
+     <span class="mi">77</span>
+<span class="o">---&gt;</span> <span class="mi">78</span>         <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">closure</span><span class="p">)</span>
+     <span class="mi">79</span>         <span class="n">sol</span> <span class="o">=</span> <span class="n">sol_fun</span><span class="p">(</span><span class="n">x_i</span><span class="p">)</span>
+     <span class="mi">80</span>         <span class="n">loss</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">pde_loss</span> <span class="o">+</span> <span class="n">bc_loss</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">torch</span><span class="o">/</span><span class="n">optim</span><span class="o">/</span><span class="n">optimizer</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">383</span>                             <span class="p">)</span>
+    <span class="mi">384</span>
+<span class="o">--&gt;</span> <span class="mi">385</span>                 <span class="n">out</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">386</span>                 <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_step_code</span><span class="p">()</span>
+    <span class="mi">387</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">torch</span><span class="o">/</span><span class="n">utils</span><span class="o">/</span><span class="n">_contextlib</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">decorate_context</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">113</span>     <span class="k">def</span> <span class="nf">decorate_context</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="mi">114</span>         <span class="k">with</span> <span class="n">ctx_factory</span><span class="p">():</span>
+<span class="o">--&gt;</span> <span class="mi">115</span>             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">116</span>
+    <span class="mi">117</span>     <span class="k">return</span> <span class="n">decorate_context</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">LBFGS</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">)</span>
+    <span class="mi">441</span>                     <span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="mi">442</span>                         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_directional_evaluate</span><span class="p">(</span><span class="n">closure</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+<span class="o">--&gt;</span> <span class="mi">443</span>                     <span class="n">loss</span><span class="p">,</span> <span class="n">flat_grad</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ls_func_evals</span> <span class="o">=</span> <span class="n">_strong_wolfe</span><span class="p">(</span>
+    <span class="mi">444</span>                         <span class="n">obj_func</span><span class="p">,</span> <span class="n">x_init</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">flat_grad</span><span class="p">,</span> <span class="n">gtd</span><span class="p">)</span>
+    <span class="mi">445</span>                 <span class="bp">self</span><span class="o">.</span><span class="n">_add_grad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">LBFGS</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">_strong_wolfe</span><span class="p">(</span><span class="n">obj_func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">gtd</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">tolerance_change</span><span class="p">,</span> <span class="n">max_ls</span><span class="p">)</span>
+     <span class="mi">48</span>     <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">memory_format</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">contiguous_format</span><span class="p">)</span>
+     <span class="mi">49</span>     <span class="c1"># evaluate objective and gradient using initial step</span>
+<span class="o">---&gt;</span> <span class="mi">50</span>     <span class="n">f_new</span><span class="p">,</span> <span class="n">g_new</span> <span class="o">=</span> <span class="n">obj_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+     <span class="mi">51</span>     <span class="n">ls_func_evals</span> <span class="o">=</span> <span class="mi">1</span>
+     <span class="mi">52</span>     <span class="n">gtd_new</span> <span class="o">=</span> <span class="n">g_new</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">LBFGS</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">obj_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="mi">440</span>
+    <span class="mi">441</span>                     <span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<span class="o">--&gt;</span> <span class="mi">442</span>                         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_directional_evaluate</span><span class="p">(</span><span class="n">closure</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="mi">443</span>                     <span class="n">loss</span><span class="p">,</span> <span class="n">flat_grad</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ls_func_evals</span> <span class="o">=</span> <span class="n">_strong_wolfe</span><span class="p">(</span>
+    <span class="mi">444</span>                         <span class="n">obj_func</span><span class="p">,</span> <span class="n">x_init</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">flat_grad</span><span class="p">,</span> <span class="n">gtd</span><span class="p">)</span>
+
+
+<span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="mi">2022</span><span class="o">/</span><span class="n">research</span><span class="o">/</span><span class="n">code</span><span class="o">/</span><span class="n">pykan</span><span class="o">/</span><span class="n">kan</span><span class="o">/</span><span class="n">LBFGS</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">_directional_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="mi">289</span>     <span class="k">def</span> <span class="nf">_directional_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="mi">290</span>         <span class="bp">self</span><span class="o">.</span><span class="n">_add_grad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+<span class="o">--&gt;</span> <span class="mi">291</span>         <span class="n">loss</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">closure</span><span class="p">())</span>
+    <span class="mi">292</span>         <span class="n">flat_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gather_flat_grad</span><span class="p">()</span>
+    <span class="mi">293</span>         <span class="bp">self</span><span class="o">.</span><span class="n">_set_param</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">torch</span><span class="o">/</span><span class="n">utils</span><span class="o">/</span><span class="n">_contextlib</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">decorate_context</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">113</span>     <span class="k">def</span> <span class="nf">decorate_context</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="mi">114</span>         <span class="k">with</span> <span class="n">ctx_factory</span><span class="p">():</span>
+<span class="o">--&gt;</span> <span class="mi">115</span>             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="mi">116</span>
+    <span class="mi">117</span>     <span class="k">return</span> <span class="n">decorate_context</span>
+
+
+<span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">folders</span><span class="o">/</span><span class="mi">6</span><span class="n">j</span><span class="o">/</span><span class="n">b6y80djd4nb5hl73rv3sv8y80000gn</span><span class="o">/</span><span class="n">T</span><span class="o">/</span><span class="n">ipykernel_75424</span><span class="o">/</span><span class="mf">2545871995.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">closure</span><span class="p">()</span>
+     <span class="mi">70</span>
+     <span class="mi">71</span>             <span class="n">loss</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">pde_loss</span> <span class="o">+</span> <span class="n">bc_loss</span>
+<span class="o">---&gt;</span> <span class="mi">72</span>             <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+     <span class="mi">73</span>             <span class="k">return</span> <span class="n">loss</span>
+     <span class="mi">74</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">torch</span><span class="o">/</span><span class="n">_tensor</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">retain_graph</span><span class="p">,</span> <span class="n">create_graph</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+    <span class="mi">520</span>                 <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+    <span class="mi">521</span>             <span class="p">)</span>
+<span class="o">--&gt;</span> <span class="mi">522</span>         <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span>
+    <span class="mi">523</span>             <span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">retain_graph</span><span class="p">,</span> <span class="n">create_graph</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span>
+    <span class="mi">524</span>         <span class="p">)</span>
+
+
+<span class="o">~/</span><span class="n">opt</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.9</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">torch</span><span class="o">/</span><span class="n">autograd</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">backward</span><span class="p">(</span><span class="n">tensors</span><span class="p">,</span> <span class="n">grad_tensors</span><span class="p">,</span> <span class="n">retain_graph</span><span class="p">,</span> <span class="n">create_graph</span><span class="p">,</span> <span class="n">grad_variables</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+    <span class="mi">264</span>     <span class="c1"># some Python versions print out the first line of a multi-line function</span>
+    <span class="mi">265</span>     <span class="c1"># calls in the traceback and some print out the last line</span>
+<span class="o">--&gt;</span> <span class="mi">266</span>     <span class="n">Variable</span><span class="o">.</span><span class="n">_execution_engine</span><span class="o">.</span><span class="n">run_backward</span><span class="p">(</span>  <span class="c1"># Calls into the C++ engine to run the backward pass</span>
+    <span class="mi">267</span>         <span class="n">tensors</span><span class="p">,</span>
+    <span class="mi">268</span>         <span class="n">grad_tensors_</span><span class="p">,</span>
+
+
+<span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>Print out the symbolic formula</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>formula = model.symbolic_formula()[0][0]
+ex_round(formula,6)
+</pre></div>
+</div>
+<div class="math notranslate nohighlight">
+\[\displaystyle - 0.5 \sin{\left(3.141592 x_{1} + 3.141593 x_{2} - 4.712389 \right)} + 0.5 \sin{\left(3.141593 x_{1} - 3.141592 x_{2} + 1.570797 \right)}\]</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Example_5_special_functions.html" class="btn btn-neutral float-left" title="Example 5: Special functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Example_7_PDE_accuracy.html" class="btn btn-neutral float-right" title="Example 7: Solving Partial Differential Equation (PDE)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ziming Liu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
