@@ -1,9 +1,6 @@
 kan package
 ===========
 
-Submodules
-----------
-
 kan.KAN module
 --------------
 
@@ -64,14 +61,6 @@ kan.hypothesis module
 ---------------------
 
 .. automodule:: kan.hypothesis
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: kan
    :members:
    :undoc-members:
    :show-inheritance:
