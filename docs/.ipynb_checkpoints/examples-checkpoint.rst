@@ -7,7 +7,7 @@ Examples
    :maxdepth: 1
    
    Example/Example_1_function_fitting.rst
-   Example/Example_3_classfication.rst
+   Example/Example_3_deep_formula.rst
    Example/Example_4_classfication.rst
    Example/Example_5_special_functions.rst
    Example/Example_6_PDE_interpretation.rst

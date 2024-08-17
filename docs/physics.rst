@@ -1,7 +1,7 @@
-.. _examples:
+.. _physics:
 
-Examples
---------
+Physics
+-------
 
 .. toctree::
    :maxdepth: 1

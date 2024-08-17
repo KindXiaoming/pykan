@@ -1,7 +1,7 @@
-.. _examples:
+.. _interp:
 
-Examples
---------
+Interpretability
+----------------
 
 .. toctree::
    :maxdepth: 1
