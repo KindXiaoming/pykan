@@ -1,7 +1,7 @@
-.. _examples:
+.. _community:
 
-Examples
---------
+Community
+---------
 
 .. toctree::
    :maxdepth: 1
