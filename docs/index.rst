@@ -66,6 +66,9 @@ Get started
    modules.rst
    demos.rst
    examples.rst
+   interp.rst
+   physics.rst
+   community.rst
 
 Indices and tables
 ==================
