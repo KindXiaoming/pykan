@@ -21,44 +21,15 @@ def B_batch(x, grid, k=0, extend=True, device='cpu'):
     Returns:
     --------
         spline values : 3D torch.tensor
-            shape (number of splines, number of B-spline bases (coeffcients), number of samples). The numbef of B-spline bases = number of grid points + k - 1.
+            shape (batch, in_dim, G+k). G: the number of grid intervals, k: spline order.
       
     Example
     -------
-    >>> num_spline = 5
-    >>> num_sample = 100
-    >>> num_grid_interval = 10
-    >>> k = 3
-    >>> x = torch.normal(0,1,size=(num_spline, num_sample))
-    >>> grids = torch.einsum('i,j->ij', torch.ones(num_spline,), torch.linspace(-1,1,steps=num_grid_interval+1))
-    >>> B_batch(x, grids, k=k).shape
-    torch.Size([5, 13, 100])
+    >>> from kan.spline import B_batch
+    >>> x = torch.rand(100,2)
+    >>> grid = torch.linspace(-1,1,steps=11)[None, :].expand(2, 11)
+    >>> B_batch(x, grid, k=3).shape
     '''
-
-    '''# x shape: (size, x); grid shape: (size, grid)
-    def extend_grid(grid, k_extend=0):
-        # pad k to left and right
-        # grid shape: (batch, grid)
-        h = (grid[:, [-1]] - grid[:, [0]]) / (grid.shape[1] - 1)
-
-        for i in range(k_extend):
-            grid = torch.cat([grid[:, [0]] - h, grid], dim=1)
-            grid = torch.cat([grid, grid[:, [-1]] + h], dim=1)
-        grid = grid.to(device)
-        return grid
-
-    if extend == True:
-        grid = extend_grid(grid, k_extend=k)
-
-    grid = grid.unsqueeze(dim=2).to(device)
-    x = x.unsqueeze(dim=1).to(device)
-
-    if k == 0:
-        value = (x >= grid[:, :-1]) * (x < grid[:, 1:])
-    else:
-        B_km1 = B_batch(x[:, 0], grid=grid[:, :, 0], k=k - 1, extend=False, device=device)
-        value = (x - grid[:, :-(k + 1)]) / (grid[:, k:-1] - grid[:, :-(k + 1)]) * B_km1[:, :-1] + (
-                    grid[:, k + 1:] - x) / (grid[:, k + 1:] - grid[:, 1:(-k)]) * B_km1[:, 1:]'''
     
     x = x.unsqueeze(dim=2)
     grid = grid.unsqueeze(dim=0)
@@ -83,12 +54,12 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
     
     Args:
     -----
-        x_eval : 2D torch.tensor)
-            shape (number of splines, number of samples)
-        grid : 2D torch.tensor)
-            shape (number of splines, number of grid points)
-        coef : 2D torch.tensor)
-            shape (number of splines, number of coef params). number of coef params = number of grid intervals + k
+        x_eval : 2D torch.tensor
+            shape (batch, in_dim)
+        grid : 2D torch.tensor
+            shape (in_dim, G+2k). G: the number of grid intervals; k: spline order.
+        coef : 3D torch.tensor
+            shape (in_dim, out_dim, G+k)
         k : int
             the piecewise polynomial order of splines.
         device : str
@@ -96,25 +67,12 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
         
     Returns:
     --------
-        y_eval : 2D torch.tensor
-            shape (number of splines, number of samples)
+        y_eval : 3D torch.tensor
+            shape (number of samples, in_dim, out_dim)
         
-    Example
-    -------
-    >>> num_spline = 5
-    >>> num_sample = 100
-    >>> num_grid_interval = 10
-    >>> k = 3
-    >>> x_eval = torch.normal(0,1,size=(num_spline, num_sample))
-    >>> grids = torch.einsum('i,j->ij', torch.ones(num_spline,), torch.linspace(-1,1,steps=num_grid_interval+1))
-    >>> coef = torch.normal(0,1,size=(num_spline, num_grid_interval+k))
-    >>> coef2curve(x_eval, grids, coef, k=k).shape
-    torch.Size([5, 100])
     '''
-    # x_eval: (size, batch), grid: (size, grid), coef: (size, coef)
-    # coef: (size, coef), B_batch: (size, coef, batch), summer over coef
     
-    b_splines = B_batch(x_eval, grid, k=k) # (batch, in_dim, n_coef)
+    b_splines = B_batch(x_eval, grid, k=k)
     y_eval = torch.einsum('ijk,jlk->ijl', b_splines, coef.to(b_splines.device))
     
     return y_eval
@@ -127,44 +85,29 @@ def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
     Args:
     -----
         x_eval : 2D torch.tensor
-            shape (number of splines, number of samples)
+            shape (in_dim, out_dim, number of samples)
         y_eval : 2D torch.tensor
-            shape (number of splines, number of samples)
+            shape (in_dim, out_dim, number of samples)
         grid : 2D torch.tensor
-            shape (number of splines, number of grid points)
+            shape (in_dim, grid+2*k)
         k : int
-            the piecewise polynomial order of splines.
-        device : str
-            devicde
-        
-    Example
-    -------
-    >>> num_spline = 5
-    >>> num_sample = 100
-    >>> num_grid_interval = 10
-    >>> k = 3
-    >>> x_eval = torch.normal(0,1,size=(num_spline, num_sample))
-    >>> y_eval = torch.normal(0,1,size=(num_spline, num_sample))
-    >>> grids = torch.einsum('i,j->ij', torch.ones(num_spline,), torch.linspace(-1,1,steps=num_grid_interval+1))
-    torch.Size([5, 13])
+            spline order
+        lamb : float
+            regularized least square lambda
+            
+    Returns:
+    --------
+        coef : 3D torch.tensor
+            shape (in_dim, out_dim, G+k)
     '''
-    '''
-    # x_eval: (size, batch); y_eval: (size, batch); grid: (size, grid); k: scalar
-    mat = B_batch(x_eval, grid, k, device=device).permute(0, 2, 1)
-    # coef = torch.linalg.lstsq(mat, y_eval.unsqueeze(dim=2)).solution[:, :, 0]
-    coef = torch.linalg.lstsq(mat.to(device), y_eval.unsqueeze(dim=2).to(device),
-                              driver='gelsy' if device == 'cpu' else 'gels').solution[:, :, 0]'''
     batch = x_eval.shape[0]
     in_dim = x_eval.shape[1]
     out_dim = y_eval.shape[2]
     n_coef = grid.shape[1] - k - 1
-    #mat = B_batch(x_eval, grid, k, device=device).permute(0, 2, 1)
-    mat = B_batch(x_eval, grid, k) # (batch, in_dim, G+k)
-    mat = mat.permute(1,0,2)[:,None,:,:].expand(in_dim, out_dim, batch, n_coef) # (in_dim, out_dim, batch, n_coef)
-    # coef shape: (in_dim, outdim, G+k) 
-    y_eval = y_eval.permute(1,2,0).unsqueeze(dim=3) # y_eval: (in_dim, out_dim, batch, 1)
+    mat = B_batch(x_eval, grid, k)
+    mat = mat.permute(1,0,2)[:,None,:,:].expand(in_dim, out_dim, batch, n_coef)
+    y_eval = y_eval.permute(1,2,0).unsqueeze(dim=3)
     device = mat.device
-    
     
     #coef = torch.linalg.lstsq(mat, y_eval,
                              #driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
@@ -181,8 +124,9 @@ def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
 
 
 def extend_grid(grid, k_extend=0):
-    # pad k to left and right
-    # grid shape: (batch, grid)
+    '''
+    extend grid
+    '''
     h = (grid[:, [-1]] - grid[:, [0]]) / (grid.shape[1] - 1)
 
     for i in range(k_extend):

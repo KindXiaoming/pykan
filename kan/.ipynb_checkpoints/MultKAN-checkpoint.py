@@ -22,10 +22,137 @@ from .utils import SYMBOLIC_LIB
 from .hypothesis import plot_tree
 
 class MultKAN(nn.Module):
-
-    # include mult_ops = []
+    '''
+    KAN class
+    
+    Attributes:
+    -----------
+        grid : int
+            the number of grid intervals
+        k : int
+            spline order
+        act_fun : a list of KANLayers
+        symbolic_fun: a list of Symbolic_KANLayer
+        depth : int
+            depth of KAN
+        width : list
+            number of neurons in each layer.
+            Without multiplication nodes, [2,5,5,3] means 2D inputs, 3D outputs, with 2 layers of 5 hidden neurons.
+            With multiplication nodes, [2,[5,3],[5,1],3] means besides the [2,5,53] KAN, there are 3 (1) mul nodes in layer 1 (2). 
+        mult_arity : int, or list of int lists
+            multiplication arity for each multiplication node (the number of numbers to be multiplied)
+        grid : int
+            the number of grid intervals
+        k : int
+            the order of piecewise polynomial
+        base_fun : fun
+            residual function b(x). an activation function phi(x) = sb_scale * b(x) + sp_scale * spline(x)
+        symbolic_fun : a list of Symbolic_KANLayer
+            Symbolic_KANLayers
+        symbolic_enabled : bool
+            If False, the symbolic front is not computed (to save time). Default: True.
+        width_in : list
+            The number of input neurons for each layer
+        width_out : list
+            The number of output neurons for each layer
+        base_fun_name : str
+            The base function b(x)
+        grip_eps : float
+            The parameter that interpolates between uniform grid and adaptive grid (based on sample quantile)
+        node_bias : a list of 1D torch.float
+        node_scale : a list of 1D torch.float
+        subnode_bias : a list of 1D torch.float
+        subnode_scale : a list of 1D torch.float
+        symbolic_enabled : bool
+            when symbolic_enabled = False, the symbolic branch (symbolic_fun) will be ignored in computation (set to zero)
+        affine_trainable : bool
+            indicate whether affine parameters are trainable (node_bias, node_scale, subnode_bias, subnode_scale)
+        sp_trainable : bool
+            indicate whether the overall magnitude of splines is trainable
+        sb_trainable : bool
+            indicate whether the overall magnitude of base function is trainable
+        save_act : bool
+            indicate whether intermediate activations are saved in forward pass
+        node_scores : None or list of 1D torch.float
+            node attribution score
+        edge_scores : None or list of 2D torch.float
+            edge attribution score
+        subnode_scores : None or list of 1D torch.float
+            subnode attribution score
+        cache_data : None or 2D torch.float
+            cached input data
+        acts : None or a list of 2D torch.float
+            activations on nodes
+        auto_save : bool
+            indicate whether to automatically save a checkpoint once the model is modified
+        state_id : int
+            the state of the model (used to save checkpoint)
+        ckpt_path : str
+            the folder to store checkpoints
+        round : int
+            the number of times rewind() has been called
+        device : str
+    '''
     def __init__(self, width=None, grid=3, k=3, mult_arity = 2, noise_scale=0.3, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun='silu', symbolic_enabled=True, affine_trainable=False, grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, seed=1, save_act=True, sparse_init=False, auto_save=True, first_init=True, ckpt_path='./model', state_id=0, round=0, device='cpu'):
+        '''
+        initalize a KAN model
         
+        Args:
+        -----
+            width : list of int
+                Without multiplication nodes: :math:`[n_0, n_1, .., n_{L-1}]` specify the number of neurons in each layer (including inputs/outputs)
+                With multiplication nodes: :math:`[[n_0,m_0=0], [n_1,m_1], .., [n_{L-1},m_{L-1}]]` specify the number of addition/multiplication nodes in each layer (including inputs/outputs)
+            grid : int
+                number of grid intervals. Default: 3.
+            k : int
+                order of piecewise polynomial. Default: 3.
+            mult_arity : int, or list of int lists
+                multiplication arity for each multiplication node (the number of numbers to be multiplied)
+            noise_scale : float
+                initial injected noise to spline.
+            base_fun : str
+                the residual function b(x). Default: 'silu'
+            symbolic_enabled : bool
+                compute (True) or skip (False) symbolic computations (for efficiency). By default: True. 
+            affine_trainable : bool
+                affine parameters are updated or not. Affine parameters include node_scale, node_bias, subnode_scale, subnode_bias
+            grid_eps : float
+                When grid_eps = 1, the grid is uniform; when grid_eps = 0, the grid is partitioned using percentiles of samples. 0 < grid_eps < 1 interpolates between the two extremes.
+            grid_range : list/np.array of shape (2,))
+                setting the range of grids. Default: [-1,1]. This argument is not important if fit(update_grid=True) (by default updata_grid=True)
+            sp_trainable : bool
+                If true, scale_sp is trainable. Default: True.
+            sb_trainable : bool
+                If true, scale_base is trainable. Default: True.
+            device : str
+                device
+            seed : int
+                random seed
+            save_act : bool
+                indicate whether intermediate activations are saved in forward pass
+            sparse_init : bool
+                sparse initialization (True) or normal dense initialization. Default: False.
+            auto_save : bool
+                indicate whether to automatically save a checkpoint once the model is modified
+            state_id : int
+                the state of the model (used to save checkpoint)
+            ckpt_path : str
+                the folder to store checkpoints. Default: './model'
+            round : int
+                the number of times rewind() has been called
+            device : str
+            
+        Returns:
+        --------
+            self
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
+        checkpoint directory created: ./model
+        saving model version 0.0
+        '''
         super(MultKAN, self).__init__()
 
         torch.manual_seed(seed)
@@ -78,7 +205,6 @@ class MultKAN(nn.Module):
         self.subnode_scale = []
         
         globals()['self.node_bias_0'] = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)
-        #self.node_bias_0 = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)
         exec('self.node_bias_0' + " = torch.nn.Parameter(torch.zeros(3,1)).requires_grad_(False)")
         
         for l in range(self.depth):
@@ -146,6 +272,24 @@ class MultKAN(nn.Module):
         self.input_id = torch.arange(self.width_in[0],)
         
     def to(self, device):
+        '''
+        move the model to device
+        
+        Args:
+        -----
+            device : str or device
+
+        Returns:
+        --------
+            self
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
+        >>> model.to(device)
+        '''
         super(MultKAN, self).to(device)
         self.device = device
         
@@ -156,8 +300,79 @@ class MultKAN(nn.Module):
             symbolic_kanlayer.to(device)
             
         return self
+    
+    @property
+    def width_in(self):
+        '''
+        The number of input nodes for each layer
+        '''
+        width = self.width
+        width_in = [width[l][0]+width[l][1] for l in range(len(width))]
+        return width_in
+        
+    @property
+    def width_out(self):
+        '''
+        The number of output subnodes for each layer
+        '''
+        width = self.width
+        if self.mult_homo == True:
+            width_out = [width[l][0]+self.mult_arity*width[l][1] for l in range(len(width))]
+        else:
+            width_out = [width[l][0]+int(np.sum(self.mult_arity[l])) for l in range(len(width))]
+        return width_out
+    
+    @property
+    def n_sum(self):
+        '''
+        The number of addition nodes for each layer
+        '''
+        width = self.width
+        n_sum = [width[l][0] for l in range(1,len(width)-1)]
+        return n_sum
+    
+    @property
+    def n_mult(self):
+        '''
+        The number of multiplication nodes for each layer
+        '''
+        width = self.width
+        n_mult = [width[l][1] for l in range(1,len(width)-1)]
+        return n_mult
+    
+    @property
+    def feature_score(self):
+        '''
+        attribution scores for inputs
+        '''
+        self.attribute()
+        if self.node_scores == None:
+            return None
+        else:
+            return self.node_scores[0]
 
     def initialize_from_another_model(self, another_model, x):
+        '''
+        initialize from another model of the same width, but their 'grid' parameter can be different. 
+        Note this is equivalent to refine() when we don't want to keep another_model
+        
+        Args:
+        -----
+            another_model : MultKAN
+            x : 2D torch.float
+
+        Returns:
+        --------
+            self
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> model1 = KAN(width=[2,5,1], grid=3)
+        >>> model2 = KAN(width=[2,5,1], grid=10)
+        >>> x = torch.rand(100,2)
+        >>> model2.initialize_from_another_model(model1, x)
+        '''
         another_model(x)  # get activations
         batch = x.shape[0]
 
@@ -205,6 +420,34 @@ class MultKAN(nn.Module):
 
     
     def refine(self, new_grid):
+        '''
+        grid refinement
+        
+        Args:
+        -----
+            new_grid : init
+                the number of grid intervals after refinement
+
+        Returns:
+        --------
+            a refined model : MultKAN
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
+        >>> print(model.grid)
+        >>> x = torch.rand(100,2)
+        >>> model.get_act(x)
+        >>> model = model.refine(10)
+        >>> print(model.grid)
+        checkpoint directory created: ./model
+        saving model version 0.0
+        5
+        saving model version 0.1
+        10
+        '''
 
         model_new = MultKAN(width=self.width, 
                      grid=new_grid, 
@@ -235,6 +478,26 @@ class MultKAN(nn.Module):
     
     
     def saveckpt(self, path='model'):
+        '''
+        save the current model to files (configuration file and state file)
+        
+        Args:
+        -----
+            path : str
+                the path where checkpoints are saved
+
+        Returns:
+        --------
+            None
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
+        >>> model.saveckpt('./mark')
+        # There will be three files appearing in the current folder: mark_cache_data, mark_config.yml, mark_state
+        '''
     
         model = self
         
@@ -268,6 +531,25 @@ class MultKAN(nn.Module):
     
     @staticmethod
     def loadckpt(path='model'):
+        '''
+        load checkpoint from path
+        
+        Args:
+        -----
+            path : str
+                the path where checkpoints are saved
+
+        Returns:
+        --------
+            MultKAN
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
+        >>> model.saveckpt('./mark')
+        >>> KAN.loadckpt('./mark')
+        '''
         with open(f'{path}_config.yml', 'r') as stream:
             config = yaml.safe_load(stream)
 
@@ -309,12 +591,48 @@ class MultKAN(nn.Module):
         return model_load
     
     def copy(self):
+        '''
+        deepcopy
+        
+        Args:
+        -----
+            path : str
+                the path where checkpoints are saved
+
+        Returns:
+        --------
+            MultKAN
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[1,1], grid=5, k=3, seed=0)
+        >>> model2 = model.copy()
+        >>> model2.act_fun[0].coef.data *= 2
+        >>> print(model2.act_fun[0].coef.data)
+        >>> print(model.act_fun[0].coef.data)
+        '''
         path='copy_temp'
         self.saveckpt(path)
         return KAN.loadckpt(path)
     
     def rewind(self, model_id):
+        '''
+        rewind to an old version
         
+        Args:
+        -----
+            model_id : str
+                in format '{a}.{b}' where a is the round number, b is the version number in that round 
+
+        Returns:
+        --------
+            MultKAN
+            
+        Example
+        -------
+        Please refer to tutorials. API 12: Checkpoint, save & load model
+        ''' 
         self.round += 1
         self.state_id = model_id.split('.')[-1]
         
@@ -330,58 +648,119 @@ class MultKAN(nn.Module):
     
     
     def checkout(self, model_id):
-        return MultKAN.loadckpt(path=self.ckpt_path+'/'+str(model_id))
-
-    @property
-    def width_in(self):
-        width = self.width
-        width_in = [width[l][0]+width[l][1] for l in range(len(width))]
-        return width_in
+        '''
+        check out an old version
         
-    @property
-    def width_out(self):
-        width = self.width
-        if self.mult_homo == True:
-            width_out = [width[l][0]+self.mult_arity*width[l][1] for l in range(len(width))]
-        else:
-            width_out = [width[l][0]+int(np.sum(self.mult_arity[l])) for l in range(len(width))]
-        return width_out
-    
-    @property
-    def n_sum(self):
-        width = self.width
-        n_sum = [width[l][0] for l in range(1,len(width)-1)]
-        return n_sum
-    
-    @property
-    def n_mult(self):
-        width = self.width
-        n_mult = [width[l][1] for l in range(1,len(width)-1)]
-        return n_mult
-    
-    @property
-    def feature_score(self):
-        self.attribute()
-        if self.node_scores == None:
-            return None
-        else:
-            return self.node_scores[0]
+        Args:
+        -----
+            model_id : str
+                in format '{a}.{b}' where a is the round number, b is the version number in that round 
+
+        Returns:
+        --------
+            MultKAN
+            
+        Example
+        -------
+        Same use as rewind, although checkout doesn't change states
+        ''' 
+        return MultKAN.loadckpt(path=self.ckpt_path+'/'+str(model_id))
     
     def update_grid_from_samples(self, x):
+        '''
+        update grid from samples
+        
+        Args:
+        -----
+            x : 2D torch.tensor
+                inputs
+
+        Returns:
+        --------
+            None
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[1,1], grid=5, k=3, seed=0)
+        >>> print(model.act_fun[0].grid)
+        >>> x = torch.linspace(-10,10,steps=101)[:,None]
+        >>> model.update_grid_from_samples(x)
+        >>> print(model.act_fun[0].grid)
+        ''' 
         for l in range(self.depth):
             self.get_act(x)
             self.act_fun[l].update_grid_from_samples(self.acts[l])
             
     def update_grid(self, x):
+        '''
+        call update_grid_from_samples. This seems unnecessary but we retain it for the sake of classes that might inherit from MultKAN
+        '''
         self.update_grid_from_samples(x)
 
     def initialize_grid_from_another_model(self, model, x):
+        '''
+        initialize grid from another model
+        
+        Args:
+        -----
+            model : MultKAN
+                parent model
+            x : 2D torch.tensor
+                inputs
+
+        Returns:
+        --------
+            None
+            
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[1,1], grid=5, k=3, seed=0)
+        >>> print(model.act_fun[0].grid)
+        >>> x = torch.linspace(-10,10,steps=101)[:,None]
+        >>> model2 = KAN(width=[1,1], grid=10, k=3, seed=0)
+        >>> model2.initialize_grid_from_another_model(model, x)
+        >>> print(model2.act_fun[0].grid)
+        '''
         model(x)
         for l in range(self.depth):
             self.act_fun[l].initialize_grid_from_parent(model.act_fun[l], model.acts[l])
 
     def forward(self, x, singularity_avoiding=False, y_th=10.):
+        '''
+        forward pass
         
+        Args:
+        -----
+            x : 2D torch.tensor
+                inputs
+            singularity_avoiding : bool
+                whether to avoid singularity for the symbolic branch
+            y_th : float
+                the threshold for singularity
+
+        Returns:
+        --------
+            None
+            
+        Example1
+        --------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, seed=0)
+        >>> x = torch.rand(100,2)
+        >>> model(x).shape
+        
+        Example2
+        --------
+        >>> from kan import *
+        >>> model = KAN(width=[1,1], grid=5, k=3, seed=0)
+        >>> x = torch.tensor([[1],[-0.01]])
+        >>> model.fix_symbolic(0,0,0,'log',fit_params_bool=False)
+        >>> print(model(x))
+        >>> print(model(x, singularity_avoiding=True))
+        >>> print(model(x, singularity_avoiding=True, y_th=1.))
+        '''
         x = x[:,self.input_id.long()]
         assert x.shape[1] == self.width_in[0]
         
@@ -498,6 +877,54 @@ class MultKAN(nn.Module):
         self.symbolic_fun[l].mask.data[j,i] = mask_s
 
     def fix_symbolic(self, l, i, j, fun_name, fit_params_bool=True, a_range=(-10, 10), b_range=(-10, 10), verbose=True, random=False, log_history=True):
+        '''
+        set (l,i,j) activation to be symbolic (specified by fun_name)
+        
+        Args:
+        -----
+            l : int
+                layer index
+            i : int
+                input neuron index
+            j : int
+                output neuron index
+            fun_name : str
+                function name
+            fit_params_bool : bool
+                obtaining affine parameters through fitting (True) or setting default values (False)
+            a_range : tuple
+                sweeping range of a
+            b_range : tuple
+                sweeping range of b
+            verbose : bool
+                If True, more information is printed.
+            random : bool
+                initialize affine parameteres randomly or as [1,0,1,0]
+            log_history : bool
+                indicate whether to log history when the function is called
+        
+        Returns:
+        --------
+            None or r2 (coefficient of determination)
+            
+        Example 1 
+        ---------
+        >>> # when fit_params_bool = False
+        >>> model = KAN(width=[2,5,1], grid=5, k=3)
+        >>> model.fix_symbolic(0,1,3,'sin',fit_params_bool=False)
+        >>> print(model.act_fun[0].mask.reshape(2,5))
+        >>> print(model.symbolic_fun[0].mask.reshape(2,5))
+                    
+        Example 2
+        ---------
+        >>> # when fit_params_bool = True
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=1.)
+        >>> x = torch.normal(0,1,size=(100,2))
+        >>> model(x) # obtain activations (otherwise model does not have attributes acts)
+        >>> model.fix_symbolic(0,1,3,'sin',fit_params_bool=True)
+        >>> print(model.act_fun[0].mask.reshape(2,5))
+        >>> print(model.symbolic_fun[0].mask.reshape(2,5))
+        '''
         if not fit_params_bool:
             self.symbolic_fun[l].fix_symbolic(i, j, fun_name, verbose=verbose, random=random)
             r2 = None
@@ -516,18 +943,54 @@ class MultKAN(nn.Module):
         return r2
 
     def unfix_symbolic(self, l, i, j, log_history=True):
+        '''
+        unfix the (l,i,j) activation function.
+        '''
         self.set_mode(l, i, j, mode="n")
         self.symbolic_fun[l].funs_name[j][i] = "0"
         if log_history:
             self.log_history('unfix_symbolic')
 
     def unfix_symbolic_all(self):
+        '''
+        unfix all activation functions.
+        '''
         for l in range(len(self.width) - 1):
             for i in range(self.width[l]):
                 for j in range(self.width[l + 1]):
                     self.unfix_symbolic(l, i, j)
 
     def get_range(self, l, i, j, verbose=True):
+        '''
+        Get the input range and output range of the (l,i,j) activation
+        
+        Args:
+        -----
+            l : int
+                layer index
+            i : int
+                input neuron index
+            j : int
+                output neuron index
+        
+        Returns:
+        --------
+            x_min : float
+                minimum of input
+            x_max : float
+                maximum of input
+            y_min : float
+                minimum of output
+            y_max : float
+                maximum of output
+        
+        Example
+        -------
+        >>> model = KAN(width=[2,3,1], grid=5, k=3, noise_scale=1.)
+        >>> x = torch.normal(0,1,size=(100,2))
+        >>> model(x) # do a forward pass to obtain model.acts
+        >>> model.get_range(0,0,0)
+        '''
         x = self.spline_preacts[l][:, j, i]
         y = self.spline_postacts[l][:, j, i]
         x_min = torch.min(x).cpu().detach().numpy()
@@ -539,8 +1002,43 @@ class MultKAN(nn.Module):
             print('y range: [' + '%.2f' % y_min, ',', '%.2f' % y_max, ']')
         return x_min, x_max, y_min, y_max
 
-    def plot(self, folder="./figures", beta=3, mask=False, metric='backward', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, varscale=1.0):
+    def plot(self, folder="./figures", beta=3, metric='backward', scale=0.5, tick=False, sample=False, in_vars=None, out_vars=None, title=None, varscale=1.0):
+        '''
+        plot KAN
         
+        Args:
+        -----
+            folder : str
+                the folder to store pngs
+            beta : float
+                positive number. control the transparency of each activation. transparency = tanh(beta*l1).
+            mask : bool
+                If True, plot with mask (need to run prune() first to obtain mask). If False (by default), plot all activation functions.
+            mode : bool
+                "supervised" or "unsupervised". If "supervised", l1 is measured by absolution value (not subtracting mean); if "unsupervised", l1 is measured by standard deviation (subtracting mean).
+            scale : float
+                control the size of the diagram
+            in_vars: None or list of str
+                the name(s) of input variables
+            out_vars: None or list of str
+                the name(s) of output variables
+            title: None or str
+                title
+            varscale : float
+                the size of input variables
+            
+        Returns:
+        --------
+            Figure
+            
+        Example
+        -------
+        >>> # see more interactive examples in demos
+        >>> model = KAN(width=[2,3,1], grid=3, k=3, noise_scale=1.0)
+        >>> x = torch.normal(0,1,size=(100,2))
+        >>> model(x) # do a forward pass to obtain model.acts
+        >>> model.plot()
+        '''
         global Symbol
         
         if not self.save_act:
@@ -607,14 +1105,6 @@ class MultKAN(nn.Module):
                     if sample == True:
                         plt.scatter(self.acts[l][:, i][rank].cpu().detach().numpy(), self.spline_postacts[l][:, j, i][rank].cpu().detach().numpy(), color=color, s=400 * scale ** 2)
                     plt.gca().spines[:].set_color(color)
-
-                    '''lock_id = self.act_fun[l].lock_id[j * self.width[l] + i].long().item()
-                    if lock_id > 0:
-                        im = plt.imread(f'{folder}/lock.png')
-                        newax = fig.add_axes([0.15, 0.7, 0.15, 0.15])
-                        plt.text(500, 400, lock_id, fontsize=15)
-                        newax.imshow(im)
-                        newax.axis('off')'''
 
                     plt.savefig(f'{folder}/sp_{l}_{i}_{j}.png', bbox_inches="tight", dpi=400)
                     plt.close()
@@ -690,14 +1180,9 @@ class MultKAN(nn.Module):
                         if symbol_mask == 0. and numerical_mask == 0.:
                             color = "white"
                             alpha_mask = 0.
-                            
-                            
-                        if mask == True:
-                            plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * self.mask[l][i].item() * self.mask[l + 1][j].item())
-                            plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * self.mask[l][i].item() * self.mask[l + 1][j].item())
-                        else:
-                            plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
-                            plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
+                        
+                        plt.plot([1 / (2 * n) + i / n, 1 / (2 * N) + id_ / N], [l * (y0+z0), l * (y0+z0) + y0/2 - y1], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
+                        plt.plot([1 / (2 * N) + id_ / N, 1 / (2 * n_next) + j / n_next], [l * (y0+z0) + y0/2 + y1, l * (y0+z0)+y0], color=color, lw=2 * scale, alpha=alpha[l][j][i] * alpha_mask)
                             
                             
             # plot connections (pre-mult to post-mult, post-mult = next-layer input)
@@ -750,11 +1235,7 @@ class MultKAN(nn.Module):
                     up = DC_to_NFC([0, l * (y0+z0) + y0/2 + y1])[1]
                     newax = fig.add_axes([left, bottom, right - left, up - bottom])
                     # newax = fig.add_axes([1/(2*N)+id_/N-y1, (l+1/2)*y0-y1, y1, y1], anchor='NE')
-                    if mask == False:
-                        newax.imshow(im, alpha=alpha[l][j][i])
-                    else:
-                        ### make sure to run model.prune_node() first to compute mask ###
-                        newax.imshow(im, alpha=alpha[l][j][i] * self.mask[l][i].item() * self.mask[l + 1][j].item())
+                    newax.imshow(im, alpha=alpha[l][j][i])
                     newax.axis('off')
                     
               
@@ -811,7 +1292,33 @@ class MultKAN(nn.Module):
 
             
     def reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff):
-
+        '''
+        Get regularization
+        
+        Args:
+        -----
+            reg_metric : the regularization metric
+                'edge_forward_spline_n', 'edge_forward_spline_u', 'edge_forward_sum', 'edge_backward', 'node_backward'
+            lamb_l1 : float
+                l1 penalty strength
+            lamb_entropy : float
+                entropy penalty strength
+            lamb_coef : float
+                coefficient penalty strength
+            lamb_coefdiff : float
+                coefficient smoothness strength
+        
+        Returns:
+        --------
+            reg_ : torch.float
+        
+        Example
+        -------
+        >>> model = KAN(width=[2,3,1], grid=5, k=3, noise_scale=1.)
+        >>> x = torch.rand(100,2)
+        >>> model.get_act(x)
+        >>> model.reg('edge_forward_spline_n', 1.0, 2.0, 1.0, 1.0)
+        '''
         if reg_metric == 'edge_forward_spline_n':
             acts_scale = self.acts_scale_spline
             
@@ -839,13 +1346,7 @@ class MultKAN(nn.Module):
             p_col = vec / (torch.sum(vec, dim=0, keepdim=True) + 1)
             entropy_row = - torch.mean(torch.sum(p_row * torch.log2(p_row + 1e-4), dim=1))
             entropy_col = - torch.mean(torch.sum(p_col * torch.log2(p_col + 1e-4), dim=0))
-            #entropy_row = torch.max(-torch.sum(p_row * torch.log2(p_row + 1e-4), dim=1))
-            #entropy_col = torch.max(-torch.sum(p_col * torch.log2(p_col + 1e-4), dim=0))
             reg_ += lamb_l1 * l1 + lamb_entropy * (entropy_row + entropy_col)  # both l1 and entropy
-            '''vec = vec.reshape(-1,)
-            p = vec / (torch.sum(vec) + 1e-4)
-            entropy = - torch.sum(p * torch.log2(p + 1e-4))
-            reg_ += lamb_l1 * l1 + lamb_entropy * entropy  # both l1 and entropy'''
 
         # regularize coefficient to encourage spline to be zero
         for i in range(len(self.act_fun)):
@@ -856,10 +1357,15 @@ class MultKAN(nn.Module):
         return reg_
     
     def get_reg(self, reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff):
+        '''
+        Get regularization. This seems unnecessary but in case a class wants to inherit this, it may want to rewrite get_reg, but not reg.
+        '''
         return self.reg(reg_metric, lamb_l1, lamb_entropy, lamb_coef, lamb_coefdiff)
     
     def disable_symbolic_in_fit(self, lamb):
-        
+        '''
+        during fitting, disable symbolic if either is true (lamb = 0, none of symbolic functions is active)
+        '''
         old_save_act = self.save_act
         if lamb == 0.:
             self.save_act = False
@@ -878,11 +1384,82 @@ class MultKAN(nn.Module):
         return old_save_act, old_symbolic_enabled
     
     def get_params(self):
+        '''
+        Get parameters
+        '''
         return self.parameters()
         
             
     def fit(self, dataset, opt="LBFGS", steps=100, log=1, lamb=0., lamb_l1=1., lamb_entropy=2., lamb_coef=0., lamb_coefdiff=0., update_grid=True, grid_update_num=10, loss_fn=None, lr=1.,start_grid_update_step=-1, stop_grid_update_step=50, batch=-1,
               metrics=None, save_fig=False, in_vars=None, out_vars=None, beta=3, save_fig_freq=1, img_folder='./video', singularity_avoiding=False, y_th=1000., reg_metric='edge_forward_spline_n', display_metrics=None):
+        '''
+        training
+
+        Args:
+        -----
+            dataset : dic
+                contains dataset['train_input'], dataset['train_label'], dataset['test_input'], dataset['test_label']
+            opt : str
+                "LBFGS" or "Adam"
+            steps : int
+                training steps
+            log : int
+                logging frequency
+            lamb : float
+                overall penalty strength
+            lamb_l1 : float
+                l1 penalty strength
+            lamb_entropy : float
+                entropy penalty strength
+            lamb_coef : float
+                coefficient magnitude penalty strength
+            lamb_coefdiff : float
+                difference of nearby coefficits (smoothness) penalty strength
+            update_grid : bool
+                If True, update grid regularly before stop_grid_update_step
+            grid_update_num : int
+                the number of grid updates before stop_grid_update_step
+            start_grid_update_step : int
+                no grid updates before this training step
+            stop_grid_update_step : int
+                no grid updates after this training step
+            loss_fn : function
+                loss function
+            lr : float
+                learning rate
+            batch : int
+                batch size, if -1 then full.
+            save_fig_freq : int
+                save figure every (save_fig_freq) steps
+            singularity_avoiding : bool
+                indicate whether to avoid singularity for the symbolic part
+            y_th : float
+                singularity threshold (anything above the threshold is considered singular and is softened in some ways)
+            reg_metric : str
+                regularization metric. Choose from {'edge_forward_spline_n', 'edge_forward_spline_u', 'edge_forward_sum', 'edge_backward', 'node_backward'}
+            metrics : a list of metrics (as functions)
+                the metrics to be computed in training
+            display_metrics : a list of functions
+                the metric to be displayed in tqdm progress bar
+
+        Returns:
+        --------
+            results : dic
+                results['train_loss'], 1D array of training losses (RMSE)
+                results['test_loss'], 1D array of test losses (RMSE)
+                results['reg'], 1D array of regularization
+                other metrics specified in metrics
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=2)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.plot()
+        # Most examples in toturals involve the fit() method. Please check them for useness.
+        '''
 
         if lamb > 0. and not self.save_act:
             print('setting lamb=0. If you want to set lamb > 0, set self.save_act=True')
@@ -1009,7 +1586,30 @@ class MultKAN(nn.Module):
         return results
 
     def prune_node(self, threshold=1e-2, mode="auto", active_neurons_id=None, log_history=True):
+        '''
+        pruning nodes
 
+        Args:
+        -----
+            threshold : float
+                if the attribution score of a neuron is below the threshold, it is considered dead and will be removed
+            mode : str
+                'auto' or 'manual'. with 'auto', nodes are automatically pruned using threshold. with 'manual', active_neurons_id should be passed in.
+            
+        Returns:
+        --------
+            pruned network : MultKAN
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=2)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model = model.prune_node()
+        >>> model.plot()
+        '''
         if self.acts == None:
             self.get_act()
         
@@ -1123,7 +1723,28 @@ class MultKAN(nn.Module):
         return model2
     
     def prune_edge(self, threshold=3e-2, log_history=True):
-        
+        '''
+        pruning edges
+
+        Args:
+        -----
+            threshold : float
+                if the attribution score of an edge is below the threshold, it is considered dead and will be set to zero.
+            
+        Returns:
+        --------
+            pruned network : MultKAN
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=2)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model = model.prune_edge()
+        >>> model.plot()
+        '''
         if self.acts == None:
             self.get_act()
         
@@ -1136,7 +1757,30 @@ class MultKAN(nn.Module):
             self.log_history('fix_symbolic')
     
     def prune(self, node_th=1e-2, edge_th=3e-2):
-        
+        '''
+        prune (both nodes and edges)
+
+        Args:
+        -----
+            node_th : float
+                if the attribution score of a node is below node_th, it is considered dead and will be set to zero.
+            edge_th : float
+                if the attribution score of an edge is below node_th, it is considered dead and will be set to zero.
+            
+        Returns:
+        --------
+            pruned network : MultKAN
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]]) + x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=2)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model = model.prune()
+        >>> model.plot()
+        '''
         if self.acts == None:
             self.get_act()
         
@@ -1149,7 +1793,44 @@ class MultKAN(nn.Module):
         return self
     
     def prune_input(self, threshold=1e-2, active_inputs=None, log_history=True):
+        '''
+        prune inputs
+
+        Args:
+        -----
+            threshold : float
+                if the attribution score of the input feature is below threshold, it is considered irrelevant.
+            active_inputs : None or list
+                if a list is passed, the manual mode will disregard attribution score and prune as instructed.
+            
+        Returns:
+        --------
+            pruned network : MultKAN
+
+        Example1
+        --------
+        >>> # automatic
+        >>> from kan import *
+        >>> model = KAN(width=[3,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: 1 * x[:,[0]]**2 + 0.3 * x[:,[1]]**2 + 0.0 * x[:,[2]]**2
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.plot()
+        >>> model = model.prune_input()
+        >>> model.plot()
         
+        Example2
+        --------
+        >>> # automatic
+        >>> from kan import *
+        >>> model = KAN(width=[3,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: 1 * x[:,[0]]**2 + 0.3 * x[:,[1]]**2 + 0.0 * x[:,[2]]**2
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.plot()
+        >>> model = model.prune_input(active_inputs=[0,1])
+        >>> model.plot()
+        '''
         if active_inputs == None:
             self.attribute()
             input_score = self.node_scores[0]
@@ -1179,11 +1860,17 @@ class MultKAN(nn.Module):
         return model2
 
     def remove_edge(self, l, i, j, log_history=True):
+        '''
+        remove activtion phi(l,i,j) (set its mask to zero)
+        '''
         self.act_fun[l].mask[i][j] = 0.
         if log_history:
             self.log_history('remove_edge')
 
     def remove_node(self, l ,i, mode='all', log_history=True):
+        '''
+        remove neuron (l,i) (set the masks of all incoming and outgoing activation functions to zero)
+        '''
         if mode == 'down':
             self.act_fun[l - 1].mask[:, i] = 0.
             self.symbolic_fun[l - 1].mask[i, :] *= 0.
@@ -1201,7 +1888,34 @@ class MultKAN(nn.Module):
             
             
     def attribute(self, l=None, i=None, out_score=None, plot=True):
-        
+        '''
+        get attribution scores
+
+        Args:
+        -----
+            l : None or int
+                layer index
+            i : None or int
+                neuron index
+            out_score : None or 1D torch.float
+                specify output scores
+            plot : bool
+                when plot = True, display the bar show
+            
+        Returns:
+        --------
+            attribution scores
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[3,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: 1 * x[:,[0]]**2 + 0.3 * x[:,[1]]**2 + 0.0 * x[:,[2]]**2
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.attribute()
+        >>> model.feature_score
+        '''
         # output (out_dim, in_dim)
         
         if l != None:
@@ -1305,7 +2019,32 @@ class MultKAN(nn.Module):
             self.node_attribute_scores.append(node_attr)
             
     def feature_interaction(self, l, neuron_th = 1e-2, feature_th = 1e-2):
-        
+        '''
+        get feature interaction
+
+        Args:
+        -----
+            l : int
+                layer index
+            neuron_th : float
+                threshold to determine whether a neuron is active
+            feature_th : float
+                threshold to determine whether a feature is active
+            
+        Returns:
+        --------
+            dictionary
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[3,5,1], grid=5, k=3, noise_scale=0.3, seed=2)
+        >>> f = lambda x: 1 * x[:,[0]]**2 + 0.3 * x[:,[1]]**2 + 0.0 * x[:,[2]]**2
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.attribute()
+        >>> model.feature_interaction(1)
+        '''
         dic = {}
         width = self.width_in[l]
 
@@ -1322,7 +2061,48 @@ class MultKAN(nn.Module):
         return dic
 
     def suggest_symbolic(self, l, i, j, a_range=(-10, 10), b_range=(-10, 10), lib=None, topk=5, verbose=True, r2_loss_fun=lambda x: np.log2(1+1e-5-x), c_loss_fun=lambda x: x, weight_simple = 0.8):
-        
+        '''
+        suggest symbolic function
+
+        Args:
+        -----
+            l : int
+                layer index
+            i : int
+                neuron index in layer l
+            j : int
+                neuron index in layer j
+            a_range : tuple
+                search range of a
+            b_range : tuple
+                search range of b
+            lib : list of str
+                library of candidate symbolic functions
+            topk : int
+                the number of top functions displayed
+            verbose : bool
+                if verbose = True, print more information
+            r2_loss_fun : functoon
+                function : r2 -> "bits"
+            c_loss_fun : fun
+                function : c -> 'bits'
+            weight_simple : float
+                the simplifty weight: the higher, more prefer simplicity over performance
+            
+            
+        Returns:
+        --------
+            best_name (str), best_fun (function), best_r2 (float), best_c (float)
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,1,1], grid=5, k=3, noise_scale=0.0, seed=0)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]])+x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.suggest_symbolic(0,1,0)
+        '''
         r2s = []
         cs = []
         
@@ -1373,28 +2153,41 @@ class MultKAN(nn.Module):
             df = pd.DataFrame(results)
             print(df)
 
-        '''if verbose == True:
-            print('function', ',', 'r2', ',', 'c', ',', 'r2 loss', ',', 'c loss', ',', 'total loss')
-            for i in range(topk):
-                print(list(symbolic_lib.items())[sorted_ids[i]][0], ',', r2s[i], ',', cs[i], ',', r2_loss[i], ',', cs_loss[i], ',', loss[i])'''
-
         best_name = list(symbolic_lib.items())[sorted_ids[0]][0]
         best_fun = list(symbolic_lib.items())[sorted_ids[0]][1]
         best_r2 = r2s[0]
         best_c = cs[0]
             
-        '''if best_r2 < 1e-3:
-            # zero function
-            zero_id = list(SYMBOLIC_LIB).index('0')
-            best_r2 = 0.0
-            best_name = '0'
-            best_fun = list(symbolic_lib.items())[zero_id][1]
-            best_c = 0.0
-            print('behave like a zero function')'''
-        
         return best_name, best_fun, best_r2, best_c;
 
     def auto_symbolic(self, a_range=(-10, 10), b_range=(-10, 10), lib=None, verbose=1):
+        '''
+        automatic symbolic regression for all edges
+
+        Args:
+        -----
+            a_range : tuple
+                search range of a
+            b_range : tuple
+                search range of b
+            lib : list of str
+                library of candidate symbolic functions
+            verbose : int
+                larger verbosity => more verbosity
+            
+        Returns:
+        --------
+            None
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,1,1], grid=5, k=3, noise_scale=0.0, seed=0)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]])+x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.auto_symbolic()
+        '''
         for l in range(len(self.width_in) - 1):
             for i in range(self.width_in[l]):
                 for j in range(self.width_out[l + 1]):
@@ -1412,7 +2205,31 @@ class MultKAN(nn.Module):
                             
         self.log_history('auto_symbolic')
 
-    def symbolic_formula(self, compute_digit=5, display_digit=3, var=None, normalizer=None, simplify=False, output_normalizer = None):
+    def symbolic_formula(self, var=None, normalizer=None, output_normalizer = None):
+        '''
+        get symbolic formula
+
+        Args:
+        -----
+            var : None or a list of sympy expression
+                input variables
+            normalizer : [mean, std]
+            output_normalizer : [mean, std]
+            
+        Returns:
+        --------
+            None
+
+        Example
+        -------
+        >>> from kan import *
+        >>> model = KAN(width=[2,1,1], grid=5, k=3, noise_scale=0.0, seed=0)
+        >>> f = lambda x: torch.exp(torch.sin(torch.pi*x[:,[0]])+x[:,[1]]**2)
+        >>> dataset = create_dataset(f, n_var=3)
+        >>> model.fit(dataset, opt='LBFGS', steps=20, lamb=0.001);
+        >>> model.auto_symbolic()
+        >>> model.symbolic_formula()[0][0]
+        '''
         
         symbolic_acts = []
         symbolic_acts_premult = []
@@ -1512,7 +2329,20 @@ class MultKAN(nn.Module):
         
         
     def expand_depth(self):
+        '''
+        expand network depth, add an indentity layer to the end. For usage, please refer to tutorials interp_3_KAN_compiler.ipynb.
         
+        Args:
+        -----
+            var : None or a list of sympy expression
+                input variables
+            normalizer : [mean, std]
+            output_normalizer : [mean, std]
+            
+        Returns:
+        --------
+            None
+        '''
         self.depth += 1
 
         # add kanlayer, set mask to zero
@@ -1543,7 +2373,24 @@ class MultKAN(nn.Module):
         self.subnode_scale.append(torch.nn.Parameter(torch.ones(dim_out,device=self.device)).requires_grad_(self.affine_trainable))
 
     def expand_width(self, layer_id, n_added_nodes, sum_bool=True, mult_arity=2):
+        '''
+        expand network width. For usage, please refer to tutorials interp_3_KAN_compiler.ipynb.
         
+        Args:
+        -----
+            layer_id : int
+                layer index
+            n_added_nodes : init
+                the number of added nodes
+            sum_bool : bool
+                if sum_bool == True, added nodes are addition nodes; otherwise multiplication nodes
+            mult_arity : init
+                multiplication arity (the number of numbers to be multiplied)
+            
+        Returns:
+        --------
+            None
+        '''
         def _expand(layer_id, n_added_nodes, sum_bool=True, mult_arity=2, added_dim='out'):
             l = layer_id
             in_dim = self.symbolic_fun[l].in_dim
@@ -1677,7 +2524,20 @@ class MultKAN(nn.Module):
             self.mult_arity[layer_id] += mult_arity
             
     def perturb(self, mag=1.0, mode='non-intrusive'):
+        '''
+        preturb a network. For usage, please refer to tutorials interp_3_KAN_compiler.ipynb.
         
+        Args:
+        -----
+            mag : float
+                perturbation magnitude
+            mode : str
+                pertubatation mode, choices = {'non-intrusive', 'all', 'minimal'}
+            
+        Returns:
+        --------
+            None
+        '''
         perturb_bool = {}
         
         if mode == 'all':
@@ -1735,6 +2595,20 @@ class MultKAN(nn.Module):
                             
                             
     def module(self, start_layer, chain):
+        '''
+        specify network modules
+        
+        Args:
+        -----
+            start_layer : int
+                the earliest layer of the module
+            chain : str
+                specify neurons in the module
+            
+        Returns:
+        --------
+            None
+        '''
         #chain = '[-1]->[-1,-2]->[-1]->[-1]'
         groups = chain.split('->')
         n_total_layers = len(groups)//2
@@ -1757,12 +2631,18 @@ class MultKAN(nn.Module):
         self.log_history('module')
         
     def tree(self, x=None, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=False):
+        '''
+        turn KAN into a tree
+        '''
         if x == None:
             x = self.cache_data
         plot_tree(self, x, in_var=in_var, style=style, sym_th=sym_th, sep_th=sep_th, skip_sep_test=skip_sep_test, verbose=verbose)
         
         
     def speed(self, compile=False):
+        '''
+        turn on KAN's speed mode
+        '''
         self.symbolic_enabled=False
         self.save_act=False
         self.auto_save=False
@@ -1772,6 +2652,9 @@ class MultKAN(nn.Module):
             return self
         
     def get_act(self, x=None):
+        '''
+        collect intermidate activations
+        '''
         if isinstance(x, dict):
             x = x['train_input']
         if x == None:
@@ -1785,6 +2668,9 @@ class MultKAN(nn.Module):
         self.save_act = save_act
         
     def get_fun(self, l, i, j):
+        '''
+        get function (l,i,j)
+        '''
         inputs = self.spline_preacts[l][:,j,i].cpu().detach().numpy()
         outputs = self.spline_postacts[l][:,j,i].cpu().detach().numpy()
         # they are not ordered yet
@@ -1797,7 +2683,9 @@ class MultKAN(nn.Module):
         
         
     def history(self, k='all'):
-        
+        '''
+        get history
+        '''
         with open(self.ckpt_path+'/history.txt', 'r') as f:
             data = f.readlines()
             n_line = len(data)
@@ -1809,6 +2697,9 @@ class MultKAN(nn.Module):
                 print(line[:-1])
     @property
     def n_edge(self):
+        '''
+        the number of active edges
+        '''
         depth = len(self.act_fun)
         complexity = 0
         for l in range(depth):
@@ -1877,6 +2768,9 @@ class MultKAN(nn.Module):
             self.swap(l,i,j,log_history=False)
 
     def auto_swap(self):
+        '''
+        automatically swap neurons such as connection costs are minimized
+        '''
         depth = self.depth
         for l in range(1, depth):
             self.auto_swap_l(l)

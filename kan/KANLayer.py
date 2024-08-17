@@ -16,51 +16,29 @@ class KANLayer(nn.Module):
             input dimension
         out_dim: int
             output dimension
-        size: int
-            the number of splines = input dimension * output dimension
+        num: int
+            the number of grid intervals
         k: int
             the piecewise polynomial order of splines
-        grid: 2D torch.float
-            grid points
-        noises: 2D torch.float
-            injected noises to splines at initialization (to break degeneracy)
+        noise_scale: float
+            spline scale at initialization
         coef: 2D torch.tensor
             coefficients of B-spline bases
-        scale_base: 1D torch.float
-            magnitude of the residual function b(x)
-        scale_sp: 1D torch.float
+        scale_base_mu: float
+            magnitude of the residual function b(x) is drawn from N(mu, sigma^2), mu = sigma_base_mu
+        scale_base_sigma: float
+            magnitude of the residual function b(x) is drawn from N(mu, sigma^2), mu = sigma_base_sigma
+        scale_sp: float
             mangitude of the spline function spline(x)
         base_fun: fun
             residual function b(x)
         mask: 1D torch.float
             mask of spline functions. setting some element of the mask to zero means setting the corresponding activation to zero function.
         grid_eps: float in [0,1]
-            a hyperparameter used in update_grid_from_samples. When grid_eps = 0, the grid is uniform; when grid_eps = 1, the grid is partitioned using percentiles of samples. 0 < grid_eps < 1 interpolates between the two extremes.
-        weight_sharing: 1D tensor int
-            allow spline activations to share parameters
-        lock_counter: int
-            counter how many activation functions are locked (weight sharing)
-        lock_id: 1D torch.int
+            a hyperparameter used in update_grid_from_samples. When grid_eps = 1, the grid is uniform; when grid_eps = 0, the grid is partitioned using percentiles of samples. 0 < grid_eps < 1 interpolates between the two extremes.
             the id of activation functions that are locked
         device: str
             device
-    
-    Methods:
-    --------
-        __init__():
-            initialize a KANLayer
-        forward():
-            forward 
-        update_grid_from_samples():
-            update grids based on samples' incoming activations
-        initialize_grid_from_parent():
-            initialize grids from another model
-        get_subset():
-            get subset of the KANLayer (used for pruning)
-        lock():
-            lock several activation functions to share parameters
-        unlock():
-            unlock already locked activation functions
     """
 
     def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.5, scale_base_mu=0.0, scale_base_sigma=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu', sparse_init=False):
@@ -79,22 +57,26 @@ class KANLayer(nn.Module):
                 the order of piecewise polynomial. Default: 3.
             noise_scale : float
                 the scale of noise injected at initialization. Default: 0.1.
-            scale_base : float
-                the scale of the residual function b(x). Default: 1.0.
+            scale_base_mu : float
+                the scale of the residual function b(x) is intialized to be N(scale_base_mu, scale_base_sigma^2).
+            scale_base_sigma : float
+                the scale of the residual function b(x) is intialized to be N(scale_base_mu, scale_base_sigma^2).
             scale_sp : float
-                the scale of the base function spline(x). Default: 1.0.
+                the scale of the base function spline(x).
             base_fun : function
                 residual function b(x). Default: torch.nn.SiLU()
             grid_eps : float
-                When grid_eps = 0, the grid is uniform; when grid_eps = 1, the grid is partitioned using percentiles of samples. 0 < grid_eps < 1 interpolates between the two extremes. Default: 0.02.
+                When grid_eps = 1, the grid is uniform; when grid_eps = 0, the grid is partitioned using percentiles of samples. 0 < grid_eps < 1 interpolates between the two extremes.
             grid_range : list/np.array of shape (2,)
                 setting the range of grids. Default: [-1,1].
             sp_trainable : bool
-                If true, scale_sp is trainable. Default: True.
+                If true, scale_sp is trainable
             sb_trainable : bool
-                If true, scale_base is trainable. Default: True.
+                If true, scale_base is trainable
             device : str
                 device
+            sparse_init : bool
+                if sparse_init = True, sparse initialization is applied.
             
         Returns:
         --------
@@ -102,9 +84,9 @@ class KANLayer(nn.Module):
             
         Example
         -------
+        >>> from kan.KANLayer import *
         >>> model = KANLayer(in_dim=3, out_dim=5)
         >>> (model.in_dim, model.out_dim)
-        (3, 5)
         '''
         super(KANLayer, self).__init__()
         # size 
@@ -113,26 +95,20 @@ class KANLayer(nn.Module):
         self.num = num
         self.k = k
 
-        # shape: (size, num)
-        ### grid size: (batch, in_dim, out_dim, G + 1) => (batch, in_dim, G + 2*k + 1)
-        
         grid = torch.linspace(grid_range[0], grid_range[1], steps=num + 1)[None,:].expand(self.in_dim, num+1)
         grid = extend_grid(grid, k_extend=k)
         self.grid = torch.nn.Parameter(grid).requires_grad_(False)
         noises = (torch.rand(self.num+1, self.in_dim, self.out_dim) - 1/2) * noise_scale / num
-        # shape: (size, coef)
+
         self.coef = torch.nn.Parameter(curve2coef(self.grid[:,k:-k].permute(1,0), noises, self.grid, k))
-        #if isinstance(scale_base, float):
+        
         if sparse_init:
             self.mask = torch.nn.Parameter(sparse_mask(in_dim, out_dim)).requires_grad_(False)
         else:
             self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim)).requires_grad_(False)
         
         self.scale_base = torch.nn.Parameter(scale_base_mu * 1 / np.sqrt(in_dim) + \
-                         scale_base_sigma * (torch.rand(in_dim, out_dim)*2-1) * 1/np.sqrt(in_dim))
-        #self.scale_base = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_base * mask).requires_grad_(sb_trainable)  # make scale trainable
-        #else:
-        #self.scale_base = torch.nn.Parameter(scale_base.to(device)).requires_grad_(sb_trainable)
+                         scale_base_sigma * (torch.rand(in_dim, out_dim)*2-1) * 1/np.sqrt(in_dim)).requires_grad_(sb_trainable)
         self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * self.mask).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
@@ -168,31 +144,26 @@ class KANLayer(nn.Module):
         
         Example
         -------
+        >>> from kan.KANLayer import *
         >>> model = KANLayer(in_dim=3, out_dim=5)
         >>> x = torch.normal(0,1,size=(100,3))
         >>> y, preacts, postacts, postspline = model(x)
         >>> y.shape, preacts.shape, postacts.shape, postspline.shape
-        (torch.Size([100, 5]),
-         torch.Size([100, 5, 3]),
-         torch.Size([100, 5, 3]),
-         torch.Size([100, 5, 3]))
         '''
         batch = x.shape[0]
-        # x: shape (batch, in_dim) => shape (size, batch) (size = out_dim * in_dim)
-        #x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, device=self.device)).reshape(batch, self.size).permute(1, 0)
         preacts = x[:,None,:].clone().expand(batch, self.out_dim, self.in_dim)
             
         base = self.base_fun(x) # (batch, in_dim)
-        y = coef2curve(x_eval=x, grid=self.grid, coef=self.coef, k=self.k)  # y shape: (batch, in_dim, out_dim)
+        y = coef2curve(x_eval=x, grid=self.grid, coef=self.coef, k=self.k)
         
-        postspline = y.clone().permute(0,2,1) # postspline shape: (batch, out_dim, in_dim)
+        postspline = y.clone().permute(0,2,1)
             
         y = self.scale_base[None,:,:] * base[:,:,None] + self.scale_sp[None,:,:] * y
         y = self.mask[None,:,:] * y
         
         postacts = y.clone().permute(0,2,1)
             
-        y = torch.sum(y, dim=1)  # shape (batch, out_dim)
+        y = torch.sum(y, dim=1)
         return y, preacts, postacts, postspline
 
     def update_grid_from_samples(self, x, mode='sample'):
@@ -215,8 +186,6 @@ class KANLayer(nn.Module):
         >>> x = torch.linspace(-3,3,steps=100)[:,None]
         >>> model.update_grid_from_samples(x)
         >>> print(model.grid.data)
-        tensor([[-1.0000, -0.6000, -0.2000,  0.2000,  0.6000,  1.0000]])
-        tensor([[-3.0002, -1.7882, -0.5763,  0.6357,  1.8476,  3.0002]])
         '''
         
         batch = x.shape[0]
@@ -267,9 +236,6 @@ class KANLayer(nn.Module):
         >>> x = torch.normal(0,1,size=(batch, 1))
         >>> model.initialize_grid_from_parent(parent_model, x)
         >>> print(model.grid.data)
-        tensor([[-1.0000, -0.6000, -0.2000,  0.2000,  0.6000,  1.0000]])
-        tensor([[-1.0000, -0.8000, -0.6000, -0.4000, -0.2000,  0.0000,  0.2000,  0.4000,
-          0.6000,  0.8000,  1.0000]])
         '''
         
         batch = x.shape[0]
@@ -332,7 +298,28 @@ class KANLayer(nn.Module):
     
     
     def swap(self, i1, i2, mode='in'):
+        '''
+        swap the i1 neuron with the i2 neuron in input (if mode == 'in') or output (if mode == 'out') 
         
+        Args:
+        -----
+            i1 : int
+            i2 : int
+            mode : str
+                mode = 'in' or 'out'
+            
+        Returns:
+        --------
+            None
+            
+        Example
+        -------
+        >>> from kan.KANLayer import *
+        >>> model = KANLayer(in_dim=2, out_dim=2, num=5, k=3)
+        >>> print(model.coef)
+        >>> model.swap(0,1,mode='in')
+        >>> print(model.coef)
+        '''
         with torch.no_grad():
             def swap_(data, i1, i2, mode='in'):
                 if mode == 'in':

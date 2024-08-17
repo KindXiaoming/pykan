@@ -5,6 +5,29 @@ from kan.MultKAN import MultKAN
 import torch
 
 def next_nontrivial_operation(expr, scale=1, bias=0):
+    '''
+    remove the affine part of an expression
+
+    Args:
+    -----
+        expr : sympy expression
+        scale : float
+        bias : float
+
+    Returns:
+    --------
+        expr : sympy expression
+        scale : float
+        bias : float
+
+    Example
+    -------
+    >>> from kan.compiler import *
+    >>> from sympy import *
+    >>> input_vars = a, b = symbols('a b')
+    >>> expression = 3.14534242 * exp(sin(pi*a) + b**2) - 2.32345402
+    >>> next_nontrivial_operation(expression)
+    '''
     if expr.func == Add or expr.func == Mul:
         n_arg = len(expr.args)
         n_num = 0
@@ -41,9 +64,36 @@ def next_nontrivial_operation(expr, scale=1, bias=0):
         return expr, scale, bias
     
 
-#def sf2kan(input_variables, expr, grid=3, k=3, noise_scale=0.1, scale_base_mu=0.0, scale_base_sigma=1.0, base_fun=torch.nn.SiLU(), symbolic_enabled=True, affine_trainable=False, grid_eps=1.0, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, device='cpu', seed=0):
 def expr2kan(input_variables, expr, grid=5, k=3, auto_save=False):
-    
+    '''
+    compile a symbolic formula to a MultKAN
+
+    Args:
+    -----
+        input_variables : a list of sympy symbols
+        expr : sympy expression
+        grid : int
+            the number of grid intervals
+        k : int
+            spline order
+        auto_save : bool
+            if auto_save = True, models are automatically saved
+
+    Returns:
+    --------
+        MultKAN
+
+    Example
+    -------
+    >>> from kan.compiler import *
+    >>> from sympy import *
+    >>> input_vars = a, b = symbols('a b')
+    >>> expression = exp(sin(pi*a) + b**2)
+    >>> model = kanpiler(input_vars, expression)
+    >>> x = torch.rand(100,2) * 2 - 1
+    >>> model(x)
+    >>> model.plot()
+    '''
     class Node:
         def __init__(self, expr, mult_bool, depth, scale, bias, parent=None, mult_arity=None):
             self.expr = expr

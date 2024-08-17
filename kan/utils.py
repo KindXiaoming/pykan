@@ -266,7 +266,9 @@ def fit_params(x, y, fun, a_range=(-10,10), b_range=(-10,10), grid_number=101, i
 
 
 def sparse_mask(in_dim, out_dim):
-
+    '''
+    get sparse mask
+    '''
     in_coord = torch.arange(in_dim) * 1/in_dim + 1/(2*in_dim)
     out_coord = torch.arange(out_dim) * 1/out_dim + 1/(2*out_dim)
 
@@ -312,6 +314,26 @@ def add_symbolic(name, fun, c=1, fun_singularity=None):
     
   
 def ex_round(ex1, n_digit):
+    '''
+    rounding the numbers in an expression to certain floating points
+    
+    Args:
+    -----
+        ex1 : sympy expression
+        n_digit : int
+        
+    Returns:
+    --------
+        ex2 : sympy expression
+    
+    Example
+    -------
+    >>> from kan.utils import *
+    >>> from sympy import *
+    >>> input_vars = a, b = symbols('a b')
+    >>> expression = 3.14534242 * exp(sin(pi*a) + b**2) - 2.32345402
+    >>> ex_round(expression, 2)
+    '''
     ex2 = ex1
     for a in sympy.preorder_traversal(ex1):
         if isinstance(a, sympy.Float):
@@ -320,7 +342,28 @@ def ex_round(ex1, n_digit):
 
 
 def augment_input(orig_vars, aux_vars, x):
-
+    '''
+    augment inputs
+    
+    Args:
+    -----
+        orig_vars : list of sympy symbols
+        aux_vars : list of auxiliary symbols
+        x : inputs
+        
+    Returns:
+    --------
+        augmented inputs
+    
+    Example
+    -------
+    >>> from kan.utils import *
+    >>> from sympy import *
+    >>> orig_vars = a, b = symbols('a b')
+    >>> aux_vars = [a + b, a * b]
+    >>> x = torch.rand(100, 2)
+    >>> augment_input(orig_vars, aux_vars, x).shape
+    '''
     # if x is a tensor
     if isinstance(x, torch.Tensor):
         
@@ -342,12 +385,52 @@ def augment_input(orig_vars, aux_vars, x):
 
 
 def batch_jacobian(func, x, create_graph=False):
+    '''
+    jacobian
+    
+    Args:
+    -----
+        func : function or model
+        x : inputs
+        create_graph : bool
+        
+    Returns:
+    --------
+        jacobian
+    
+    Example
+    -------
+    >>> from kan.utils import batch_jacobian
+    >>> x = torch.normal(0,1,size=(100,2))
+    >>> model = lambda x: x[:,[0]] + x[:,[1]]
+    >>> batch_jacobian(model, x)
+    '''
     # x in shape (Batch, Length)
     def _func_sum(x):
         return func(x).sum(dim=0)
     return torch.autograd.functional.jacobian(_func_sum, x, create_graph=create_graph)[0]
 
 def batch_hessian(model, x, create_graph=False):
+    '''
+    hessian
+    
+    Args:
+    -----
+        func : function or model
+        x : inputs
+        create_graph : bool
+        
+    Returns:
+    --------
+        jacobian
+    
+    Example
+    -------
+    >>> from kan.utils import batch_hessian
+    >>> x = torch.normal(0,1,size=(100,2))
+    >>> model = lambda x: x[:,[0]]**2 + x[:,[1]]**2
+    >>> batch_hessian(model, x)
+    '''
     # x in shape (Batch, Length)
     jac = lambda x: batch_jacobian(model, x, create_graph=True)
     def _jac_sum(x):
@@ -356,7 +439,29 @@ def batch_hessian(model, x, create_graph=False):
 
 
 def create_dataset_from_data(inputs, labels, train_ratio=0.8, device='cpu'):
-
+    '''
+    create dataset from data
+    
+    Args:
+    -----
+        inputs : 2D torch.float
+        labels : 2D torch.float
+        train_ratio : float
+            the ratio of training fraction
+        device : str
+        
+    Returns:
+    --------
+        dataset (dictionary)
+    
+    Example
+    -------
+    >>> from kan.utils import create_dataset_from_data
+    >>> x = torch.normal(0,1,size=(100,2))
+    >>> y = torch.normal(0,1,size=(100,1))
+    >>> dataset = create_dataset_from_data(x, y)
+    >>> dataset['train_input'].shape
+    '''
     num = inputs.shape[0]
     train_id = np.random.choice(num, int(num*train_ratio), replace=False)
     test_id = list(set(np.arange(num)) - set(train_id))
@@ -370,7 +475,21 @@ def create_dataset_from_data(inputs, labels, train_ratio=0.8, device='cpu'):
 
 
 def get_derivative(model, inputs, labels, derivative='hessian', loss_mode='pred', reg_metric='w', lamb=0., lamb_l1=1., lamb_entropy=0.):
+    '''
+    compute the jacobian/hessian of loss wrt to model parameters
     
+    Args:
+    -----
+        inputs : 2D torch.float
+        labels : 2D torch.float
+        derivative : str
+            'jacobian' or 'hessian'
+        device : str
+        
+    Returns:
+    --------
+        jacobian or hessian
+    '''
     def get_mapping(model):
 
         mapping = {}
@@ -463,6 +582,9 @@ def get_derivative(model, inputs, labels, derivative='hessian', loss_mode='pred'
     return result
 
 def model2param(model):
+    '''
+    turn model parameters into a flattened vector
+    '''
     p = torch.tensor([]).to(model.device)
     for params in model.parameters():
         p = torch.cat([p, params.reshape(-1,)], dim=0)

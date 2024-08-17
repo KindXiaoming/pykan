@@ -12,29 +12,19 @@ class Symbolic_KANLayer(nn.Module):
 
     Attributes:
     -----------
-        in_dim: int
+        in_dim : int
             input dimension
-        out_dim: int
+        out_dim : int
             output dimension
-        funs: 2D array of torch functions (or lambda functions)
+        funs : 2D array of torch functions (or lambda functions)
             symbolic functions (torch)
-        funs_name: 2D arry of str
+        funs_avoid_singularity : 2D array of torch functions (or lambda functions) with singularity avoiding
+        funs_name : 2D arry of str
             names of symbolic functions
-        funs_sympy: 2D array of sympy functions (or lambda functions)
+        funs_sympy : 2D array of sympy functions (or lambda functions)
             symbolic functions (sympy)
-        affine: 3D array of floats
+        affine : 3D array of floats
             affine transformations of inputs and outputs
-        
-    Methods:
-    --------
-        __init__(): 
-            initialize a Symbolic_KANLayer
-        forward():
-            forward
-        get_subset():
-            get subset of the KANLayer (used for pruning)
-        fix_symbolic():
-            fix an activation function to be symbolic
     '''
     def __init__(self, in_dim=3, out_dim=2, device='cpu'):
         '''
@@ -57,7 +47,6 @@ class Symbolic_KANLayer(nn.Module):
         -------
         >>> sb = Symbolic_KANLayer(in_dim=3, out_dim=3)
         >>> len(sb.funs), len(sb.funs[0])
-        (3, 3)
         '''
         super(Symbolic_KANLayer, self).__init__()
         self.out_dim = out_dim
@@ -79,6 +68,9 @@ class Symbolic_KANLayer(nn.Module):
         self.to(device)
         
     def to(self, device):
+        '''
+        move to device
+        '''
         super(Symbolic_KANLayer, self).to(device)
         self.device = device    
         return self
@@ -91,13 +83,17 @@ class Symbolic_KANLayer(nn.Module):
         -----
             x : 2D array
                 inputs, shape (batch, input dimension)
+            singularity_avoiding : bool
+                if True, funs_avoid_singularity is used; if False, funs is used. 
+            y_th : float
+                the singularity threshold
             
         Returns:
         --------
             y : 2D array
                 outputs, shape (batch, output dimension)
             postacts : 3D array
-                activations after activation functions but before summing on nodes
+                activations after activation functions but before being summed on nodes
         
         Example
         -------
@@ -148,7 +144,6 @@ class Symbolic_KANLayer(nn.Module):
         >>> sb_large = Symbolic_KANLayer(in_dim=10, out_dim=10)
         >>> sb_small = sb_large.get_subset([0,9],[1,2,3])
         >>> sb_small.in_dim, sb_small.out_dim
-        (2, 3)
         '''
         sbb = Symbolic_KANLayer(self.in_dim, self.out_dim, device=self.device)
         sbb.in_dim = len(in_id)
@@ -196,11 +191,7 @@ class Symbolic_KANLayer(nn.Module):
         >>> sb.fix_symbolic(2,1,'sin')
         >>> print(sb.funs_name)
         >>> print(sb.affine)
-        [['', '', ''], ['', '', 'sin']]
-        Parameter containing:
-        tensor([[0., 0., 0., 0.],
-                 [0., 0., 0., 0.],
-                 [1., 0., 1., 0.]], requires_grad=True)
+        
         Example 2
         ---------
         >>> # when x & y are provided, fit_params() is called to find the best fit coefficients
@@ -212,9 +203,6 @@ class Symbolic_KANLayer(nn.Module):
         >>> sb.fix_symbolic(2,1,'sin',x,y)
         >>> print(sb.funs_name)
         >>> print(sb.affine[1,2,:].data)
-        r2 is 0.9999701976776123
-        [['', '', ''], ['', '', 'sin']]
-        tensor([2.9981, 1.9997, 5.0039, 0.6978])
         '''
         if isinstance(fun_name,str):
             fun = SYMBOLIC_LIB[fun_name][0]
@@ -255,7 +243,9 @@ class Symbolic_KANLayer(nn.Module):
             return None
         
     def swap(self, i1, i2, mode='in'):
-
+        '''
+        swap the i1 neuron with the i2 neuron in input (if mode == 'in') or output (if mode == 'out') 
+        '''
         with torch.no_grad():
             def swap_list_(data, i1, i2, mode='in'):
 

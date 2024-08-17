@@ -12,8 +12,45 @@ import sympy
 from sympy.printing import latex
 
 
-def detect_separability(model, x, mode='add', score_th=1e-2, res_th=1e-2, n_clusters=None, bias=0, verbose=False):
-    
+def detect_separability(model, x, mode='add', score_th=1e-2, res_th=1e-2, n_clusters=None, bias=0., verbose=False):
+    '''
+        detect function separability
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            mode : str
+                mode = 'add' or mode = 'mul'
+            score_th : float
+                threshold of score
+            res_th : float
+                threshold of residue
+            n_clusters : None or int
+                the number of clusters
+            bias : float
+                bias (for multiplicative separability)
+            verbose : bool
+
+        Returns:
+        --------
+            results (dictionary)
+            
+        Example1
+        --------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: x[:,[0]] ** 2 + torch.exp(x[:,[1]]+x[:,[2]])
+        >>> x = torch.normal(0,1,size=(100,3))
+        >>> detect_separability(model, x, mode='add')
+        
+        Example2
+        --------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: x[:,[0]] ** 2 * (x[:,[1]]+x[:,[2]])
+        >>> x = torch.normal(0,1,size=(100,3))
+        >>> detect_separability(model, x, mode='mul')
+    '''
     results = {}
     
     if mode == 'add':
@@ -99,7 +136,30 @@ def get_dependence(model, x, group):
     return dependence
 
 def test_symmetry(model, x, group, dependence_th=1e-3):
-    
+    '''
+        detect function separability
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            group : a list of indices
+            dependence_th : float
+                threshold of dependence
+
+        Returns:
+        --------
+            bool
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: x[:,[0]] ** 2 * (x[:,[1]]+x[:,[2]])
+        >>> x = torch.normal(0,1,size=(100,3))
+        >>> print(test_symmetry(model, x, [1,2])) # True
+        >>> print(test_symmetry(model, x, [0,2])) # False
+    '''
     if len(group) == x.shape[1] or len(group) == 0:
         return True
     
@@ -109,7 +169,36 @@ def test_symmetry(model, x, group, dependence_th=1e-3):
 
 
 def test_separability(model, x, groups, mode='add', threshold=1e-2, bias=0):
+    '''
+        test function separability
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            mode : str
+                mode = 'add' or mode = 'mul'
+            score_th : float
+                threshold of score
+            res_th : float
+                threshold of residue
+            bias : float
+                bias (for multiplicative separability)
+            verbose : bool
 
+        Returns:
+        --------
+            bool
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: x[:,[0]] ** 2 * (x[:,[1]]+x[:,[2]])
+        >>> x = torch.normal(0,1,size=(100,3))
+        >>> print(test_separability(model, x, [[0],[1,2]], mode='mul')) # True
+        >>> print(test_separability(model, x, [[0],[1,2]], mode='add')) # False
+    '''
     if mode == 'add':
         hessian = batch_hessian(model, x)
     elif mode == 'mul':
@@ -137,7 +226,36 @@ def test_separability(model, x, groups, mode='add', threshold=1e-2, bias=0):
     return sep_bool
 
 def test_general_separability(model, x, groups, threshold=1e-2):
+    '''
+        test function separability
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            mode : str
+                mode = 'add' or mode = 'mul'
+            score_th : float
+                threshold of score
+            res_th : float
+                threshold of residue
+            bias : float
+                bias (for multiplicative separability)
+            verbose : bool
 
+        Returns:
+        --------
+            bool
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: x[:,[0]] ** 2 * (x[:,[1]]**2+x[:,[2]]**2)**2
+        >>> x = torch.normal(0,1,size=(100,3))
+        >>> print(test_general_separability(model, x, [[1],[0,2]])) # False
+        >>> print(test_general_separability(model, x, [[0],[1,2]])) # True
+    '''
     grad = batch_jacobian(model, x)
 
     gensep_bool = True
@@ -158,7 +276,33 @@ def test_general_separability(model, x, groups, threshold=1e-2):
 
 
 def get_molecule(model, x, sym_th=1e-3, verbose=True):
+    '''
+        how variables are combined hierarchically
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            sym_th : float
+                threshold of symmetry
+            verbose : bool
 
+        Returns:
+        --------
+            list
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: ((x[:,[0]] ** 2 + x[:,[1]] ** 2) ** 2 + (x[:,[2]] ** 2 + x[:,[3]] ** 2) ** 2) ** 2 + ((x[:,[4]] ** 2 + x[:,[5]] ** 2) ** 2 + (x[:,[6]] ** 2 + x[:,[7]] ** 2) ** 2) ** 2
+        >>> x = torch.normal(0,1,size=(100,8))
+        >>> get_molecule(model, x, verbose=False)
+        [[[0], [1], [2], [3], [4], [5], [6], [7]],
+         [[0, 1], [2, 3], [4, 5], [6, 7]],
+         [[0, 1, 2, 3], [4, 5, 6, 7]],
+         [[0, 1, 2, 3, 4, 5, 6, 7]]]
+    '''
     n = x.shape[1]
     atoms = [[i] for i in range(n)]
     molecules = []
@@ -260,7 +404,32 @@ def get_molecule(model, x, sym_th=1e-3, verbose=True):
 
 
 def get_tree_node(model, x, moleculess, sep_th=1e-2, skip_test=True):
+    '''
+        get tree nodes
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            sep_th : float
+                threshold of separability
+            skip_test : bool
+                if True, don't test the property of each module (to save time)
 
+        Returns:
+        --------
+            arities : list of numbers
+            properties : list of strings
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: ((x[:,[0]] ** 2 + x[:,[1]] ** 2) ** 2 + (x[:,[2]] ** 2 + x[:,[3]] ** 2) ** 2) ** 2 + ((x[:,[4]] ** 2 + x[:,[5]] ** 2) ** 2 + (x[:,[6]] ** 2 + x[:,[7]] ** 2) ** 2) ** 2
+        >>> x = torch.normal(0,1,size=(100,8))
+        >>> moleculess = get_molecule(model, x, verbose=False)
+        >>> get_tree_node(model, x, moleculess, skip_test=False)
+    '''
     arities = []
     properties = []
     
@@ -318,7 +487,37 @@ def get_tree_node(model, x, moleculess, sep_th=1e-2, skip_test=True):
 
 
 def plot_tree(model, x, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, skip_sep_test=False, verbose=False):
-    
+    '''
+        get tree graph
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            in_var : list of symbols
+                input variables
+            style : str
+                'tree' or 'box'
+            sym_th : float
+                threshold of symmetry
+            sep_th : float
+                threshold of separability
+            skip_sep_test : bool
+                if True, don't test the property of each module (to save time)
+            verbose : bool
+
+        Returns:
+        --------
+            a tree graph
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> model = lambda x: ((x[:,[0]] ** 2 + x[:,[1]] ** 2) ** 2 + (x[:,[2]] ** 2 + x[:,[3]] ** 2) ** 2) ** 2 + ((x[:,[4]] ** 2 + x[:,[5]] ** 2) ** 2 + (x[:,[6]] ** 2 + x[:,[7]] ** 2) ** 2) ** 2
+        >>> x = torch.normal(0,1,size=(100,8))
+        >>> plot_tree(model, x)
+    '''
     moleculess = get_molecule(model, x, sym_th=sym_th, verbose=verbose)
     arities, properties = get_tree_node(model, x, moleculess, sep_th=sep_th, skip_test=skip_sep_test)
 
@@ -433,7 +632,33 @@ def plot_tree(model, x, in_var=None, style='tree', sym_th=1e-3, sep_th=1e-1, ski
 
 
 def test_symmetry_var(model, x, input_vars, symmetry_var):
-    
+    '''
+        test symmetry
+        
+        Args:
+        -----
+            model : MultKAN, MLP or python function
+            x : 2D torch.float
+                inputs
+            input_vars : list of sympy symbols
+            symmetry_var : sympy expression
+
+        Returns:
+        --------
+            cosine similarity
+            
+        Example
+        -------
+        >>> from kan.hypothesis import *
+        >>> from sympy import *
+        >>> model = lambda x: x[:,[0]] * (x[:,[1]] + x[:,[2]])
+        >>> x = torch.normal(0,1,size=(100,8))
+        >>> input_vars = a, b, c = symbols('a b c')
+        >>> symmetry_var = b + c
+        >>> test_symmetry_var(model, x, input_vars, symmetry_var);
+        >>> symmetry_var = b * c
+        >>> test_symmetry_var(model, x, input_vars, symmetry_var);
+    '''
     orig_vars = input_vars
     sym_var = symmetry_var
     
@@ -467,6 +692,4 @@ def test_symmetry_var(model, x, input_vars, symmetry_var):
     else:
         print('not suggesting symmetry')
         
-        
-    
     return cossim
