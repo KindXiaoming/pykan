@@ -51,6 +51,22 @@ kan.utils module
    :members:
    :undoc-members:
    :show-inheritance:
+   
+kan.compiler module
+-------------------
+
+.. automodule:: kan.compiler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   
+kan.hypothesis module
+---------------------
+
+.. automodule:: kan.hypothesis
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------

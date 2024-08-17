@@ -1189,7 +1189,7 @@ x : 2D torch.float</p>
 <section id="id63">
 <h4>Returns:<a class="headerlink" href="#id63" title="Link to this heading"></a></h4>
 <blockquote>
-<div><p><a href="#id149"><span class="problematic" id="id150">reg_</span></a> : torch.float</p>
+<div><p><a href="#id186"><span class="problematic" id="id187">reg_</span></a> : torch.float</p>
 </div></blockquote>
 </section>
 <section id="id64">
@@ -2539,6 +2539,517 @@ derivative : str</p>
 <dt class="sig sig-object py" id="kan.utils.sparse_mask">
 <span class="sig-prename descclassname"><span class="pre">kan.utils.</span></span><span class="sig-name descname"><span class="pre">sparse_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.utils.sparse_mask" title="Link to this definition"></a></dt>
 <dd><p>get sparse mask</p>
+</dd></dl>
+
+</section>
+<section id="module-kan.compiler">
+<span id="kan-compiler-module"></span><h2>kan.compiler module<a class="headerlink" href="#module-kan.compiler" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.compiler.expr2kan">
+<span class="sig-prename descclassname"><span class="pre">kan.compiler.</span></span><span class="sig-name descname"><span class="pre">expr2kan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.compiler.expr2kan" title="Link to this definition"></a></dt>
+<dd><p>compile a symbolic formula to a MultKAN</p>
+<section id="id149">
+<h3>Args:<a class="headerlink" href="#id149" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>input_variables : a list of sympy symbols
+expr : sympy expression
+grid : int</p>
+<blockquote>
+<div><p>the number of grid intervals</p>
+</div></blockquote>
+<dl class="simple">
+<dt>k<span class="classifier">int</span></dt><dd><p>spline order</p>
+</dd>
+<dt>auto_save<span class="classifier">bool</span></dt><dd><p>if auto_save = True, models are automatically saved</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id150">
+<h3>Returns:<a class="headerlink" href="#id150" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>MultKAN</p>
+</div></blockquote>
+</section>
+<section id="id151">
+<h3>Example<a class="headerlink" href="#id151" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.compiler</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vars</span> <span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;a b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expression</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">pi</span><span class="o">*</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">kanpiler</span><span class="p">(</span><span class="n">input_vars</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.compiler.kanpiler">
+<span class="sig-prename descclassname"><span class="pre">kan.compiler.</span></span><span class="sig-name descname"><span class="pre">kanpiler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.compiler.kanpiler" title="Link to this definition"></a></dt>
+<dd><p>compile a symbolic formula to a MultKAN</p>
+<section id="id152">
+<h3>Args:<a class="headerlink" href="#id152" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>input_variables : a list of sympy symbols
+expr : sympy expression
+grid : int</p>
+<blockquote>
+<div><p>the number of grid intervals</p>
+</div></blockquote>
+<dl class="simple">
+<dt>k<span class="classifier">int</span></dt><dd><p>spline order</p>
+</dd>
+<dt>auto_save<span class="classifier">bool</span></dt><dd><p>if auto_save = True, models are automatically saved</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id153">
+<h3>Returns:<a class="headerlink" href="#id153" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>MultKAN</p>
+</div></blockquote>
+</section>
+<section id="id154">
+<h3>Example<a class="headerlink" href="#id154" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.compiler</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vars</span> <span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;a b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expression</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">pi</span><span class="o">*</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">kanpiler</span><span class="p">(</span><span class="n">input_vars</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.compiler.next_nontrivial_operation">
+<span class="sig-prename descclassname"><span class="pre">kan.compiler.</span></span><span class="sig-name descname"><span class="pre">next_nontrivial_operation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.compiler.next_nontrivial_operation" title="Link to this definition"></a></dt>
+<dd><p>remove the affine part of an expression</p>
+<section id="id155">
+<h3>Args:<a class="headerlink" href="#id155" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>expr : sympy expression
+scale : float
+bias : float</p>
+</div></blockquote>
+</section>
+<section id="id156">
+<h3>Returns:<a class="headerlink" href="#id156" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>expr : sympy expression
+scale : float
+bias : float</p>
+</div></blockquote>
+</section>
+<section id="id157">
+<h3>Example<a class="headerlink" href="#id157" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.compiler</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vars</span> <span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;a b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expression</span> <span class="o">=</span> <span class="mf">3.14534242</span> <span class="o">*</span> <span class="n">exp</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">pi</span><span class="o">*</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mf">2.32345402</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">next_nontrivial_operation</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.compiler.sf2kan">
+<span class="sig-prename descclassname"><span class="pre">kan.compiler.</span></span><span class="sig-name descname"><span class="pre">sf2kan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.compiler.sf2kan" title="Link to this definition"></a></dt>
+<dd><p>compile a symbolic formula to a MultKAN</p>
+<section id="id158">
+<h3>Args:<a class="headerlink" href="#id158" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>input_variables : a list of sympy symbols
+expr : sympy expression
+grid : int</p>
+<blockquote>
+<div><p>the number of grid intervals</p>
+</div></blockquote>
+<dl class="simple">
+<dt>k<span class="classifier">int</span></dt><dd><p>spline order</p>
+</dd>
+<dt>auto_save<span class="classifier">bool</span></dt><dd><p>if auto_save = True, models are automatically saved</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id159">
+<h3>Returns:<a class="headerlink" href="#id159" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>MultKAN</p>
+</div></blockquote>
+</section>
+<section id="id160">
+<h3>Example<a class="headerlink" href="#id160" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.compiler</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vars</span> <span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;a b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expression</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">pi</span><span class="o">*</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">kanpiler</span><span class="p">(</span><span class="n">input_vars</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+</section>
+<section id="module-kan.hypothesis">
+<span id="kan-hypothesis-module"></span><h2>kan.hypothesis module<a class="headerlink" href="#module-kan.hypothesis" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.batch_grad_normgrad">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">batch_grad_normgrad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.batch_grad_normgrad" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.detect_separability">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">detect_separability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'add'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.detect_separability" title="Link to this definition"></a></dt>
+<dd><p>detect function separability</p>
+<section id="id161">
+<h3>Args:<a class="headerlink" href="#id161" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<dl class="simple">
+<dt>mode<span class="classifier">str</span></dt><dd><p>mode = ‘add’ or mode = ‘mul’</p>
+</dd>
+<dt>score_th<span class="classifier">float</span></dt><dd><p>threshold of score</p>
+</dd>
+<dt>res_th<span class="classifier">float</span></dt><dd><p>threshold of residue</p>
+</dd>
+<dt>n_clusters<span class="classifier">None or int</span></dt><dd><p>the number of clusters</p>
+</dd>
+<dt>bias<span class="classifier">float</span></dt><dd><p>bias (for multiplicative separability)</p>
+</dd>
+</dl>
+<p>verbose : bool</p>
+</div></blockquote>
+</section>
+<section id="id162">
+<h3>Returns:<a class="headerlink" href="#id162" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>results (dictionary)</p>
+</div></blockquote>
+</section>
+<section id="id163">
+<h3>Example1<a class="headerlink" href="#id163" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">+</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">detect_separability</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id164">
+<h3>Example2<a class="headerlink" href="#id164" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">+</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">detect_separability</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;mul&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.get_dependence">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">get_dependence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.get_dependence" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.get_molecule">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">get_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sym_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.get_molecule" title="Link to this definition"></a></dt>
+<dd><p>how variables are combined hierarchically</p>
+<section id="id165">
+<h3>Args:<a class="headerlink" href="#id165" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<dl class="simple">
+<dt>sym_th<span class="classifier">float</span></dt><dd><p>threshold of symmetry</p>
+</dd>
+</dl>
+<p>verbose : bool</p>
+</div></blockquote>
+</section>
+<section id="id166">
+<h3>Returns:<a class="headerlink" href="#id166" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>list</p>
+</div></blockquote>
+</section>
+<section id="id167">
+<h3>Example<a class="headerlink" href="#id167" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">((</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">6</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">7</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_molecule</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">[[[0], [1], [2], [3], [4], [5], [6], [7]],</span>
+<span class="go"> [[0, 1], [2, 3], [4, 5], [6, 7]],</span>
+<span class="go"> [[0, 1, 2, 3], [4, 5, 6, 7]],</span>
+<span class="go"> [[0, 1, 2, 3, 4, 5, 6, 7]]]</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.get_tree_node">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">get_tree_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moleculess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.get_tree_node" title="Link to this definition"></a></dt>
+<dd><p>get tree nodes</p>
+<section id="id168">
+<h3>Args:<a class="headerlink" href="#id168" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<dl class="simple">
+<dt>sep_th<span class="classifier">float</span></dt><dd><p>threshold of separability</p>
+</dd>
+<dt>skip_test<span class="classifier">bool</span></dt><dd><p>if True, don’t test the property of each module (to save time)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id169">
+<h3>Returns:<a class="headerlink" href="#id169" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>arities : list of numbers
+properties : list of strings</p>
+</div></blockquote>
+</section>
+<section id="id170">
+<h3>Example<a class="headerlink" href="#id170" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">((</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">6</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">7</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">moleculess</span> <span class="o">=</span> <span class="n">get_molecule</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_tree_node</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">moleculess</span><span class="p">,</span> <span class="n">skip_test</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.plot_tree">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">plot_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tree'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sym_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_sep_test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.plot_tree" title="Link to this definition"></a></dt>
+<dd><p>get tree graph</p>
+<section id="id171">
+<h3>Args:<a class="headerlink" href="#id171" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<dl class="simple">
+<dt>in_var<span class="classifier">list of symbols</span></dt><dd><p>input variables</p>
+</dd>
+<dt>style<span class="classifier">str</span></dt><dd><p>‘tree’ or ‘box’</p>
+</dd>
+<dt>sym_th<span class="classifier">float</span></dt><dd><p>threshold of symmetry</p>
+</dd>
+<dt>sep_th<span class="classifier">float</span></dt><dd><p>threshold of separability</p>
+</dd>
+<dt>skip_sep_test<span class="classifier">bool</span></dt><dd><p>if True, don’t test the property of each module (to save time)</p>
+</dd>
+</dl>
+<p>verbose : bool</p>
+</div></blockquote>
+</section>
+<section id="id172">
+<h3>Returns:<a class="headerlink" href="#id172" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>a tree graph</p>
+</div></blockquote>
+</section>
+<section id="id173">
+<h3>Example<a class="headerlink" href="#id173" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">((</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">6</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">7</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_tree</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.test_general_separability">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">test_general_separability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.test_general_separability" title="Link to this definition"></a></dt>
+<dd><p>test function separability</p>
+<section id="id174">
+<h3>Args:<a class="headerlink" href="#id174" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<dl class="simple">
+<dt>mode<span class="classifier">str</span></dt><dd><p>mode = ‘add’ or mode = ‘mul’</p>
+</dd>
+<dt>score_th<span class="classifier">float</span></dt><dd><p>threshold of score</p>
+</dd>
+<dt>res_th<span class="classifier">float</span></dt><dd><p>threshold of residue</p>
+</dd>
+<dt>bias<span class="classifier">float</span></dt><dd><p>bias (for multiplicative separability)</p>
+</dd>
+</dl>
+<p>verbose : bool</p>
+</div></blockquote>
+</section>
+<section id="id175">
+<h3>Returns:<a class="headerlink" href="#id175" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>bool</p>
+</div></blockquote>
+</section>
+<section id="id176">
+<h3>Example<a class="headerlink" href="#id176" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_general_separability</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]]))</span> <span class="c1"># False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_general_separability</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]]))</span> <span class="c1"># True</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.test_separability">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">test_separability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'add'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.test_separability" title="Link to this definition"></a></dt>
+<dd><p>test function separability</p>
+<section id="id177">
+<h3>Args:<a class="headerlink" href="#id177" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<dl class="simple">
+<dt>mode<span class="classifier">str</span></dt><dd><p>mode = ‘add’ or mode = ‘mul’</p>
+</dd>
+<dt>score_th<span class="classifier">float</span></dt><dd><p>threshold of score</p>
+</dd>
+<dt>res_th<span class="classifier">float</span></dt><dd><p>threshold of residue</p>
+</dd>
+<dt>bias<span class="classifier">float</span></dt><dd><p>bias (for multiplicative separability)</p>
+</dd>
+</dl>
+<p>verbose : bool</p>
+</div></blockquote>
+</section>
+<section id="id178">
+<h3>Returns:<a class="headerlink" href="#id178" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>bool</p>
+</div></blockquote>
+</section>
+<section id="id179">
+<h3>Example<a class="headerlink" href="#id179" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">+</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_separability</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;mul&#39;</span><span class="p">))</span> <span class="c1"># True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_separability</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">))</span> <span class="c1"># False</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.test_symmetry">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">test_symmetry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependence_th</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.test_symmetry" title="Link to this definition"></a></dt>
+<dd><p>detect function separability</p>
+<section id="id180">
+<h3>Args:<a class="headerlink" href="#id180" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<p>group : a list of indices
+dependence_th : float</p>
+<blockquote>
+<div><p>threshold of dependence</p>
+</div></blockquote>
+</div></blockquote>
+</section>
+<section id="id181">
+<h3>Returns:<a class="headerlink" href="#id181" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>bool</p>
+</div></blockquote>
+</section>
+<section id="id182">
+<h3>Example<a class="headerlink" href="#id182" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span><span class="o">+</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_symmetry</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span> <span class="c1"># True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">test_symmetry</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span> <span class="c1"># False</span>
+</pre></div>
+</div>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kan.hypothesis.test_symmetry_var">
+<span class="sig-prename descclassname"><span class="pre">kan.hypothesis.</span></span><span class="sig-name descname"><span class="pre">test_symmetry_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetry_var</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.hypothesis.test_symmetry_var" title="Link to this definition"></a></dt>
+<dd><p>test symmetry</p>
+<section id="id183">
+<h3>Args:<a class="headerlink" href="#id183" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>model : MultKAN, MLP or python function
+x : 2D torch.float</p>
+<blockquote>
+<div><p>inputs</p>
+</div></blockquote>
+<p>input_vars : list of sympy symbols
+symmetry_var : sympy expression</p>
+</div></blockquote>
+</section>
+<section id="id184">
+<h3>Returns:<a class="headerlink" href="#id184" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>cosine similarity</p>
+</div></blockquote>
+</section>
+<section id="id185">
+<h3>Example<a class="headerlink" href="#id185" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kan.hypothesis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[:,[</span><span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_vars</span> <span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;a b c&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">symmetry_var</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_symmetry_var</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">input_vars</span><span class="p">,</span> <span class="n">symmetry_var</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">symmetry_var</span> <span class="o">=</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_symmetry_var</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">input_vars</span><span class="p">,</span> <span class="n">symmetry_var</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
 </dd></dl>
 
 </section>
