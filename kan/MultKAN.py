@@ -958,7 +958,7 @@ class MultKAN(nn.Module):
         for l in range(len(self.width) - 1):
             for i in range(self.width_in[l]):
                 for j in range(self.width_out[l + 1]):
-                    self.unfix_symbolic(l, i, j, log_history=True)
+                    self.unfix_symbolic(l, i, j, log_history)
 
     def get_range(self, l, i, j, verbose=True):
         '''
