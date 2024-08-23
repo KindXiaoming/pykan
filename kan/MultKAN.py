@@ -951,14 +951,14 @@ class MultKAN(nn.Module):
         if log_history:
             self.log_history('unfix_symbolic')
 
-    def unfix_symbolic_all(self):
+    def unfix_symbolic_all(self, log_history=True):
         '''
         unfix all activation functions.
         '''
         for l in range(len(self.width) - 1):
-            for i in range(self.width[l]):
-                for j in range(self.width[l + 1]):
-                    self.unfix_symbolic(l, i, j)
+            for i in range(self.width_in[l]):
+                for j in range(self.width_out[l + 1]):
+                    self.unfix_symbolic(l, i, j, log_history=True)
 
     def get_range(self, l, i, j, verbose=True):
         '''
