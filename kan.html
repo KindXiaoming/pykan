@@ -374,7 +374,7 @@ With multiplication nodes: <span class="math notranslate nohighlight">\([[n_0,m_
 
 <dl class="py method">
 <dt class="sig sig-object py" id="kan.MultKAN.MultKAN.auto_symbolic">
-<span class="sig-name descname"><span class="pre">auto_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.MultKAN.MultKAN.auto_symbolic" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">auto_symbolic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lib</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_simple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r2_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kan.MultKAN.MultKAN.auto_symbolic" title="Link to this definition"></a></dt>
 <dd><p>automatic symbolic regression for all edges</p>
 <section id="id4">
 <h4>Args:<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
@@ -387,6 +387,10 @@ With multiplication nodes: <span class="math notranslate nohighlight">\([[n_0,m_
 <dt>lib<span class="classifier">list of str</span></dt><dd><p>library of candidate symbolic functions</p>
 </dd>
 <dt>verbose<span class="classifier">int</span></dt><dd><p>larger verbosity =&gt; more verbosity</p>
+</dd>
+<dt>weight_simple<span class="classifier">float</span></dt><dd><p>a weight that prioritizies simplicity (low complexity) over performance (high r2) - set to 0.0 to ignore complexity</p>
+</dd>
+<dt>r2_threshold<span class="classifier">float</span></dt><dd><p>If r2 is below this threshold, the edge will not be fixed with any symbolic function - set to 0.0 to ignore this threshold</p>
 </dd>
 </dl>
 </div></blockquote>
