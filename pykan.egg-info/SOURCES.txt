@@ -1,14 +1,12 @@
 LICENSE
 README.md
 setup.py
-kan/KAN.py
 kan/KANLayer.py
 kan/LBFGS.py
 kan/MLP.py
 kan/MultKAN.py
 kan/Symbolic_KANLayer.py
 kan/__init__.py
-kan/ckpt.py
 kan/compiler.py
 kan/experiment.py
 kan/feynman.py
@@ -17,7 +15,6 @@ kan/spline.py
 kan/utils.py
 kan/assets/img/mult_symbol.png
 kan/assets/img/sum_symbol.png
-kan/figures/lock.png
 pykan.egg-info/PKG-INFO
 pykan.egg-info/SOURCES.txt
 pykan.egg-info/dependency_links.txt

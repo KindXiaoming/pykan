@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pykan
-Version: 0.2.4
+Version: 0.2.6
 Summary: Kolmogorov Arnold Networks
 Author: Ziming Liu
 Author-email: zmliu@mit.edu
@@ -13,61 +13,11 @@ License-File: LICENSE
 
 <img width="600" alt="kan_plot" src="https://github.com/KindXiaoming/pykan/assets/23551623/a2d2d225-b4d2-4c1e-823e-bc45c7ea96f9">
 
-# !! Major Updates on July 13, 2024
-
-* `model.train()` has been changed to `model.fit()`
-* Some other small features are changed (e.g., create_dataset has been moved to kan.utils). I have updated and checked the notebooks in `./tutorials` are runnable on CPUs, so please refer to those tutorials for updated/new functionalities. Documentation hasn't been updated yet but will be updated soon.
-
-For pypi users, this is the most recent version 0.2.1.
-
-New functionalities include (documentation later):
-* including multiplications in KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_1_Hello%2C%20MultKAN.ipynb)
-* the speed mode. Speed up your KAN using `model = model.speed()` if you never use the symbolic functionalities. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Example_2_speed_up.ipynb)
-* Compiling symbolic formulas into KANs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_3_KAN_Compiler.ipynb)
-* Feature attribution and pruning inputs. [Tutorial](https://github.com/KindXiaoming/pykan/blob/master/tutorials/Interp_4_feature_attribution.ipynb)
-
 # Kolmogorov-Arnold Networks (KANs)
 
-This is the github repo for the paper ["KAN: Kolmogorov-Arnold Networks"](https://arxiv.org/abs/2404.19756). Find the documentation [here](https://kindxiaoming.github.io/pykan/). Here's [author's note](https://github.com/KindXiaoming/pykan?tab=readme-ov-file#authors-note) responding to current hype of KANs.
+This is the github repo for the paper ["KAN: Kolmogorov-Arnold Networks"](https://arxiv.org/abs/2404.19756) and ["KAN 2.0: Kolmogorov-Arnold Networks Meet Science"](https://arxiv.org/abs/2408.10205). You may want to quickstart with [hellokan](https://github.com/KindXiaoming/pykan/blob/master/hellokan.ipynb), try more examples in [tutorials](https://github.com/KindXiaoming/pykan/tree/master/tutorials), or read the documentation [here](https://kindxiaoming.github.io/pykan/).
 
 Kolmogorov-Arnold Networks (KANs) are promising alternatives of Multi-Layer Perceptrons (MLPs). KANs have strong mathematical foundations just like MLPs: MLPs are based on the universal approximation theorem, while KANs are based on Kolmogorov-Arnold representation theorem. KANs and MLPs are dual: KANs have activation functions on edges, while MLPs have activation functions on nodes. This simple change makes KANs better (sometimes much better!) than MLPs in terms of both model **accuracy** and **interpretability**. A quick intro of KANs [here](https://kindxiaoming.github.io/pykan/intro.html).
-
-<img width="1163" alt="mlp_kan_compare" src="https://github.com/KindXiaoming/pykan/assets/23551623/695adc2d-0d0b-4e4b-bcff-db2c8070f841">
-
-## Accuracy
-**KANs have faster scaling than MLPs. KANs have better accuracy than MLPs with fewer parameters.**
-
-Please set `torch.set_default_dtype(torch.float64)` if you want high precision.
-
-**Example 1: fitting symbolic formulas**
-<img width="1824" alt="Screenshot 2024-04-30 at 10 55 30" src="https://github.com/KindXiaoming/pykan/assets/23551623/e1fc3dcc-c1f6-49d5-b58e-79ff7b98a49b">
-
-**Example 2: fitting special functions**
-<img width="1544" alt="Screenshot 2024-04-30 at 11 07 20" src="https://github.com/KindXiaoming/pykan/assets/23551623/b2124337-cabf-4e00-9690-938e84058a91">
-
-**Example 3: PDE solving**
-<img width="1665" alt="Screenshot 2024-04-30 at 10 57 25" src="https://github.com/KindXiaoming/pykan/assets/23551623/5da94412-c409-45d1-9a60-9086e11d6ccc">
-
-**Example 4: avoid catastrophic forgetting**
-<img width="1652" alt="Screenshot 2024-04-30 at 11 04 36" src="https://github.com/KindXiaoming/pykan/assets/23551623/57d81de6-7cff-4e55-b8f9-c4768ace2c77">
-
-## Interpretability
-**KANs can be intuitively visualized. KANs offer interpretability and interactivity that MLPs cannot provide. We can use KANs to potentially discover new scientific laws.**
-
-**Example 1: Symbolic formulas**
-<img width="1510" alt="Screenshot 2024-04-30 at 11 04 56" src="https://github.com/KindXiaoming/pykan/assets/23551623/3cfd1ca2-cd3e-4396-845e-ef8f3a7c55ef">
-
-**Example 2: Discovering mathematical laws of knots**
-<img width="1443" alt="Screenshot 2024-04-30 at 11 05 25" src="https://github.com/KindXiaoming/pykan/assets/23551623/80451ac2-c5fd-45b9-89a7-1637ba8145af">
-
-**Example 3: Discovering physical laws of Anderson localization**
-<img width="1295" alt="Screenshot 2024-04-30 at 11 05 53" src="https://github.com/KindXiaoming/pykan/assets/23551623/8ee507a0-d194-44a9-8837-15d7f5984301">
-
-**Example 4: Training of a three-layer KAN**
-
-![kan_training_low_res](https://github.com/KindXiaoming/pykan/assets/23551623/e9f215c7-a393-46b9-8528-c906878f015e)
-
-
 
 ## Installation
 Pykan can be installed via PyPI or directly from GitHub. 
