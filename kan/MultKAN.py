@@ -1522,6 +1522,10 @@ class MultKAN(nn.Module):
             
             if _ == steps-1 and old_save_act:
                 self.save_act = True
+                
+            if save_fig and _ % save_fig_freq == 0:
+                save_act = self.save_act
+                self.save_act = True
             
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
@@ -1579,6 +1583,7 @@ class MultKAN(nn.Module):
                 self.plot(folder=img_folder, in_vars=in_vars, out_vars=out_vars, title="Step {}".format(_), beta=beta)
                 plt.savefig(img_folder + '/' + str(_) + '.jpg', bbox_inches='tight', dpi=200)
                 plt.close()
+                self.save_act = save_act
 
         self.log_history('fit')
         # revert back to original state
