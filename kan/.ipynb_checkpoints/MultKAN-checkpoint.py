@@ -164,9 +164,13 @@ class MultKAN(nn.Module):
         self.act_fun = []
         self.depth = len(width) - 1
         
+        #print('haha1', width)
         for i in range(len(width)):
-            if type(width[i]) == int:
+            #print(type(width[i]), type(width[i]) == int)
+            if type(width[i]) == int or type(width[i]) == np.int64:
                 width[i] = [width[i],0]
+                
+        #print('haha2', width)
             
         self.width = width
         
@@ -196,7 +200,18 @@ class MultKAN(nn.Module):
         
         for l in range(self.depth):
             # splines
-            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base_mu=scale_base_mu, scale_base_sigma=scale_base_sigma, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
+            if isinstance(grid, list):
+                grid_l = grid[l]
+            else:
+                grid_l = grid
+                
+            if isinstance(k, list):
+                k_l = k[l]
+            else:
+                k_l = k
+                    
+            
+            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid_l, k=k_l, noise_scale=noise_scale, scale_base_mu=scale_base_mu, scale_base_sigma=scale_base_sigma, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
             self.act_fun.append(sp_batch)
 
         self.node_bias = []
@@ -951,14 +966,14 @@ class MultKAN(nn.Module):
         if log_history:
             self.log_history('unfix_symbolic')
 
-    def unfix_symbolic_all(self):
+    def unfix_symbolic_all(self, log_history=True):
         '''
         unfix all activation functions.
         '''
         for l in range(len(self.width) - 1):
-            for i in range(self.width[l]):
-                for j in range(self.width[l + 1]):
-                    self.unfix_symbolic(l, i, j)
+            for i in range(self.width_in[l]):
+                for j in range(self.width_out[l + 1]):
+                    self.unfix_symbolic(l, i, j, log_history)
 
     def get_range(self, l, i, j, verbose=True):
         '''
@@ -1522,6 +1537,10 @@ class MultKAN(nn.Module):
             
             if _ == steps-1 and old_save_act:
                 self.save_act = True
+                
+            if save_fig and _ % save_fig_freq == 0:
+                save_act = self.save_act
+                self.save_act = True
             
             train_id = np.random.choice(dataset['train_input'].shape[0], batch_size, replace=False)
             test_id = np.random.choice(dataset['test_input'].shape[0], batch_size_test, replace=False)
@@ -1579,6 +1598,7 @@ class MultKAN(nn.Module):
                 self.plot(folder=img_folder, in_vars=in_vars, out_vars=out_vars, title="Step {}".format(_), beta=beta)
                 plt.savefig(img_folder + '/' + str(_) + '.jpg', bbox_inches='tight', dpi=200)
                 plt.close()
+                self.save_act = save_act
 
         self.log_history('fit')
         # revert back to original state
@@ -2160,7 +2180,7 @@ class MultKAN(nn.Module):
             
         return best_name, best_fun, best_r2, best_c;
 
-    def auto_symbolic(self, a_range=(-10, 10), b_range=(-10, 10), lib=None, verbose=1):
+    def auto_symbolic(self, a_range=(-10, 10), b_range=(-10, 10), lib=None, verbose=1, weight_simple = 0.8, r2_threshold=0.0):
         '''
         automatic symbolic regression for all edges
 
@@ -2174,7 +2194,10 @@ class MultKAN(nn.Module):
                 library of candidate symbolic functions
             verbose : int
                 larger verbosity => more verbosity
-            
+            weight_simple : float
+                a weight that prioritizies simplicity (low complexity) over performance (high r2) - set to 0.0 to ignore complexity
+            r2_threshold : float
+                If r2 is below this threshold, the edge will not be fixed with any symbolic function - set to 0.0 to ignore this threshold
         Returns:
         --------
             None
@@ -2191,17 +2214,19 @@ class MultKAN(nn.Module):
         for l in range(len(self.width_in) - 1):
             for i in range(self.width_in[l]):
                 for j in range(self.width_out[l + 1]):
-                    #if self.symbolic_fun[l].mask[j, i] > 0. and self.act_fun[l].mask[i][j] == 0.:
                     if self.symbolic_fun[l].mask[j, i] > 0. and self.act_fun[l].mask[i][j] == 0.:
                         print(f'skipping ({l},{i},{j}) since already symbolic')
                     elif self.symbolic_fun[l].mask[j, i] == 0. and self.act_fun[l].mask[i][j] == 0.:
                         self.fix_symbolic(l, i, j, '0', verbose=verbose > 1, log_history=False)
                         print(f'fixing ({l},{i},{j}) with 0')
                     else:
-                        name, fun, r2, c = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False)
-                        self.fix_symbolic(l, i, j, name, verbose=verbose > 1, log_history=False)
-                        if verbose >= 1:
-                            print(f'fixing ({l},{i},{j}) with {name}, r2={r2}, c={c}')
+                        name, fun, r2, c = self.suggest_symbolic(l, i, j, a_range=a_range, b_range=b_range, lib=lib, verbose=False, weight_simple=weight_simple)
+                        if r2 >= r2_threshold:
+                            self.fix_symbolic(l, i, j, name, verbose=verbose > 1, log_history=False)
+                            if verbose >= 1:
+                                print(f'fixing ({l},{i},{j}) with {name}, r2={r2}, c={c}')
+                        else:
+                            print(f'For ({l},{i},{j}) the best fit was {name}, but r^2 = {r2} and this is lower than {r2_threshold}. This edge was omitted, keep training or try a different threshold.')
                             
         self.log_history('auto_symbolic')
 

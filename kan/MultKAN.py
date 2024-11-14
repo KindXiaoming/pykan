@@ -164,9 +164,13 @@ class MultKAN(nn.Module):
         self.act_fun = []
         self.depth = len(width) - 1
         
+        #print('haha1', width)
         for i in range(len(width)):
-            if type(width[i]) == int:
+            #print(type(width[i]), type(width[i]) == int)
+            if type(width[i]) == int or type(width[i]) == np.int64:
                 width[i] = [width[i],0]
+                
+        #print('haha2', width)
             
         self.width = width
         
@@ -196,7 +200,18 @@ class MultKAN(nn.Module):
         
         for l in range(self.depth):
             # splines
-            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid, k=k, noise_scale=noise_scale, scale_base_mu=scale_base_mu, scale_base_sigma=scale_base_sigma, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
+            if isinstance(grid, list):
+                grid_l = grid[l]
+            else:
+                grid_l = grid
+                
+            if isinstance(k, list):
+                k_l = k[l]
+            else:
+                k_l = k
+                    
+            
+            sp_batch = KANLayer(in_dim=width_in[l], out_dim=width_out[l+1], num=grid_l, k=k_l, noise_scale=noise_scale, scale_base_mu=scale_base_mu, scale_base_sigma=scale_base_sigma, scale_sp=1., base_fun=base_fun, grid_eps=grid_eps, grid_range=grid_range, sp_trainable=sp_trainable, sb_trainable=sb_trainable, sparse_init=sparse_init)
             self.act_fun.append(sp_batch)
 
         self.node_bias = []

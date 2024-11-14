@@ -1,6 +1,9 @@
 LICENSE
 README.md
 setup.py
+experiments/__init__.py
+experiments/baselines/MLP.py
+experiments/baselines/__init__.py
 kan/KANLayer.py
 kan/LBFGS.py
 kan/MLP.py

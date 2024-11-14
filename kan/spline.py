@@ -68,7 +68,7 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
     Returns:
     --------
         y_eval : 3D torch.tensor
-            shape (number of samples, in_dim, out_dim)
+            shape (batch, in_dim, out_dim)
         
     '''
     
@@ -78,16 +78,16 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
     return y_eval
 
 
-def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
+def curve2coef(x_eval, y_eval, grid, k):
     '''
     converting B-spline curves to B-spline coefficients using least squares.
     
     Args:
     -----
         x_eval : 2D torch.tensor
-            shape (in_dim, out_dim, number of samples)
-        y_eval : 2D torch.tensor
-            shape (in_dim, out_dim, number of samples)
+            shape (batch, in_dim)
+        y_eval : 3D torch.tensor
+            shape (batch, in_dim, out_dim)
         grid : 2D torch.tensor
             shape (in_dim, grid+2*k)
         k : int
@@ -100,25 +100,33 @@ def curve2coef(x_eval, y_eval, grid, k, lamb=1e-8):
         coef : 3D torch.tensor
             shape (in_dim, out_dim, G+k)
     '''
+    #print('haha', x_eval.shape, y_eval.shape, grid.shape)
     batch = x_eval.shape[0]
     in_dim = x_eval.shape[1]
     out_dim = y_eval.shape[2]
     n_coef = grid.shape[1] - k - 1
     mat = B_batch(x_eval, grid, k)
     mat = mat.permute(1,0,2)[:,None,:,:].expand(in_dim, out_dim, batch, n_coef)
+    #print('mat', mat.shape)
     y_eval = y_eval.permute(1,2,0).unsqueeze(dim=3)
+    #print('y_eval', y_eval.shape)
     device = mat.device
     
-    #coef = torch.linalg.lstsq(mat, y_eval,
-                             #driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
-        
+    #coef = torch.linalg.lstsq(mat, y_eval, driver='gelsy' if device == 'cpu' else 'gels').solution[:,:,:,0]
+    try:
+        coef = torch.linalg.lstsq(mat, y_eval).solution[:,:,:,0]
+    except:
+        print('lstsq failed')
+    
+    # manual psuedo-inverse
+    '''lamb=1e-8
     XtX = torch.einsum('ijmn,ijnp->ijmp', mat.permute(0,1,3,2), mat)
     Xty = torch.einsum('ijmn,ijnp->ijmp', mat.permute(0,1,3,2), y_eval)
     n1, n2, n = XtX.shape[0], XtX.shape[1], XtX.shape[2]
     identity = torch.eye(n,n)[None, None, :, :].expand(n1, n2, n, n).to(device)
     A = XtX + lamb * identity
     B = Xty
-    coef = (A.pinverse() @ B)[:,:,:,0]
+    coef = (A.pinverse() @ B)[:,:,:,0]'''
     
     return coef
 

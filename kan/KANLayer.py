@@ -109,7 +109,7 @@ class KANLayer(nn.Module):
         
         self.scale_base = torch.nn.Parameter(scale_base_mu * 1 / np.sqrt(in_dim) + \
                          scale_base_sigma * (torch.rand(in_dim, out_dim)*2-1) * 1/np.sqrt(in_dim)).requires_grad_(sb_trainable)
-        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * self.mask).requires_grad_(sp_trainable)  # make scale trainable
+        self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * 1 / np.sqrt(in_dim) * self.mask).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
         
@@ -197,10 +197,12 @@ class KANLayer(nn.Module):
         def get_grid(num_interval):
             ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
             grid_adaptive = x_pos[ids, :].permute(1,0)
-            h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
-            grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :].to(x.device)
+            margin = 0.00
+            h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]] + 2 * margin)/num_interval
+            grid_uniform = grid_adaptive[:,[0]] - margin + h * torch.arange(num_interval+1,)[None, :].to(x.device)
             grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
             return grid
+        
         
         grid = get_grid(num_interval)
         
@@ -210,6 +212,8 @@ class KANLayer(nn.Module):
             y_eval = coef2curve(x_pos, self.grid, self.coef, self.k)
         
         self.grid.data = extend_grid(grid, k_extend=self.k)
+        #print('x_pos 2', x_pos.shape)
+        #print('y_eval 2', y_eval.shape)
         self.coef.data = curve2coef(x_pos, y_eval, self.grid, self.k)
 
     def initialize_grid_from_parent(self, parent, x, mode='sample'):
@@ -240,16 +244,40 @@ class KANLayer(nn.Module):
         
         batch = x.shape[0]
         
+        # shrink grid
         x_pos = torch.sort(x, dim=0)[0]
         y_eval = coef2curve(x_pos, parent.grid, parent.coef, parent.k)
         num_interval = self.grid.shape[1] - 1 - 2*self.k
         
+        
+        '''
+        # based on samples
         def get_grid(num_interval):
             ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
             grid_adaptive = x_pos[ids, :].permute(1,0)
             h = (grid_adaptive[:,[-1]] - grid_adaptive[:,[0]])/num_interval
             grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :].to(x.device)
             grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
+            return grid'''
+        
+        #print('p', parent.grid)
+        # based on interpolating parent grid
+        def get_grid(num_interval):
+            x_pos = parent.grid[:,parent.k:-parent.k]
+            #print('x_pos', x_pos)
+            sp2 = KANLayer(in_dim=1, out_dim=self.in_dim,k=1,num=x_pos.shape[1]-1,scale_base_mu=0.0, scale_base_sigma=0.0).to(x.device)
+
+            #print('sp2_grid', sp2.grid[:,sp2.k:-sp2.k].permute(1,0).expand(-1,self.in_dim))
+            #print('sp2_coef_shape', sp2.coef.shape)
+            sp2_coef = curve2coef(sp2.grid[:,sp2.k:-sp2.k].permute(1,0).expand(-1,self.in_dim), x_pos.permute(1,0).unsqueeze(dim=2), sp2.grid[:,:], k=1).permute(1,0,2)
+            shp = sp2_coef.shape
+            #sp2_coef = torch.cat([torch.zeros(shp[0], shp[1], 1), sp2_coef, torch.zeros(shp[0], shp[1], 1)], dim=2)
+            #print('sp2_coef',sp2_coef)
+            #print(sp2.coef.shape)
+            sp2.coef.data = sp2_coef
+            percentile = torch.linspace(-1,1,self.num+1).to(self.device)
+            grid = sp2(percentile.unsqueeze(dim=1))[0].permute(1,0)
+            #print('c', grid)
             return grid
         
         grid = get_grid(num_interval)
