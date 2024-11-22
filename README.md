@@ -62,10 +62,12 @@ pip install git+https://github.com/KindXiaoming/pykan.git  # For GitHub installa
 # or
 pip install pykan  # For PyPI installation
 ```
+## Efficiency mode
+For many machine-learning users, when (1) you need to write the training loop yourself (instead of using model.fit()); (2) you never use the symbolic branch. It is important to call ``model.speed()`` before training! Otherwise, the symbolic branch is on, which is super slow because the symbolic branch hasn't been parallelized yet (if it can be parallelized at all)!
 
 ## Computation requirements
 
-Examples in [tutorials](tutorials) are runnable on a single CPU typically less than 10 minutes. All examples in the paper are runnable on a single CPU in less than one day. Training KANs for PDE is the most expensive and may take hours to days on a single CPU. We use CPUs to train our models because we carried out parameter sweeps (both for MLPs and KANs) to obtain Pareto Frontiers. There are thousands of small models which is why we use CPUs rather than GPUs. Admittedly, our problem scales are smaller than typical machine learning tasks, but are typical for science-related tasks. In case the scale of your task is large, it is advisable to use GPUs.
+Examples in [tutorials](tutorials) are runnable on a single CPU typically less than 10 minutes. All examples in the paper are runnable on a single CPU in less than one day. Training KANs for PDE is the most expensive and may take hours to days on a single CPU. We use CPUs to train our models because we carried out parameter sweeps (both for MLPs and KANs) to obtain Pareto Frontiers. There are thousands of small models which is why we use CPUs rather than GPUs. Admittedly, our problem scales are smaller than typical machine learning tasks but are typical for science-related tasks. In case the scale of your task is large, it is advisable to use GPUs.
 
 ## Documentation
 The documentation can be found [here](https://kindxiaoming.github.io/pykan/).
@@ -81,7 +83,7 @@ Get started with [hellokan.ipynb](./hellokan.ipynb) notebook.
 More Notebook tutorials can be found in [tutorials](tutorials).
 
 ## Advice on hyperparameter tuning
-Many intuition about MLPs and other networks may not directy transfer to KANs. So how can I tune the hyperparameters effectively? Here is my general advice based on my experience playing with the problems reported in the paper. Since these problems are relatively small-scale and science-oriented, it is likely that my advice is not suitable to your case. But I want to at least share my experience such that users can have better clues where to start and what to expect from tuning hyperparameters.
+Many intuition about MLPs and other networks may not directly transfer to KANs. So how can I tune the hyperparameters effectively? Here is my general advice based on my experience playing with the problems reported in the paper. Since these problems are relatively small-scale and science-oriented, it is likely that my advice is not suitable to your case. But I want to at least share my experience such that users can have better clues where to start and what to expect from tuning hyperparameters.
 
 * Start from a simple setup (small KAN shape, small grid size, small data, no reguralization `lamb=0`). This is very different from MLP literature, where people by default use widths of order `O(10^2)` or higher. For example, if you have a task with 5 inputs and 1 outputs, I would try something as simple as `KAN(width=[5,1,1], grid=3, k=3)`. If it doesn't work, I would gradually first increase width. If that still doesn't work, I would consider increasing depth. You don't need to be this extreme, if you have better understanding about the complexity of your task.
 
