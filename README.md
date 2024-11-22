@@ -63,7 +63,7 @@ pip install git+https://github.com/KindXiaoming/pykan.git  # For GitHub installa
 pip install pykan  # For PyPI installation
 ```
 ## Efficiency mode
-For many machine-learning users, when (1) you need to write the training loop yourself (instead of using model.fit()); (2) you never use the symbolic branch. It is important to call ``model.speed()`` before training! Otherwise, the symbolic branch is on, which is super slow because the symbolic branch hasn't been parallelized yet (if it can be parallelized at all)!
+For many machine-learning users, when (1) you need to write the training loop yourself (instead of using ``model.fit()``); (2) you never use the symbolic branch, it is important to call ``model.speed()`` before training! Otherwise, the symbolic branch is on, which is super slow because the symbolic computations are not parallelized!
 
 ## Computation requirements
 
