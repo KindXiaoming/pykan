@@ -150,8 +150,6 @@ class KANLayer(nn.Module):
         >>> y, preacts, postacts, postspline = model(x)
         >>> y.shape, preacts.shape, postacts.shape, postspline.shape
         '''
-        print('we are moving forward')
-
         batch = x.shape[0]
         # preacts = x[:,None,:].clone().expand(batch, self.out_dim, self.in_dim)
         preacts = None

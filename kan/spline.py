@@ -75,18 +75,11 @@ def B_batch_forward(x, grid, k=0, extend=True, device='cpu'):
     >>> grid = torch.linspace(-1,1,steps=11)[None, :].expand(2, 11)
     >>> B_batch(x, grid, k=3).shape
     '''
-    print('x shape before unsqueeze', x.shape)
     x = x.unsqueeze(dim=-1) # batch x T x in_dim x 1
-    print('x shape after unsqueeze', x.shape)
 
-    print('grid shape before unsqueeze', grid.shape)
     grid = grid.unsqueeze(dim=0).unsqueeze(dim=0) # 1 x 1 x in_dim x G + 2k
-    print('grid shape after unsqueeze', grid.shape)
 
     if k == 0:
-        print('x shape before base mult', x.shape)
-        print('grid shape before base mult', grid.shape)
-        print('x * grid shape', (x >= grid[:, :, :, :-1]).shape)
         value = (x >= grid[:, :, :, :-1]) * (x < grid[:, :, :, 1:])
     else:
         B_km1 = B_batch_forward(x[:,:,:,0], grid=grid[0][0], k=k - 1)
@@ -121,7 +114,6 @@ def coef2curve(x_eval, grid, coef, k, device="cpu"):
             shape (batch, seq_length, in_dim, out_dim)
 
     '''
-    print('x in coef2curve', x_eval.shape)
     b_splines = B_batch_forward(x_eval, grid, k=k)
 
     # (batch, seq_length, in_dim, G+k)
