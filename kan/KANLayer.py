@@ -367,10 +367,3 @@ class KANLayer(nn.Module):
             swap_(self.scale_base.data, i1, i2, mode=mode)
             swap_(self.scale_sp.data, i1, i2, mode=mode)
             swap_(self.mask.data, i1, i2, mode=mode)
-
-
-# testing
-model = KANLayer(in_dim=3, out_dim=5)
-x = torch.normal(0,1,size=(10,100,3)) # seq_len = 100
-y, preacts, postacts, postspline = model(x)
-print(y.shape, preacts.shape, postacts.shape, postspline.shape)
