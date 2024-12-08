@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from .spline import *
-from .utils import sparse_mask
+from kan.spline import *
+from kan.utils import sparse_mask
 
 
 class KANLayer(nn.Module):
     """
     KANLayer class
-    
+
 
     Attributes:
     -----------
@@ -44,7 +44,7 @@ class KANLayer(nn.Module):
     def __init__(self, in_dim=3, out_dim=2, num=5, k=3, noise_scale=0.5, scale_base_mu=0.0, scale_base_sigma=1.0, scale_sp=1.0, base_fun=torch.nn.SiLU(), grid_eps=0.02, grid_range=[-1, 1], sp_trainable=True, sb_trainable=True, save_plot_data = True, device='cpu', sparse_init=False):
         ''''
         initialize a KANLayer
-        
+
         Args:
         -----
             in_dim : int
@@ -77,11 +77,11 @@ class KANLayer(nn.Module):
                 device
             sparse_init : bool
                 if sparse_init = True, sparse initialization is applied.
-            
+
         Returns:
         --------
             self
-            
+
         Example
         -------
         >>> from kan.KANLayer import *
@@ -89,7 +89,7 @@ class KANLayer(nn.Module):
         >>> (model.in_dim, model.out_dim)
         '''
         super(KANLayer, self).__init__()
-        # size 
+        # size
         self.out_dim = out_dim
         self.in_dim = in_dim
         self.num = num
@@ -101,47 +101,47 @@ class KANLayer(nn.Module):
         noises = (torch.rand(self.num+1, self.in_dim, self.out_dim) - 1/2) * noise_scale / num
 
         self.coef = torch.nn.Parameter(curve2coef(self.grid[:,k:-k].permute(1,0), noises, self.grid, k))
-        
+
         if sparse_init:
             self.mask = torch.nn.Parameter(sparse_mask(in_dim, out_dim)).requires_grad_(False)
         else:
             self.mask = torch.nn.Parameter(torch.ones(in_dim, out_dim)).requires_grad_(False)
-        
+
         self.scale_base = torch.nn.Parameter(scale_base_mu * 1 / np.sqrt(in_dim) + \
                          scale_base_sigma * (torch.rand(in_dim, out_dim)*2-1) * 1/np.sqrt(in_dim)).requires_grad_(sb_trainable)
         self.scale_sp = torch.nn.Parameter(torch.ones(in_dim, out_dim) * scale_sp * 1 / np.sqrt(in_dim) * self.mask).requires_grad_(sp_trainable)  # make scale trainable
         self.base_fun = base_fun
 
-        
+
         self.grid_eps = grid_eps
-        
+
         self.to(device)
-        
+
     def to(self, device):
         super(KANLayer, self).to(device)
-        self.device = device    
+        self.device = device
         return self
 
     def forward(self, x):
         '''
         KANLayer forward given input x
-        
+
         Args:
         -----
             x : 2D torch.float
-                inputs, shape (number of samples, input dimension)
-            
+                inputs, shape (batch, sequence length, input dimension)
+
         Returns:
         --------
             y : 2D torch.float
-                outputs, shape (number of samples, output dimension)
+                outputs, shape (batch, sequence length, output dimension)
             preacts : 3D torch.float
                 fan out x into activations, shape (number of sampels, output dimension, input dimension)
-            postacts : 3D torch.float
+            postacts : 3D torch.float TODO: change this later xD
                 the outputs of activation functions with preacts as inputs
             postspline : 3D torch.float
                 the outputs of spline functions with preacts as inputs
-        
+
         Example
         -------
         >>> from kan.KANLayer import *
@@ -150,35 +150,41 @@ class KANLayer(nn.Module):
         >>> y, preacts, postacts, postspline = model(x)
         >>> y.shape, preacts.shape, postacts.shape, postspline.shape
         '''
+        print('we are moving forward')
+
         batch = x.shape[0]
-        preacts = x[:,None,:].clone().expand(batch, self.out_dim, self.in_dim)
-            
-        base = self.base_fun(x) # (batch, in_dim)
-        y = coef2curve(x_eval=x, grid=self.grid, coef=self.coef, k=self.k)
-        
-        postspline = y.clone().permute(0,2,1)
-            
-        y = self.scale_base[None,:,:] * base[:,:,None] + self.scale_sp[None,:,:] * y
-        y = self.mask[None,:,:] * y
-        
-        postacts = y.clone().permute(0,2,1)
-            
-        y = torch.sum(y, dim=1)
+        # preacts = x[:,None,:].clone().expand(batch, self.out_dim, self.in_dim)
+        preacts = None
+
+        base = self.base_fun(x) # (batch, seq, in_dim)
+        y = coef2curve(x_eval=x, grid=self.grid, coef=self.coef, k=self.k) # (batch, seq_length, in, out)
+
+        # postspline = y.clone().permute(0,2,1)
+        postspline = None
+
+        # self.scale_base, self.mask, shape (in, out)
+        y = self.scale_base[None,None,:,:] * base[:,:,:,None] + self.scale_sp[None,None,:,:] * y
+        y = self.mask[None,None,:,:] * y
+
+        # postacts = y.clone().permute(0,2,1)
+        postacts = None
+
+        y = torch.sum(y, dim=2)
         return y, preacts, postacts, postspline
 
     def update_grid_from_samples(self, x, mode='sample'):
         '''
         update grid from samples
-        
+
         Args:
         -----
             x : 2D torch.float
                 inputs, shape (number of samples, input dimension)
-            
+
         Returns:
         --------
             None
-        
+
         Example
         -------
         >>> model = KANLayer(in_dim=1, out_dim=1, num=5, k=3)
@@ -187,13 +193,13 @@ class KANLayer(nn.Module):
         >>> model.update_grid_from_samples(x)
         >>> print(model.grid.data)
         '''
-        
+
         batch = x.shape[0]
         #x = torch.einsum('ij,k->ikj', x, torch.ones(self.out_dim, ).to(self.device)).reshape(batch, self.size).permute(1, 0)
         x_pos = torch.sort(x, dim=0)[0]
         y_eval = coef2curve(x_pos, self.grid, self.coef, self.k)
         num_interval = self.grid.shape[1] - 1 - 2*self.k
-        
+
         def get_grid(num_interval):
             ids = [int(batch / num_interval * i) for i in range(num_interval)] + [-1]
             grid_adaptive = x_pos[ids, :].permute(1,0)
@@ -202,15 +208,15 @@ class KANLayer(nn.Module):
             grid_uniform = grid_adaptive[:,[0]] - margin + h * torch.arange(num_interval+1,)[None, :].to(x.device)
             grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
             return grid
-        
-        
+
+
         grid = get_grid(num_interval)
-        
+
         if mode == 'grid':
             sample_grid = get_grid(2*num_interval)
             x_pos = sample_grid.permute(1,0)
             y_eval = coef2curve(x_pos, self.grid, self.coef, self.k)
-        
+
         self.grid.data = extend_grid(grid, k_extend=self.k)
         #print('x_pos 2', x_pos.shape)
         #print('y_eval 2', y_eval.shape)
@@ -219,18 +225,18 @@ class KANLayer(nn.Module):
     def initialize_grid_from_parent(self, parent, x, mode='sample'):
         '''
         update grid from a parent KANLayer & samples
-        
+
         Args:
         -----
             parent : KANLayer
                 a parent KANLayer (whose grid is usually coarser than the current model)
             x : 2D torch.float
                 inputs, shape (number of samples, input dimension)
-            
+
         Returns:
         --------
             None
-          
+
         Example
         -------
         >>> batch = 100
@@ -241,15 +247,15 @@ class KANLayer(nn.Module):
         >>> model.initialize_grid_from_parent(parent_model, x)
         >>> print(model.grid.data)
         '''
-        
+
         batch = x.shape[0]
-        
+
         # shrink grid
         x_pos = torch.sort(x, dim=0)[0]
         y_eval = coef2curve(x_pos, parent.grid, parent.coef, parent.k)
         num_interval = self.grid.shape[1] - 1 - 2*self.k
-        
-        
+
+
         '''
         # based on samples
         def get_grid(num_interval):
@@ -259,7 +265,7 @@ class KANLayer(nn.Module):
             grid_uniform = grid_adaptive[:,[0]] + h * torch.arange(num_interval+1,)[None, :].to(x.device)
             grid = self.grid_eps * grid_uniform + (1 - self.grid_eps) * grid_adaptive
             return grid'''
-        
+
         #print('p', parent.grid)
         # based on interpolating parent grid
         def get_grid(num_interval):
@@ -279,14 +285,14 @@ class KANLayer(nn.Module):
             grid = sp2(percentile.unsqueeze(dim=1))[0].permute(1,0)
             #print('c', grid)
             return grid
-        
+
         grid = get_grid(num_interval)
-        
+
         if mode == 'grid':
             sample_grid = get_grid(2*num_interval)
             x_pos = sample_grid.permute(1,0)
             y_eval = coef2curve(x_pos, parent.grid, parent.coef, parent.k)
-        
+
         grid = extend_grid(grid, k_extend=self.k)
         self.grid.data = grid
         self.coef.data = curve2coef(x_pos, y_eval, self.grid, self.k)
@@ -294,18 +300,18 @@ class KANLayer(nn.Module):
     def get_subset(self, in_id, out_id):
         '''
         get a smaller KANLayer from a larger KANLayer (used for pruning)
-        
+
         Args:
         -----
             in_id : list
                 id of selected input neurons
             out_id : list
                 id of selected output neurons
-            
+
         Returns:
         --------
             spb : KANLayer
-            
+
         Example
         -------
         >>> kanlayer_large = KANLayer(in_dim=10, out_dim=10, num=5, k=3)
@@ -323,23 +329,23 @@ class KANLayer(nn.Module):
         spb.in_dim = len(in_id)
         spb.out_dim = len(out_id)
         return spb
-    
-    
+
+
     def swap(self, i1, i2, mode='in'):
         '''
-        swap the i1 neuron with the i2 neuron in input (if mode == 'in') or output (if mode == 'out') 
-        
+        swap the i1 neuron with the i2 neuron in input (if mode == 'in') or output (if mode == 'out')
+
         Args:
         -----
             i1 : int
             i2 : int
             mode : str
                 mode = 'in' or 'out'
-            
+
         Returns:
         --------
             None
-            
+
         Example
         -------
         >>> from kan.KANLayer import *
@@ -362,3 +368,9 @@ class KANLayer(nn.Module):
             swap_(self.scale_sp.data, i1, i2, mode=mode)
             swap_(self.mask.data, i1, i2, mode=mode)
 
+
+# testing
+model = KANLayer(in_dim=3, out_dim=5)
+x = torch.normal(0,1,size=(10,100,3)) # seq_len = 100
+y, preacts, postacts, postspline = model(x)
+print(y.shape, preacts.shape, postacts.shape, postspline.shape)
