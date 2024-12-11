@@ -46,6 +46,9 @@ setuptools==65.5.0
 sympy==1.11.1
 torch==2.2.2
 tqdm==4.66.2
+pandas==2.0.1
+seaborn
+pyyaml
 ```
 
 After activating the virtual environment, you can install specific package requirements as follows:
