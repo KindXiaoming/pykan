@@ -534,6 +534,9 @@ class MultKAN(nn.Module):
             round = model.round,
             device = str(model.device)
         )
+        
+        if dic["device"].isdigit():
+            dic["device"] = int(model.device)
 
         for i in range (model.depth):
             dic[f'symbolic.funs_name.{i}'] = model.symbolic_fun[i].funs_name
